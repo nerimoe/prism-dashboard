@@ -1958,7 +1958,7 @@ as DateTime?,
 /// @nodoc
 mixin _$AssetDefinition {
 
- String get type; String get code;@JsonKey(readValue: readDisplayName) String get displayName;@JsonKey(readValue: readIsArchived) bool get isArchived;
+ String get type; String get code;@JsonKey(readValue: readDisplayName) String get displayName; bool get stackable;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of AssetDefinition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1971,16 +1971,16 @@ $AssetDefinitionCopyWith<AssetDefinition> get copyWith => _$AssetDefinitionCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDefinition&&(identical(other.type, type) || other.type == type)&&(identical(other.code, code) || other.code == code)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDefinition&&(identical(other.type, type) || other.type == type)&&(identical(other.code, code) || other.code == code)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.stackable, stackable) || other.stackable == stackable)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,code,displayName,isArchived);
+int get hashCode => Object.hash(runtimeType,type,code,displayName,stackable,isArchived);
 
 @override
 String toString() {
-  return 'AssetDefinition(type: $type, code: $code, displayName: $displayName, isArchived: $isArchived)';
+  return 'AssetDefinition(type: $type, code: $code, displayName: $displayName, stackable: $stackable, isArchived: $isArchived)';
 }
 
 
@@ -1991,7 +1991,7 @@ abstract mixin class $AssetDefinitionCopyWith<$Res>  {
   factory $AssetDefinitionCopyWith(AssetDefinition value, $Res Function(AssetDefinition) _then) = _$AssetDefinitionCopyWithImpl;
 @useResult
 $Res call({
- String type, String code,@JsonKey(readValue: readDisplayName) String displayName,@JsonKey(readValue: readIsArchived) bool isArchived
+ String type, String code,@JsonKey(readValue: readDisplayName) String displayName, bool stackable,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -2008,12 +2008,13 @@ class _$AssetDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of AssetDefinition
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? code = null,Object? displayName = null,Object? isArchived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? code = null,Object? displayName = null,Object? stackable = null,Object? isArchived = null,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as String,stackable: null == stackable ? _self.stackable : stackable // ignore: cast_nullable_to_non_nullable
+as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -2099,10 +2100,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName,  bool stackable, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetDefinition() when $default != null:
-return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
+return $default(_that.type,_that.code,_that.displayName,_that.stackable,_that.isArchived);case _:
   return orElse();
 
 }
@@ -2120,10 +2121,10 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName,  bool stackable, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _AssetDefinition():
-return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
+return $default(_that.type,_that.code,_that.displayName,_that.stackable,_that.isArchived);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2140,10 +2141,10 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName,  bool stackable, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetDefinition() when $default != null:
-return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
+return $default(_that.type,_that.code,_that.displayName,_that.stackable,_that.isArchived);case _:
   return null;
 
 }
@@ -2155,12 +2156,13 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 @JsonSerializable()
 
 class _AssetDefinition implements AssetDefinition {
-  const _AssetDefinition({required this.type, required this.code, @JsonKey(readValue: readDisplayName) required this.displayName, @JsonKey(readValue: readIsArchived) this.isArchived = false});
+  const _AssetDefinition({required this.type, required this.code, @JsonKey(readValue: readDisplayName) required this.displayName, this.stackable = true, @JsonKey(readValue: readIsArchived) this.isArchived = false});
   factory _AssetDefinition.fromJson(Map<String, dynamic> json) => _$AssetDefinitionFromJson(json);
 
 @override final  String type;
 @override final  String code;
 @override@JsonKey(readValue: readDisplayName) final  String displayName;
+@override@JsonKey() final  bool stackable;
 @override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of AssetDefinition
@@ -2176,16 +2178,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDefinition&&(identical(other.type, type) || other.type == type)&&(identical(other.code, code) || other.code == code)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDefinition&&(identical(other.type, type) || other.type == type)&&(identical(other.code, code) || other.code == code)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.stackable, stackable) || other.stackable == stackable)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,code,displayName,isArchived);
+int get hashCode => Object.hash(runtimeType,type,code,displayName,stackable,isArchived);
 
 @override
 String toString() {
-  return 'AssetDefinition(type: $type, code: $code, displayName: $displayName, isArchived: $isArchived)';
+  return 'AssetDefinition(type: $type, code: $code, displayName: $displayName, stackable: $stackable, isArchived: $isArchived)';
 }
 
 
@@ -2196,7 +2198,7 @@ abstract mixin class _$AssetDefinitionCopyWith<$Res> implements $AssetDefinition
   factory _$AssetDefinitionCopyWith(_AssetDefinition value, $Res Function(_AssetDefinition) _then) = __$AssetDefinitionCopyWithImpl;
 @override @useResult
 $Res call({
- String type, String code,@JsonKey(readValue: readDisplayName) String displayName,@JsonKey(readValue: readIsArchived) bool isArchived
+ String type, String code,@JsonKey(readValue: readDisplayName) String displayName, bool stackable,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -2213,12 +2215,13 @@ class __$AssetDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of AssetDefinition
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? code = null,Object? displayName = null,Object? isArchived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? code = null,Object? displayName = null,Object? stackable = null,Object? isArchived = null,}) {
   return _then(_AssetDefinition(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as String,stackable: null == stackable ? _self.stackable : stackable // ignore: cast_nullable_to_non_nullable
+as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -3336,7 +3339,7 @@ as num,
 /// @nodoc
 mixin _$Present {
 
- String get id; String get name; List<AssetGrant> get grants;@JsonKey(readValue: readIsArchived) bool get isArchived;
+ String get id; String get name; List<AssetGrant> get grants; bool get oncePerPlayer;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of Present
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3349,16 +3352,16 @@ $PresentCopyWith<Present> get copyWith => _$PresentCopyWithImpl<Present>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Present&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.grants, grants)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Present&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.grants, grants)&&(identical(other.oncePerPlayer, oncePerPlayer) || other.oncePerPlayer == oncePerPlayer)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(grants),isArchived);
+int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(grants),oncePerPlayer,isArchived);
 
 @override
 String toString() {
-  return 'Present(id: $id, name: $name, grants: $grants, isArchived: $isArchived)';
+  return 'Present(id: $id, name: $name, grants: $grants, oncePerPlayer: $oncePerPlayer, isArchived: $isArchived)';
 }
 
 
@@ -3369,7 +3372,7 @@ abstract mixin class $PresentCopyWith<$Res>  {
   factory $PresentCopyWith(Present value, $Res Function(Present) _then) = _$PresentCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, List<AssetGrant> grants,@JsonKey(readValue: readIsArchived) bool isArchived
+ String id, String name, List<AssetGrant> grants, bool oncePerPlayer,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -3386,12 +3389,13 @@ class _$PresentCopyWithImpl<$Res>
 
 /// Create a copy of Present
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? grants = null,Object? isArchived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? grants = null,Object? oncePerPlayer = null,Object? isArchived = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,grants: null == grants ? _self.grants : grants // ignore: cast_nullable_to_non_nullable
-as List<AssetGrant>,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as List<AssetGrant>,oncePerPlayer: null == oncePerPlayer ? _self.oncePerPlayer : oncePerPlayer // ignore: cast_nullable_to_non_nullable
+as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -3477,10 +3481,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants,  bool oncePerPlayer, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Present() when $default != null:
-return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.grants,_that.oncePerPlayer,_that.isArchived);case _:
   return orElse();
 
 }
@@ -3498,10 +3502,10 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants,  bool oncePerPlayer, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _Present():
-return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.grants,_that.oncePerPlayer,_that.isArchived);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -3518,10 +3522,10 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<AssetGrant> grants,  bool oncePerPlayer, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _Present() when $default != null:
-return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.grants,_that.oncePerPlayer,_that.isArchived);case _:
   return null;
 
 }
@@ -3533,7 +3537,7 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 @JsonSerializable()
 
 class _Present implements Present {
-  const _Present({required this.id, required this.name, required final  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived) this.isArchived = false}): _grants = grants;
+  const _Present({required this.id, required this.name, required final  List<AssetGrant> grants, this.oncePerPlayer = false, @JsonKey(readValue: readIsArchived) this.isArchived = false}): _grants = grants;
   factory _Present.fromJson(Map<String, dynamic> json) => _$PresentFromJson(json);
 
 @override final  String id;
@@ -3545,6 +3549,7 @@ class _Present implements Present {
   return EqualUnmodifiableListView(_grants);
 }
 
+@override@JsonKey() final  bool oncePerPlayer;
 @override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of Present
@@ -3560,16 +3565,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Present&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._grants, _grants)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Present&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._grants, _grants)&&(identical(other.oncePerPlayer, oncePerPlayer) || other.oncePerPlayer == oncePerPlayer)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_grants),isArchived);
+int get hashCode => Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_grants),oncePerPlayer,isArchived);
 
 @override
 String toString() {
-  return 'Present(id: $id, name: $name, grants: $grants, isArchived: $isArchived)';
+  return 'Present(id: $id, name: $name, grants: $grants, oncePerPlayer: $oncePerPlayer, isArchived: $isArchived)';
 }
 
 
@@ -3580,7 +3585,7 @@ abstract mixin class _$PresentCopyWith<$Res> implements $PresentCopyWith<$Res> {
   factory _$PresentCopyWith(_Present value, $Res Function(_Present) _then) = __$PresentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, List<AssetGrant> grants,@JsonKey(readValue: readIsArchived) bool isArchived
+ String id, String name, List<AssetGrant> grants, bool oncePerPlayer,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -3597,12 +3602,13 @@ class __$PresentCopyWithImpl<$Res>
 
 /// Create a copy of Present
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? grants = null,Object? isArchived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? grants = null,Object? oncePerPlayer = null,Object? isArchived = null,}) {
   return _then(_Present(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,grants: null == grants ? _self._grants : grants // ignore: cast_nullable_to_non_nullable
-as List<AssetGrant>,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as List<AssetGrant>,oncePerPlayer: null == oncePerPlayer ? _self.oncePerPlayer : oncePerPlayer // ignore: cast_nullable_to_non_nullable
+as bool,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -3614,7 +3620,7 @@ as bool,
 /// @nodoc
 mixin _$RedeemCode {
 
- String get id; String get code; List<AssetGrant> get grants;@JsonKey(readValue: readUsageLimit) int get usageLimit; int get usageCount; DateTime? get expiresAt; bool get isRevoked; DateTime? get createdAt;
+ String get id; String get code; String? get presentId; DateTime? get activeAt; List<AssetGrant> get grants;@JsonKey(readValue: readUsageLimit) int get usageLimit; int get usageCount; DateTime? get expiresAt; bool get isRevoked; DateTime? get createdAt;
 /// Create a copy of RedeemCode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3627,16 +3633,16 @@ $RedeemCodeCopyWith<RedeemCode> get copyWith => _$RedeemCodeCopyWithImpl<RedeemC
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RedeemCode&&(identical(other.id, id) || other.id == id)&&(identical(other.code, code) || other.code == code)&&const DeepCollectionEquality().equals(other.grants, grants)&&(identical(other.usageLimit, usageLimit) || other.usageLimit == usageLimit)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RedeemCode&&(identical(other.id, id) || other.id == id)&&(identical(other.code, code) || other.code == code)&&(identical(other.presentId, presentId) || other.presentId == presentId)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&const DeepCollectionEquality().equals(other.grants, grants)&&(identical(other.usageLimit, usageLimit) || other.usageLimit == usageLimit)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,code,const DeepCollectionEquality().hash(grants),usageLimit,usageCount,expiresAt,isRevoked,createdAt);
+int get hashCode => Object.hash(runtimeType,id,code,presentId,activeAt,const DeepCollectionEquality().hash(grants),usageLimit,usageCount,expiresAt,isRevoked,createdAt);
 
 @override
 String toString() {
-  return 'RedeemCode(id: $id, code: $code, grants: $grants, usageLimit: $usageLimit, usageCount: $usageCount, expiresAt: $expiresAt, isRevoked: $isRevoked, createdAt: $createdAt)';
+  return 'RedeemCode(id: $id, code: $code, presentId: $presentId, activeAt: $activeAt, grants: $grants, usageLimit: $usageLimit, usageCount: $usageCount, expiresAt: $expiresAt, isRevoked: $isRevoked, createdAt: $createdAt)';
 }
 
 
@@ -3647,7 +3653,7 @@ abstract mixin class $RedeemCodeCopyWith<$Res>  {
   factory $RedeemCodeCopyWith(RedeemCode value, $Res Function(RedeemCode) _then) = _$RedeemCodeCopyWithImpl;
 @useResult
 $Res call({
- String id, String code, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
+ String id, String code, String? presentId, DateTime? activeAt, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
 });
 
 
@@ -3664,11 +3670,13 @@ class _$RedeemCodeCopyWithImpl<$Res>
 
 /// Create a copy of RedeemCode
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? code = null,Object? grants = null,Object? usageLimit = null,Object? usageCount = null,Object? expiresAt = freezed,Object? isRevoked = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? code = null,Object? presentId = freezed,Object? activeAt = freezed,Object? grants = null,Object? usageLimit = null,Object? usageCount = null,Object? expiresAt = freezed,Object? isRevoked = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
-as String,grants: null == grants ? _self.grants : grants // ignore: cast_nullable_to_non_nullable
+as String,presentId: freezed == presentId ? _self.presentId : presentId // ignore: cast_nullable_to_non_nullable
+as String?,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,grants: null == grants ? _self.grants : grants // ignore: cast_nullable_to_non_nullable
 as List<AssetGrant>,usageLimit: null == usageLimit ? _self.usageLimit : usageLimit // ignore: cast_nullable_to_non_nullable
 as int,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
 as int,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
@@ -3759,10 +3767,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  String? presentId,  DateTime? activeAt,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RedeemCode() when $default != null:
-return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
+return $default(_that.id,_that.code,_that.presentId,_that.activeAt,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
   return orElse();
 
 }
@@ -3780,10 +3788,10 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  String? presentId,  DateTime? activeAt,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _RedeemCode():
-return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
+return $default(_that.id,_that.code,_that.presentId,_that.activeAt,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -3800,10 +3808,10 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  String? presentId,  DateTime? activeAt,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _RedeemCode() when $default != null:
-return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
+return $default(_that.id,_that.code,_that.presentId,_that.activeAt,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
   return null;
 
 }
@@ -3815,11 +3823,13 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 @JsonSerializable()
 
 class _RedeemCode implements RedeemCode {
-  const _RedeemCode({required this.id, required this.code, final  List<AssetGrant> grants = const [], @JsonKey(readValue: readUsageLimit) this.usageLimit = 1, this.usageCount = 0, this.expiresAt, this.isRevoked = false, this.createdAt}): _grants = grants;
+  const _RedeemCode({required this.id, required this.code, this.presentId, this.activeAt, final  List<AssetGrant> grants = const [], @JsonKey(readValue: readUsageLimit) this.usageLimit = 1, this.usageCount = 0, this.expiresAt, this.isRevoked = false, this.createdAt}): _grants = grants;
   factory _RedeemCode.fromJson(Map<String, dynamic> json) => _$RedeemCodeFromJson(json);
 
 @override final  String id;
 @override final  String code;
+@override final  String? presentId;
+@override final  DateTime? activeAt;
  final  List<AssetGrant> _grants;
 @override@JsonKey() List<AssetGrant> get grants {
   if (_grants is EqualUnmodifiableListView) return _grants;
@@ -3846,16 +3856,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RedeemCode&&(identical(other.id, id) || other.id == id)&&(identical(other.code, code) || other.code == code)&&const DeepCollectionEquality().equals(other._grants, _grants)&&(identical(other.usageLimit, usageLimit) || other.usageLimit == usageLimit)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RedeemCode&&(identical(other.id, id) || other.id == id)&&(identical(other.code, code) || other.code == code)&&(identical(other.presentId, presentId) || other.presentId == presentId)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&const DeepCollectionEquality().equals(other._grants, _grants)&&(identical(other.usageLimit, usageLimit) || other.usageLimit == usageLimit)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,code,const DeepCollectionEquality().hash(_grants),usageLimit,usageCount,expiresAt,isRevoked,createdAt);
+int get hashCode => Object.hash(runtimeType,id,code,presentId,activeAt,const DeepCollectionEquality().hash(_grants),usageLimit,usageCount,expiresAt,isRevoked,createdAt);
 
 @override
 String toString() {
-  return 'RedeemCode(id: $id, code: $code, grants: $grants, usageLimit: $usageLimit, usageCount: $usageCount, expiresAt: $expiresAt, isRevoked: $isRevoked, createdAt: $createdAt)';
+  return 'RedeemCode(id: $id, code: $code, presentId: $presentId, activeAt: $activeAt, grants: $grants, usageLimit: $usageLimit, usageCount: $usageCount, expiresAt: $expiresAt, isRevoked: $isRevoked, createdAt: $createdAt)';
 }
 
 
@@ -3866,7 +3876,7 @@ abstract mixin class _$RedeemCodeCopyWith<$Res> implements $RedeemCodeCopyWith<$
   factory _$RedeemCodeCopyWith(_RedeemCode value, $Res Function(_RedeemCode) _then) = __$RedeemCodeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String code, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
+ String id, String code, String? presentId, DateTime? activeAt, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
 });
 
 
@@ -3883,11 +3893,13 @@ class __$RedeemCodeCopyWithImpl<$Res>
 
 /// Create a copy of RedeemCode
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? code = null,Object? grants = null,Object? usageLimit = null,Object? usageCount = null,Object? expiresAt = freezed,Object? isRevoked = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? code = null,Object? presentId = freezed,Object? activeAt = freezed,Object? grants = null,Object? usageLimit = null,Object? usageCount = null,Object? expiresAt = freezed,Object? isRevoked = null,Object? createdAt = freezed,}) {
   return _then(_RedeemCode(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
-as String,grants: null == grants ? _self._grants : grants // ignore: cast_nullable_to_non_nullable
+as String,presentId: freezed == presentId ? _self.presentId : presentId // ignore: cast_nullable_to_non_nullable
+as String?,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,grants: null == grants ? _self._grants : grants // ignore: cast_nullable_to_non_nullable
 as List<AssetGrant>,usageLimit: null == usageLimit ? _self.usageLimit : usageLimit // ignore: cast_nullable_to_non_nullable
 as int,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
 as int,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable

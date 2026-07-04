@@ -133,6 +133,7 @@ abstract class AssetDefinition with _$AssetDefinition {
     required String type,
     required String code,
     @JsonKey(readValue: readDisplayName) required String displayName,
+    @Default(true) bool stackable,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _AssetDefinition;
 
@@ -201,6 +202,7 @@ abstract class Present with _$Present {
     required String id,
     required String name,
     required List<AssetGrant> grants,
+    @Default(false) bool oncePerPlayer,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _Present;
 
@@ -213,6 +215,8 @@ abstract class RedeemCode with _$RedeemCode {
   const factory RedeemCode({
     required String id,
     required String code,
+    String? presentId,
+    DateTime? activeAt,
     @Default([]) List<AssetGrant> grants,
     @JsonKey(readValue: readUsageLimit) @Default(1) int usageLimit,
     @Default(0) int usageCount,

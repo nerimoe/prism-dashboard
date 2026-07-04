@@ -373,17 +373,21 @@ class PrismApiClient {
 
   Future<RedeemCode> createRedeemCode({
     required String code,
-    required List<Map<String, dynamic>> grants,
-    required int usageLimit,
+    String? presentId,
+    List<Map<String, dynamic>>? grants,
+    int? usageLimit,
+    int? maxUseCount,
+    String? activeAt,
     String? expiresAt,
   }) async {
     final json = await post(
       '/rpc/staff/redeem-codes',
       body: {
         'code': code,
-        'grants': grants,
-        'usageLimit': usageLimit,
-        if (expiresAt != null) 'expiresAt': expiresAt,
+        'presentId': presentId ?? '',
+        'activeAt': activeAt,
+        'expiresAt': expiresAt,
+        'maxUseCount': maxUseCount ?? usageLimit ?? 1,
       },
     );
     return RedeemCode.fromJson(
@@ -398,17 +402,23 @@ class PrismApiClient {
 
   Future<List<RedeemCode>> createRedeemCodeBatch({
     required int count,
-    required List<Map<String, dynamic>> grants,
-    required int usageLimit,
+    required String presentId,
+    String prefix = 'CDK',
+    List<Map<String, dynamic>>? grants,
+    int? usageLimit,
+    int? maxUseCount,
+    String? activeAt,
     String? expiresAt,
   }) async {
     final json = await post(
       '/rpc/staff/redeem-codes/batch',
       body: {
         'count': count,
-        'grants': grants,
-        'usageLimit': usageLimit,
-        if (expiresAt != null) 'expiresAt': expiresAt,
+        'prefix': prefix,
+        'presentId': presentId,
+        'activeAt': activeAt,
+        'expiresAt': expiresAt,
+        'maxUseCount': maxUseCount ?? usageLimit ?? 1,
       },
     );
     return listOf(json['redeemCodes'], RedeemCode.fromJson);

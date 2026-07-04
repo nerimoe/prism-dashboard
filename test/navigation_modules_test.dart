@@ -36,6 +36,27 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/asset-definitions') {
+          return http.Response(
+            '{"assetDefinitions": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/presents') {
+          return http.Response(
+            '{"presents": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/redeem-codes') {
+          return http.Response(
+            '{"redeemCodes": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -86,7 +107,8 @@ void main() {
     await tester.tap(find.text('礼包与兑换码'));
     await tester.pumpAndSettle();
     expect(find.text('资产与礼包'), findsWidgets);
-    expect(find.text('暂无资产配置数据'), findsOneWidget);
+    expect(find.text('资产定义'), findsOneWidget);
+    expect(find.text('暂无资产定义'), findsOneWidget);
 
     // 7. Navigate to 设备管理 (Wires to devices destination)
     await tester.tap(find.text('设备管理'));

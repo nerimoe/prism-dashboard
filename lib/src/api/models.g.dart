@@ -150,6 +150,7 @@ _AssetDefinition _$AssetDefinitionFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String,
       code: json['code'] as String,
       displayName: readDisplayName(json, 'displayName') as String,
+      stackable: json['stackable'] as bool? ?? true,
       isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
     );
 
@@ -158,6 +159,7 @@ Map<String, dynamic> _$AssetDefinitionToJson(_AssetDefinition instance) =>
       'type': instance.type,
       'code': instance.code,
       'displayName': instance.displayName,
+      'stackable': instance.stackable,
       'isArchived': instance.isArchived,
     };
 
@@ -238,6 +240,7 @@ _Present _$PresentFromJson(Map<String, dynamic> json) => _Present(
   grants: (json['grants'] as List<dynamic>)
       .map((e) => AssetGrant.fromJson(e as Map<String, dynamic>))
       .toList(),
+  oncePerPlayer: json['oncePerPlayer'] as bool? ?? false,
   isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
 );
 
@@ -245,12 +248,17 @@ Map<String, dynamic> _$PresentToJson(_Present instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'grants': instance.grants,
+  'oncePerPlayer': instance.oncePerPlayer,
   'isArchived': instance.isArchived,
 };
 
 _RedeemCode _$RedeemCodeFromJson(Map<String, dynamic> json) => _RedeemCode(
   id: json['id'] as String,
   code: json['code'] as String,
+  presentId: json['presentId'] as String?,
+  activeAt: json['activeAt'] == null
+      ? null
+      : DateTime.parse(json['activeAt'] as String),
   grants:
       (json['grants'] as List<dynamic>?)
           ?.map((e) => AssetGrant.fromJson(e as Map<String, dynamic>))
@@ -271,6 +279,8 @@ Map<String, dynamic> _$RedeemCodeToJson(_RedeemCode instance) =>
     <String, dynamic>{
       'id': instance.id,
       'code': instance.code,
+      'presentId': instance.presentId,
+      'activeAt': instance.activeAt?.toIso8601String(),
       'grants': instance.grants,
       'usageLimit': instance.usageLimit,
       'usageCount': instance.usageCount,

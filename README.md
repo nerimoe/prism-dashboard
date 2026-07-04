@@ -39,6 +39,7 @@ Commonly used UI blocks live in `lib/src/shared/`:
 - Dart models accept the current staff RPC view fields, including backend names such as `staffUsers`, `apiTokens`, `assetDefinitions`, `businessItems`, `pricingConfigs`, nested settings, and report `summary` payloads.
 - `ApiToken.token` is treated as a one-time secret: it can be read after creation, but it is omitted from `toJson()` and not printed by model `toString()`.
 - `PrismApiClient` exposes the staff session operations needed by the live desk: preview one timing item, checkout one timing item, preview all, checkout all, stop one timing item, list active timing items, and bulk checkout.
+- Asset, present, and redeem code APIs follow the staff RPC contract: asset definitions use `name/status`, presents own their grant rows, and redeem codes reference `presentId` with `maxUseCount` instead of carrying grant rows directly.
 
 Useful commands:
 
