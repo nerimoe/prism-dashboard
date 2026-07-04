@@ -4,8 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../context_extensions.dart';
-import '../modules/module_pages.dart';
 import '../operations/operations_screen.dart';
+import '../players/players_screen.dart';
+import '../assets/assets_screen.dart';
+import '../pricing/pricing_screen.dart';
+import '../services/services_screen.dart';
+import '../devices/devices_screen.dart';
+import '../reports/reports_screen.dart';
+import '../system/system_screen.dart';
 
 enum DashboardDestination {
   operations(Icons.sensors, '现场工作台', '现场'),
@@ -88,13 +94,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Widget _contentFor(DashboardDestination destination) {
     return switch (destination) {
       DashboardDestination.operations => const OperationsScreen(),
-      DashboardDestination.players => const PlayersModulePage(),
-      DashboardDestination.assets => const AssetsModulePage(),
-      DashboardDestination.pricing => const PricingModulePage(),
-      DashboardDestination.services => const ServicesModulePage(),
-      DashboardDestination.devices => const DevicesModulePage(),
-      DashboardDestination.reports => const ReportsModulePage(),
-      DashboardDestination.system => const SystemModulePage(),
+      DashboardDestination.players => const PlayersScreen(),
+      DashboardDestination.assets => const AssetsScreen(),
+      DashboardDestination.pricing => const PricingScreen(),
+      DashboardDestination.services => const ServicesScreen(),
+      DashboardDestination.devices => const DevicesScreen(),
+      DashboardDestination.reports => const ReportsScreen(),
+      DashboardDestination.system => const SystemScreen(),
     };
   }
 }
