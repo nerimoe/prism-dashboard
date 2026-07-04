@@ -46,10 +46,17 @@ class _StepperNumberFieldState extends State<StepperNumberField> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         if (widget.label.isNotEmpty) ...[
-          Text(widget.label, style: context.text.bodyMedium),
+          Expanded(
+            child: Text(
+              widget.label,
+              style: context.text.bodyMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           const SizedBox(width: 8),
         ],
         Container(

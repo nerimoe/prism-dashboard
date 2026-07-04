@@ -291,26 +291,32 @@ Map<String, dynamic> _$RedeemCodeToJson(_RedeemCode instance) =>
 
 _PriorityTimeRule _$PriorityTimeRuleFromJson(Map<String, dynamic> json) =>
     _PriorityTimeRule(
+      id: json['id'] as String? ?? '',
       label: json['label'] as String,
       priority: (json['priority'] as num).toInt(),
-      startTime: json['startTime'] as String,
-      endTime: json['endTime'] as String,
-      weekdays: (json['weekdays'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+      status: json['status'] as String? ?? 'active',
+      startTime: readStartTime(json, 'startTime') as String,
+      endTime: readEndTime(json, 'endTime') as String,
+      weekdays:
+          (json['weekdays'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [],
       specificDate: json['specificDate'] as String?,
       startDateTime: json['startDateTime'] as String?,
       endDateTime: json['endDateTime'] as String?,
-      unitMinutes: (json['unitMinutes'] as num).toInt(),
-      unitPrice: json['unitPrice'] as num,
-      graceMinutes: (json['graceMinutes'] as num).toInt(),
-      priceCap: json['priceCap'] as num?,
+      unitMinutes: (readUnitMinutes(json, 'unitMinutes') as num).toInt(),
+      unitPrice: readUnitPrice(json, 'unitPrice') as num,
+      graceMinutes: (readGraceMinutes(json, 'graceMinutes') as num).toInt(),
+      priceCap: readPriceCap(json, 'priceCap') as num?,
     );
 
 Map<String, dynamic> _$PriorityTimeRuleToJson(_PriorityTimeRule instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'label': instance.label,
       'priority': instance.priority,
+      'status': instance.status,
       'startTime': instance.startTime,
       'endTime': instance.endTime,
       'weekdays': instance.weekdays,
@@ -346,9 +352,10 @@ Map<String, dynamic> _$PricingConfigToJson(_PricingConfig instance) =>
     };
 
 _UnitPricing _$UnitPricingFromJson(Map<String, dynamic> json) => _UnitPricing(
-  startTime: json['startTime'] as String,
-  endTime: json['endTime'] as String,
-  price: json['price'] as num,
+  startTime: readStartTime(json, 'startTime') as String,
+  endTime: readEndTime(json, 'endTime') as String,
+  price: readTimelinePrice(json, 'price') as num,
+  label: json['label'] as String?,
 );
 
 Map<String, dynamic> _$UnitPricingToJson(_UnitPricing instance) =>
@@ -356,14 +363,18 @@ Map<String, dynamic> _$UnitPricingToJson(_UnitPricing instance) =>
       'startTime': instance.startTime,
       'endTime': instance.endTime,
       'price': instance.price,
+      'label': instance.label,
     };
 
 _PricingTimeline _$PricingTimelineFromJson(Map<String, dynamic> json) =>
     _PricingTimeline(
-      timeline: (json['timeline'] as List<dynamic>)
-          .map((e) => UnitPricing.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      pricingConfigId: json['pricingConfigId'] as String,
+      timeline:
+          (readTimelineSegments(json, 'timeline') as List<dynamic>?)
+              ?.map((e) => UnitPricing.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      pricingConfigId:
+          readPricingConfigId(json, 'pricingConfigId') as String? ?? '',
     );
 
 Map<String, dynamic> _$PricingTimelineToJson(_PricingTimeline instance) =>

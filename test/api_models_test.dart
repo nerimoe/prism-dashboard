@@ -131,6 +131,74 @@ void main() {
       expect(model.rules.first.priceCap, 50.0);
     });
 
+    test('PricingConfig parses backend priority time provider shape', () {
+      final json = {
+        'id': 'pricing-1',
+        'name': '基础计费',
+        'kind': 'time.priority',
+        'enabled': true,
+        'status': 'active',
+        'provider': {
+          'id': 'time.default',
+          'rules': [
+            {
+              'id': 'base',
+              'label': '基础',
+              'priority': 0,
+              'status': 'active',
+              'timeRange': {'start': '10:00', 'end': '22:00'},
+              'weekdays': [1, 2, 3, 4, 5, 6, 7],
+              'specificDate': '2026-07-05',
+              'pricing': {
+                'unitMinutes': 30,
+                'unitPrice': 10,
+                'roundGraceMinutes': 5,
+                'priceCap': 80,
+              },
+            },
+          ],
+        },
+      };
+
+      final model = PricingConfig.fromJson(json);
+
+      expect(model.isActive, true);
+      expect(model.isArchived, false);
+      expect(model.rules.single.id, 'base');
+      expect(model.rules.single.startTime, '10:00');
+      expect(model.rules.single.endTime, '22:00');
+      expect(model.rules.single.unitMinutes, 30);
+      expect(model.rules.single.unitPrice, 10);
+      expect(model.rules.single.graceMinutes, 5);
+    });
+
+    test('PricingTimeline parses backend timeline segments', () {
+      final json = {
+        'timeline': {
+          'providerId': 'time.default',
+          'localDate': '2026-07-05',
+          'timeZone': 'Asia/Shanghai',
+          'segments': [
+            {
+              'ruleId': 'base',
+              'label': '基础按时计费',
+              'startLabel': '10:00',
+              'endLabel': '22:00',
+              'pricing': {'unitPrice': 10},
+            },
+          ],
+        },
+      };
+
+      final model = PricingTimeline.fromJson(json);
+
+      expect(model.pricingConfigId, 'time.default');
+      expect(model.timeline.single.label, '基础按时计费');
+      expect(model.timeline.single.startTime, '10:00');
+      expect(model.timeline.single.endTime, '22:00');
+      expect(model.timeline.single.price, 10);
+    });
+
     test('BusinessItemOrder parses correctly', () {
       final json = {
         'id': 'order-1',

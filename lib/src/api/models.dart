@@ -232,18 +232,20 @@ abstract class RedeemCode with _$RedeemCode {
 @freezed
 abstract class PriorityTimeRule with _$PriorityTimeRule {
   const factory PriorityTimeRule({
+    @Default('') String id,
     required String label,
     required int priority,
-    required String startTime,
-    required String endTime,
-    required List<int> weekdays,
+    @Default('active') String status,
+    @JsonKey(readValue: readStartTime) required String startTime,
+    @JsonKey(readValue: readEndTime) required String endTime,
+    @Default([]) List<int> weekdays,
     String? specificDate,
     String? startDateTime,
     String? endDateTime,
-    required int unitMinutes,
-    required num unitPrice,
-    required int graceMinutes,
-    num? priceCap,
+    @JsonKey(readValue: readUnitMinutes) required int unitMinutes,
+    @JsonKey(readValue: readUnitPrice) required num unitPrice,
+    @JsonKey(readValue: readGraceMinutes) required int graceMinutes,
+    @JsonKey(readValue: readPriceCap) num? priceCap,
   }) = _PriorityTimeRule;
 
   factory PriorityTimeRule.fromJson(Map<String, dynamic> json) =>
@@ -268,9 +270,10 @@ abstract class PricingConfig with _$PricingConfig {
 @freezed
 abstract class UnitPricing with _$UnitPricing {
   const factory UnitPricing({
-    required String startTime,
-    required String endTime,
-    required num price,
+    @JsonKey(readValue: readStartTime) required String startTime,
+    @JsonKey(readValue: readEndTime) required String endTime,
+    @JsonKey(readValue: readTimelinePrice) required num price,
+    String? label,
   }) = _UnitPricing;
 
   factory UnitPricing.fromJson(Map<String, dynamic> json) =>
@@ -280,8 +283,12 @@ abstract class UnitPricing with _$UnitPricing {
 @freezed
 abstract class PricingTimeline with _$PricingTimeline {
   const factory PricingTimeline({
-    required List<UnitPricing> timeline,
-    required String pricingConfigId,
+    @JsonKey(readValue: readTimelineSegments)
+    @Default([])
+    List<UnitPricing> timeline,
+    @JsonKey(readValue: readPricingConfigId)
+    @Default('')
+    String pricingConfigId,
   }) = _PricingTimeline;
 
   factory PricingTimeline.fromJson(Map<String, dynamic> json) =>
@@ -484,6 +491,33 @@ Object? readUsageLimit(Map json, String key) =>
     json[key] ?? json['maxUseCount'];
 Object? readPricingRules(Map json, String key) =>
     json[key] ?? nestedValue(json, ['provider', 'rules']);
+Object? readStartTime(Map json, String key) =>
+    json[key] ??
+    json['startLabel'] ??
+    nestedValue(json, ['timeRange', 'start']);
+Object? readEndTime(Map json, String key) =>
+    json[key] ?? json['endLabel'] ?? nestedValue(json, ['timeRange', 'end']);
+Object? readUnitMinutes(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['pricing', 'unitMinutes']);
+Object? readUnitPrice(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['pricing', 'unitPrice']);
+Object? readGraceMinutes(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['pricing', 'roundGraceMinutes']);
+Object? readPriceCap(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['pricing', 'priceCap']);
+Object? readTimelinePrice(Map json, String key) =>
+    json[key] ??
+    json['amount'] ??
+    json['unitPrice'] ??
+    nestedValue(json, ['pricing', 'unitPrice']);
+Object? readTimelineSegments(Map json, String key) {
+  final explicit = json[key];
+  if (explicit is List) return explicit;
+  return nestedValue(json, ['timeline', 'segments']);
+}
+
+Object? readPricingConfigId(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['timeline', 'providerId']);
 Object? readItemId(Map json, String key) => json[key] ?? json['businessItemId'];
 Object? readItemName(Map json, String key) =>
     json[key] ?? json['businessItemName'];

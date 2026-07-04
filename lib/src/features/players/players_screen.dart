@@ -474,7 +474,7 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                     OutlinedButton(
                       onPressed: () =>
                           widget.onStatusChange(player, 'disabled'),
-                      child: const Text('设为离店'),
+                      child: const Text('停用账号'),
                     ),
                     OutlinedButton(
                       onPressed: () => widget.onStatusChange(player, 'banned'),

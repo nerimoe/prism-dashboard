@@ -21,6 +21,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   late Future<List<LivePlayer>> _future;
   String? _selectedPlayerId;
   String? _message;
+  DateTime? _loadedAt;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -76,7 +77,11 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
               onManualAdjust: _showManualAdjustNotice,
             );
             final topContent = <Widget>[
-              _OperationsHeader(players: players, onRefresh: _refresh),
+              _OperationsHeader(
+                players: players,
+                loadedAt: _loadedAt,
+                onRefresh: _refresh,
+              ),
               const SizedBox(height: 16),
               _MetricRow(players: players),
               if (_message != null) ...[
@@ -156,6 +161,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
 
   Future<List<LivePlayer>> _load() async {
     final players = await _api.listLivePlayers();
+    _loadedAt = DateTime.now();
     if (_selectedPlayerId == null && players.isNotEmpty) {
       _selectedPlayerId = players.first.playerId;
     }
@@ -271,9 +277,14 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
 }
 
 class _OperationsHeader extends StatelessWidget {
-  const _OperationsHeader({required this.players, required this.onRefresh});
+  const _OperationsHeader({
+    required this.players,
+    required this.loadedAt,
+    required this.onRefresh,
+  });
 
   final List<LivePlayer> players;
+  final DateTime? loadedAt;
   final VoidCallback onRefresh;
 
   @override
@@ -297,7 +308,7 @@ class _OperationsHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${players.length} 名玩家在场 · $sessions 项计时中 · 12:43 已刷新',
+                '${players.length} 名玩家在场 · $sessions 项计时中 · ${loadedAt == null ? '刚刚' : formatClock(loadedAt!)} 已刷新',
                 style: context.text.bodySmall?.copyWith(
                   color: context.colors.onSurfaceVariant,
                 ),
@@ -330,11 +341,27 @@ class _MetricRow extends StatelessWidget {
       0,
       (sum, player) => sum + player.sessionCount,
     );
+    final estimatedTotal = players.fold<num>(
+      0,
+      (sum, player) => sum + (player.estimatedTotal ?? 0),
+    );
+    final attentionCount = players
+        .where(
+          (player) =>
+              player.status == 'low_balance' ||
+              player.status == 'negative_balance' ||
+              player.status == 'needs_attention',
+        )
+        .length;
     final metrics = [
       _MetricBox(label: '在场玩家', value: '${players.length}'),
       _MetricBox(label: '正在计时', value: '$sessions'),
-      const _MetricBox(label: '待处理服务', value: '5'),
-      const _MetricBox(label: '异常设备', value: '1', danger: true),
+      _MetricBox(label: '当前预估', value: formatMoney(estimatedTotal)),
+      _MetricBox(
+        label: '需关注',
+        value: '$attentionCount',
+        danger: attentionCount > 0,
+      ),
     ];
     if (context.isCompact) {
       return Wrap(

@@ -3916,7 +3916,7 @@ as DateTime?,
 /// @nodoc
 mixin _$PriorityTimeRule {
 
- String get label; int get priority; String get startTime; String get endTime; List<int> get weekdays; String? get specificDate; String? get startDateTime; String? get endDateTime; int get unitMinutes; num get unitPrice; int get graceMinutes; num? get priceCap;
+ String get id; String get label; int get priority; String get status;@JsonKey(readValue: readStartTime) String get startTime;@JsonKey(readValue: readEndTime) String get endTime; List<int> get weekdays; String? get specificDate; String? get startDateTime; String? get endDateTime;@JsonKey(readValue: readUnitMinutes) int get unitMinutes;@JsonKey(readValue: readUnitPrice) num get unitPrice;@JsonKey(readValue: readGraceMinutes) int get graceMinutes;@JsonKey(readValue: readPriceCap) num? get priceCap;
 /// Create a copy of PriorityTimeRule
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3929,16 +3929,16 @@ $PriorityTimeRuleCopyWith<PriorityTimeRule> get copyWith => _$PriorityTimeRuleCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PriorityTimeRule&&(identical(other.label, label) || other.label == label)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other.weekdays, weekdays)&&(identical(other.specificDate, specificDate) || other.specificDate == specificDate)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime)&&(identical(other.endDateTime, endDateTime) || other.endDateTime == endDateTime)&&(identical(other.unitMinutes, unitMinutes) || other.unitMinutes == unitMinutes)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.graceMinutes, graceMinutes) || other.graceMinutes == graceMinutes)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PriorityTimeRule&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other.weekdays, weekdays)&&(identical(other.specificDate, specificDate) || other.specificDate == specificDate)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime)&&(identical(other.endDateTime, endDateTime) || other.endDateTime == endDateTime)&&(identical(other.unitMinutes, unitMinutes) || other.unitMinutes == unitMinutes)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.graceMinutes, graceMinutes) || other.graceMinutes == graceMinutes)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,label,priority,startTime,endTime,const DeepCollectionEquality().hash(weekdays),specificDate,startDateTime,endDateTime,unitMinutes,unitPrice,graceMinutes,priceCap);
+int get hashCode => Object.hash(runtimeType,id,label,priority,status,startTime,endTime,const DeepCollectionEquality().hash(weekdays),specificDate,startDateTime,endDateTime,unitMinutes,unitPrice,graceMinutes,priceCap);
 
 @override
 String toString() {
-  return 'PriorityTimeRule(label: $label, priority: $priority, startTime: $startTime, endTime: $endTime, weekdays: $weekdays, specificDate: $specificDate, startDateTime: $startDateTime, endDateTime: $endDateTime, unitMinutes: $unitMinutes, unitPrice: $unitPrice, graceMinutes: $graceMinutes, priceCap: $priceCap)';
+  return 'PriorityTimeRule(id: $id, label: $label, priority: $priority, status: $status, startTime: $startTime, endTime: $endTime, weekdays: $weekdays, specificDate: $specificDate, startDateTime: $startDateTime, endDateTime: $endDateTime, unitMinutes: $unitMinutes, unitPrice: $unitPrice, graceMinutes: $graceMinutes, priceCap: $priceCap)';
 }
 
 
@@ -3949,7 +3949,7 @@ abstract mixin class $PriorityTimeRuleCopyWith<$Res>  {
   factory $PriorityTimeRuleCopyWith(PriorityTimeRule value, $Res Function(PriorityTimeRule) _then) = _$PriorityTimeRuleCopyWithImpl;
 @useResult
 $Res call({
- String label, int priority, String startTime, String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime, int unitMinutes, num unitPrice, int graceMinutes, num? priceCap
+ String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
 });
 
 
@@ -3966,11 +3966,13 @@ class _$PriorityTimeRuleCopyWithImpl<$Res>
 
 /// Create a copy of PriorityTimeRule
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? priority = null,Object? startTime = null,Object? endTime = null,Object? weekdays = null,Object? specificDate = freezed,Object? startDateTime = freezed,Object? endDateTime = freezed,Object? unitMinutes = null,Object? unitPrice = null,Object? graceMinutes = null,Object? priceCap = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? priority = null,Object? status = null,Object? startTime = null,Object? endTime = null,Object? weekdays = null,Object? specificDate = freezed,Object? startDateTime = freezed,Object? endDateTime = freezed,Object? unitMinutes = null,Object? unitPrice = null,Object? graceMinutes = null,Object? priceCap = freezed,}) {
   return _then(_self.copyWith(
-label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
-as int,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as String,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as String,weekdays: null == weekdays ? _self.weekdays : weekdays // ignore: cast_nullable_to_non_nullable
 as List<int>,specificDate: freezed == specificDate ? _self.specificDate : specificDate // ignore: cast_nullable_to_non_nullable
@@ -4065,10 +4067,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String label,  int priority,  String startTime,  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime,  int unitMinutes,  num unitPrice,  int graceMinutes,  num? priceCap)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule() when $default != null:
-return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
+return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
   return orElse();
 
 }
@@ -4086,10 +4088,10 @@ return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.w
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String label,  int priority,  String startTime,  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime,  int unitMinutes,  num unitPrice,  int graceMinutes,  num? priceCap)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)  $default,) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule():
-return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
+return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -4106,10 +4108,10 @@ return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.w
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String label,  int priority,  String startTime,  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime,  int unitMinutes,  num unitPrice,  int graceMinutes,  num? priceCap)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule() when $default != null:
-return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
+return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
   return null;
 
 }
@@ -4121,15 +4123,17 @@ return $default(_that.label,_that.priority,_that.startTime,_that.endTime,_that.w
 @JsonSerializable()
 
 class _PriorityTimeRule implements PriorityTimeRule {
-  const _PriorityTimeRule({required this.label, required this.priority, required this.startTime, required this.endTime, required final  List<int> weekdays, this.specificDate, this.startDateTime, this.endDateTime, required this.unitMinutes, required this.unitPrice, required this.graceMinutes, this.priceCap}): _weekdays = weekdays;
+  const _PriorityTimeRule({this.id = '', required this.label, required this.priority, this.status = 'active', @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, final  List<int> weekdays = const [], this.specificDate, this.startDateTime, this.endDateTime, @JsonKey(readValue: readUnitMinutes) required this.unitMinutes, @JsonKey(readValue: readUnitPrice) required this.unitPrice, @JsonKey(readValue: readGraceMinutes) required this.graceMinutes, @JsonKey(readValue: readPriceCap) this.priceCap}): _weekdays = weekdays;
   factory _PriorityTimeRule.fromJson(Map<String, dynamic> json) => _$PriorityTimeRuleFromJson(json);
 
+@override@JsonKey() final  String id;
 @override final  String label;
 @override final  int priority;
-@override final  String startTime;
-@override final  String endTime;
+@override@JsonKey() final  String status;
+@override@JsonKey(readValue: readStartTime) final  String startTime;
+@override@JsonKey(readValue: readEndTime) final  String endTime;
  final  List<int> _weekdays;
-@override List<int> get weekdays {
+@override@JsonKey() List<int> get weekdays {
   if (_weekdays is EqualUnmodifiableListView) return _weekdays;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_weekdays);
@@ -4138,10 +4142,10 @@ class _PriorityTimeRule implements PriorityTimeRule {
 @override final  String? specificDate;
 @override final  String? startDateTime;
 @override final  String? endDateTime;
-@override final  int unitMinutes;
-@override final  num unitPrice;
-@override final  int graceMinutes;
-@override final  num? priceCap;
+@override@JsonKey(readValue: readUnitMinutes) final  int unitMinutes;
+@override@JsonKey(readValue: readUnitPrice) final  num unitPrice;
+@override@JsonKey(readValue: readGraceMinutes) final  int graceMinutes;
+@override@JsonKey(readValue: readPriceCap) final  num? priceCap;
 
 /// Create a copy of PriorityTimeRule
 /// with the given fields replaced by the non-null parameter values.
@@ -4156,16 +4160,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PriorityTimeRule&&(identical(other.label, label) || other.label == label)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other._weekdays, _weekdays)&&(identical(other.specificDate, specificDate) || other.specificDate == specificDate)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime)&&(identical(other.endDateTime, endDateTime) || other.endDateTime == endDateTime)&&(identical(other.unitMinutes, unitMinutes) || other.unitMinutes == unitMinutes)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.graceMinutes, graceMinutes) || other.graceMinutes == graceMinutes)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PriorityTimeRule&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&const DeepCollectionEquality().equals(other._weekdays, _weekdays)&&(identical(other.specificDate, specificDate) || other.specificDate == specificDate)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime)&&(identical(other.endDateTime, endDateTime) || other.endDateTime == endDateTime)&&(identical(other.unitMinutes, unitMinutes) || other.unitMinutes == unitMinutes)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.graceMinutes, graceMinutes) || other.graceMinutes == graceMinutes)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,label,priority,startTime,endTime,const DeepCollectionEquality().hash(_weekdays),specificDate,startDateTime,endDateTime,unitMinutes,unitPrice,graceMinutes,priceCap);
+int get hashCode => Object.hash(runtimeType,id,label,priority,status,startTime,endTime,const DeepCollectionEquality().hash(_weekdays),specificDate,startDateTime,endDateTime,unitMinutes,unitPrice,graceMinutes,priceCap);
 
 @override
 String toString() {
-  return 'PriorityTimeRule(label: $label, priority: $priority, startTime: $startTime, endTime: $endTime, weekdays: $weekdays, specificDate: $specificDate, startDateTime: $startDateTime, endDateTime: $endDateTime, unitMinutes: $unitMinutes, unitPrice: $unitPrice, graceMinutes: $graceMinutes, priceCap: $priceCap)';
+  return 'PriorityTimeRule(id: $id, label: $label, priority: $priority, status: $status, startTime: $startTime, endTime: $endTime, weekdays: $weekdays, specificDate: $specificDate, startDateTime: $startDateTime, endDateTime: $endDateTime, unitMinutes: $unitMinutes, unitPrice: $unitPrice, graceMinutes: $graceMinutes, priceCap: $priceCap)';
 }
 
 
@@ -4176,7 +4180,7 @@ abstract mixin class _$PriorityTimeRuleCopyWith<$Res> implements $PriorityTimeRu
   factory _$PriorityTimeRuleCopyWith(_PriorityTimeRule value, $Res Function(_PriorityTimeRule) _then) = __$PriorityTimeRuleCopyWithImpl;
 @override @useResult
 $Res call({
- String label, int priority, String startTime, String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime, int unitMinutes, num unitPrice, int graceMinutes, num? priceCap
+ String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
 });
 
 
@@ -4193,11 +4197,13 @@ class __$PriorityTimeRuleCopyWithImpl<$Res>
 
 /// Create a copy of PriorityTimeRule
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? label = null,Object? priority = null,Object? startTime = null,Object? endTime = null,Object? weekdays = null,Object? specificDate = freezed,Object? startDateTime = freezed,Object? endDateTime = freezed,Object? unitMinutes = null,Object? unitPrice = null,Object? graceMinutes = null,Object? priceCap = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? priority = null,Object? status = null,Object? startTime = null,Object? endTime = null,Object? weekdays = null,Object? specificDate = freezed,Object? startDateTime = freezed,Object? endDateTime = freezed,Object? unitMinutes = null,Object? unitPrice = null,Object? graceMinutes = null,Object? priceCap = freezed,}) {
   return _then(_PriorityTimeRule(
-label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
-as int,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as String,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as String,weekdays: null == weekdays ? _self._weekdays : weekdays // ignore: cast_nullable_to_non_nullable
 as List<int>,specificDate: freezed == specificDate ? _self.specificDate : specificDate // ignore: cast_nullable_to_non_nullable
@@ -4502,7 +4508,7 @@ as bool,
 /// @nodoc
 mixin _$UnitPricing {
 
- String get startTime; String get endTime; num get price;
+@JsonKey(readValue: readStartTime) String get startTime;@JsonKey(readValue: readEndTime) String get endTime;@JsonKey(readValue: readTimelinePrice) num get price; String? get label;
 /// Create a copy of UnitPricing
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4515,16 +4521,16 @@ $UnitPricingCopyWith<UnitPricing> get copyWith => _$UnitPricingCopyWithImpl<Unit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnitPricing&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.price, price) || other.price == price));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnitPricing&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.price, price) || other.price == price)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startTime,endTime,price);
+int get hashCode => Object.hash(runtimeType,startTime,endTime,price,label);
 
 @override
 String toString() {
-  return 'UnitPricing(startTime: $startTime, endTime: $endTime, price: $price)';
+  return 'UnitPricing(startTime: $startTime, endTime: $endTime, price: $price, label: $label)';
 }
 
 
@@ -4535,7 +4541,7 @@ abstract mixin class $UnitPricingCopyWith<$Res>  {
   factory $UnitPricingCopyWith(UnitPricing value, $Res Function(UnitPricing) _then) = _$UnitPricingCopyWithImpl;
 @useResult
 $Res call({
- String startTime, String endTime, num price
+@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime,@JsonKey(readValue: readTimelinePrice) num price, String? label
 });
 
 
@@ -4552,12 +4558,13 @@ class _$UnitPricingCopyWithImpl<$Res>
 
 /// Create a copy of UnitPricing
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? startTime = null,Object? endTime = null,Object? price = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? startTime = null,Object? endTime = null,Object? price = null,Object? label = freezed,}) {
   return _then(_self.copyWith(
 startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as String,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as num,
+as num,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -4642,10 +4649,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String startTime,  String endTime,  num price)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime, @JsonKey(readValue: readTimelinePrice)  num price,  String? label)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UnitPricing() when $default != null:
-return $default(_that.startTime,_that.endTime,_that.price);case _:
+return $default(_that.startTime,_that.endTime,_that.price,_that.label);case _:
   return orElse();
 
 }
@@ -4663,10 +4670,10 @@ return $default(_that.startTime,_that.endTime,_that.price);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String startTime,  String endTime,  num price)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime, @JsonKey(readValue: readTimelinePrice)  num price,  String? label)  $default,) {final _that = this;
 switch (_that) {
 case _UnitPricing():
-return $default(_that.startTime,_that.endTime,_that.price);case _:
+return $default(_that.startTime,_that.endTime,_that.price,_that.label);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -4683,10 +4690,10 @@ return $default(_that.startTime,_that.endTime,_that.price);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String startTime,  String endTime,  num price)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime, @JsonKey(readValue: readTimelinePrice)  num price,  String? label)?  $default,) {final _that = this;
 switch (_that) {
 case _UnitPricing() when $default != null:
-return $default(_that.startTime,_that.endTime,_that.price);case _:
+return $default(_that.startTime,_that.endTime,_that.price,_that.label);case _:
   return null;
 
 }
@@ -4698,12 +4705,13 @@ return $default(_that.startTime,_that.endTime,_that.price);case _:
 @JsonSerializable()
 
 class _UnitPricing implements UnitPricing {
-  const _UnitPricing({required this.startTime, required this.endTime, required this.price});
+  const _UnitPricing({@JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, @JsonKey(readValue: readTimelinePrice) required this.price, this.label});
   factory _UnitPricing.fromJson(Map<String, dynamic> json) => _$UnitPricingFromJson(json);
 
-@override final  String startTime;
-@override final  String endTime;
-@override final  num price;
+@override@JsonKey(readValue: readStartTime) final  String startTime;
+@override@JsonKey(readValue: readEndTime) final  String endTime;
+@override@JsonKey(readValue: readTimelinePrice) final  num price;
+@override final  String? label;
 
 /// Create a copy of UnitPricing
 /// with the given fields replaced by the non-null parameter values.
@@ -4718,16 +4726,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnitPricing&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.price, price) || other.price == price));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnitPricing&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.price, price) || other.price == price)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,startTime,endTime,price);
+int get hashCode => Object.hash(runtimeType,startTime,endTime,price,label);
 
 @override
 String toString() {
-  return 'UnitPricing(startTime: $startTime, endTime: $endTime, price: $price)';
+  return 'UnitPricing(startTime: $startTime, endTime: $endTime, price: $price, label: $label)';
 }
 
 
@@ -4738,7 +4746,7 @@ abstract mixin class _$UnitPricingCopyWith<$Res> implements $UnitPricingCopyWith
   factory _$UnitPricingCopyWith(_UnitPricing value, $Res Function(_UnitPricing) _then) = __$UnitPricingCopyWithImpl;
 @override @useResult
 $Res call({
- String startTime, String endTime, num price
+@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime,@JsonKey(readValue: readTimelinePrice) num price, String? label
 });
 
 
@@ -4755,12 +4763,13 @@ class __$UnitPricingCopyWithImpl<$Res>
 
 /// Create a copy of UnitPricing
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? startTime = null,Object? endTime = null,Object? price = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? startTime = null,Object? endTime = null,Object? price = null,Object? label = freezed,}) {
   return _then(_UnitPricing(
 startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as String,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as num,
+as num,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -4771,7 +4780,7 @@ as num,
 /// @nodoc
 mixin _$PricingTimeline {
 
- List<UnitPricing> get timeline; String get pricingConfigId;
+@JsonKey(readValue: readTimelineSegments) List<UnitPricing> get timeline;@JsonKey(readValue: readPricingConfigId) String get pricingConfigId;
 /// Create a copy of PricingTimeline
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4804,7 +4813,7 @@ abstract mixin class $PricingTimelineCopyWith<$Res>  {
   factory $PricingTimelineCopyWith(PricingTimeline value, $Res Function(PricingTimeline) _then) = _$PricingTimelineCopyWithImpl;
 @useResult
 $Res call({
- List<UnitPricing> timeline, String pricingConfigId
+@JsonKey(readValue: readTimelineSegments) List<UnitPricing> timeline,@JsonKey(readValue: readPricingConfigId) String pricingConfigId
 });
 
 
@@ -4910,7 +4919,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<UnitPricing> timeline,  String pricingConfigId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readTimelineSegments)  List<UnitPricing> timeline, @JsonKey(readValue: readPricingConfigId)  String pricingConfigId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PricingTimeline() when $default != null:
 return $default(_that.timeline,_that.pricingConfigId);case _:
@@ -4931,7 +4940,7 @@ return $default(_that.timeline,_that.pricingConfigId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<UnitPricing> timeline,  String pricingConfigId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readTimelineSegments)  List<UnitPricing> timeline, @JsonKey(readValue: readPricingConfigId)  String pricingConfigId)  $default,) {final _that = this;
 switch (_that) {
 case _PricingTimeline():
 return $default(_that.timeline,_that.pricingConfigId);case _:
@@ -4951,7 +4960,7 @@ return $default(_that.timeline,_that.pricingConfigId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<UnitPricing> timeline,  String pricingConfigId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readTimelineSegments)  List<UnitPricing> timeline, @JsonKey(readValue: readPricingConfigId)  String pricingConfigId)?  $default,) {final _that = this;
 switch (_that) {
 case _PricingTimeline() when $default != null:
 return $default(_that.timeline,_that.pricingConfigId);case _:
@@ -4966,17 +4975,17 @@ return $default(_that.timeline,_that.pricingConfigId);case _:
 @JsonSerializable()
 
 class _PricingTimeline implements PricingTimeline {
-  const _PricingTimeline({required final  List<UnitPricing> timeline, required this.pricingConfigId}): _timeline = timeline;
+  const _PricingTimeline({@JsonKey(readValue: readTimelineSegments) final  List<UnitPricing> timeline = const [], @JsonKey(readValue: readPricingConfigId) this.pricingConfigId = ''}): _timeline = timeline;
   factory _PricingTimeline.fromJson(Map<String, dynamic> json) => _$PricingTimelineFromJson(json);
 
  final  List<UnitPricing> _timeline;
-@override List<UnitPricing> get timeline {
+@override@JsonKey(readValue: readTimelineSegments) List<UnitPricing> get timeline {
   if (_timeline is EqualUnmodifiableListView) return _timeline;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_timeline);
 }
 
-@override final  String pricingConfigId;
+@override@JsonKey(readValue: readPricingConfigId) final  String pricingConfigId;
 
 /// Create a copy of PricingTimeline
 /// with the given fields replaced by the non-null parameter values.
@@ -5011,7 +5020,7 @@ abstract mixin class _$PricingTimelineCopyWith<$Res> implements $PricingTimeline
   factory _$PricingTimelineCopyWith(_PricingTimeline value, $Res Function(_PricingTimeline) _then) = __$PricingTimelineCopyWithImpl;
 @override @useResult
 $Res call({
- List<UnitPricing> timeline, String pricingConfigId
+@JsonKey(readValue: readTimelineSegments) List<UnitPricing> timeline,@JsonKey(readValue: readPricingConfigId) String pricingConfigId
 });
 
 

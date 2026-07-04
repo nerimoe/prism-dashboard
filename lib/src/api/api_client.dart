@@ -600,17 +600,16 @@ class PrismApiClient {
 
   Future<PricingConfig> updatePricingConfig(
     String pricingConfigId, {
-    String? name,
-    List<Map<String, dynamic>>? rules,
-    bool? isActive,
+    required String name,
+    required List<Map<String, dynamic>> rules,
+    required bool isActive,
   }) async {
     final json = await patch(
       '/rpc/staff/pricing-configs/$pricingConfigId',
       body: {
-        if (name != null) 'name': name,
-        if (rules != null)
-          'provider': _pricingProvider(kind: 'time.priority', rules: rules),
-        if (isActive != null) 'enabled': isActive,
+        'name': name,
+        'enabled': isActive,
+        'provider': _pricingProvider(kind: 'time.priority', rules: rules),
       },
     );
     final config = (json['pricingConfig'] ?? json['config']) as Map;
@@ -778,6 +777,36 @@ class PrismApiClient {
     required String kind,
     required List<Map<String, dynamic>> rules,
   }) {
-    return {'type': kind, 'rules': rules};
+    return {
+      'id': kind == 'time.priority' ? 'time.default' : kind,
+      'rules': rules.map(_pricingRuleBody).toList(),
+    };
+  }
+
+  Map<String, dynamic> _pricingRuleBody(Map<String, dynamic> rule) {
+    if (rule.containsKey('timeRange') && rule.containsKey('pricing')) {
+      return rule;
+    }
+    return {
+      'id': rule['id'] ?? rule['label'] ?? 'rule',
+      'label': rule['label'] ?? '计费规则',
+      'priority': rule['priority'] ?? 0,
+      'status': rule['status'] ?? 'active',
+      'timeRange': {
+        'start': rule['startTime'] ?? '00:00',
+        'end': rule['endTime'] ?? '00:00',
+      },
+      if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
+      if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
+      if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
+      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
+      'pricing': {
+        'unitMinutes': rule['unitMinutes'] ?? 30,
+        'unitPrice': rule['unitPrice'] ?? 0,
+        'roundGraceMinutes':
+            rule['graceMinutes'] ?? rule['roundGraceMinutes'] ?? 0,
+        if (rule['priceCap'] != null) 'priceCap': rule['priceCap'],
+      },
+    };
   }
 }
