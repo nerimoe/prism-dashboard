@@ -5,6 +5,7 @@
 The UI is built around store operations rather than backend table shapes:
 
 - Live operations are player-first. A player appears once, and their active sessions are flat details below the selected player.
+- Player presence is derived from running timing items. An account can be usable, disabled, or banned; "在场/离店" is shown separately from that account status.
 - Staff-facing copy avoids backend terms: sessions are shown as `计时项` or `费用` in the UI.
 - The player preview shows stay duration, current estimated total, wallet balance, and per-session impact.
 - The live desk matches the approved `player-first-session-detail-v9.html` shell: 230px grouped text sidebar, compact four-metric strip, player table on the left, and the selected player's bill table on the right.

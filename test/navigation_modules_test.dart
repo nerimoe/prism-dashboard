@@ -29,6 +29,13 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/players') {
+          return http.Response(
+            '{"players": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -71,7 +78,8 @@ void main() {
     // 5. Navigate to 玩家档案
     await tester.tap(find.text('玩家档案'));
     await tester.pumpAndSettle();
-    expect(find.text('暂未选中玩家'), findsOneWidget); // EmptyState in PlayersScreen
+    expect(find.text('玩家列表'), findsOneWidget);
+    expect(find.text('还没有玩家档案。'), findsOneWidget);
     expect(find.text('新建玩家'), findsNothing); // Removed old _ActionTile
 
     // 6. Navigate to 礼包与兑换码 (Wires to assets destination)

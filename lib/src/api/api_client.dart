@@ -338,9 +338,13 @@ class PrismApiClient {
       '/rpc/staff/players/$playerId/assets/adjustments',
       body: {
         'adjustments': [
-          {'assetType': assetType, 'assetCode': assetCode, 'amount': amount},
+          {
+            'assetType': assetType,
+            'assetCode': assetCode,
+            'quantityDelta': amount,
+            'reason': reason,
+          },
         ],
-        'reason': reason,
       },
     );
   }

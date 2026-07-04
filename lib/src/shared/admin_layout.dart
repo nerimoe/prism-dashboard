@@ -105,15 +105,22 @@ class AdminSplitPane extends StatelessWidget {
       return list;
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(flex: 3, child: list),
-        if (detail != null) ...[
-          const SizedBox(width: 16),
-          Expanded(flex: 2, child: detail!),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisAlignment = constraints.maxHeight.isFinite
+            ? CrossAxisAlignment.stretch
+            : CrossAxisAlignment.start;
+        return Row(
+          crossAxisAlignment: crossAxisAlignment,
+          children: [
+            Expanded(flex: 3, child: list),
+            if (detail != null) ...[
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: detail!),
+            ],
+          ],
+        );
+      },
     );
   }
 }

@@ -62,12 +62,13 @@ Map<String, dynamic> _$LivePlayerToJson(_LivePlayer instance) =>
     };
 
 _LiveSession _$LiveSessionFromJson(Map<String, dynamic> json) => _LiveSession(
-  id: json['id'] as String,
+  id: readSessionId(json, 'id') as String,
   label: json['label'] as String?,
   startedAt: DateTime.parse(json['startedAt'] as String),
-  elapsedMinutes: (json['elapsedMinutes'] as num).toInt(),
-  currentImpact: json['currentImpact'] as num?,
-  status: json['status'] as String,
+  elapsedMinutes:
+      (readElapsedMinutes(json, 'elapsedMinutes') as num?)?.toInt() ?? 0,
+  currentImpact: readCurrentImpact(json, 'currentImpact') as num?,
+  status: json['status'] as String? ?? 'closed',
 );
 
 Map<String, dynamic> _$LiveSessionToJson(_LiveSession instance) =>
@@ -127,6 +128,7 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   displayName: json['displayName'] as String,
   status: json['status'] as String,
   walletTotal: json['walletTotal'] as num? ?? 0,
+  activeSessionId: json['activeSessionId'] as String?,
   stayDurationMinutes: (json['stayDurationMinutes'] as num?)?.toInt() ?? 0,
   createdAt: json['createdAt'] == null
       ? null
@@ -138,6 +140,7 @@ Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
   'displayName': instance.displayName,
   'status': instance.status,
   'walletTotal': instance.walletTotal,
+  'activeSessionId': instance.activeSessionId,
   'stayDurationMinutes': instance.stayDurationMinutes,
   'createdAt': instance.createdAt?.toIso8601String(),
 };
@@ -162,6 +165,7 @@ _AssetHolding _$AssetHoldingFromJson(Map<String, dynamic> json) =>
     _AssetHolding(
       assetType: json['assetType'] as String,
       assetCode: json['assetCode'] as String,
+      assetName: json['assetName'] as String?,
       amount: readAmount(json, 'amount') as num,
     );
 
@@ -169,6 +173,7 @@ Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
     <String, dynamic>{
       'assetType': instance.assetType,
       'assetCode': instance.assetCode,
+      'assetName': instance.assetName,
       'amount': instance.amount,
     };
 
@@ -177,6 +182,7 @@ _AssetLedgerEntry _$AssetLedgerEntryFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String? ?? '',
       assetType: json['assetType'] as String,
       assetCode: json['assetCode'] as String,
+      assetName: json['assetName'] as String?,
       amount: readAmount(json, 'amount') as num,
       direction: readDirection(json, 'direction') as String,
       reason: json['reason'] as String,
@@ -188,6 +194,7 @@ Map<String, dynamic> _$AssetLedgerEntryToJson(_AssetLedgerEntry instance) =>
       'id': instance.id,
       'assetType': instance.assetType,
       'assetCode': instance.assetCode,
+      'assetName': instance.assetName,
       'amount': instance.amount,
       'direction': instance.direction,
       'reason': instance.reason,

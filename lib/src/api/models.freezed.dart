@@ -837,7 +837,7 @@ as List<LiveSession>,
 /// @nodoc
 mixin _$LiveSession {
 
- String get id; String? get label; DateTime get startedAt; int get elapsedMinutes; num? get currentImpact; String get status;
+@JsonKey(readValue: readSessionId) String get id; String? get label; DateTime get startedAt;@JsonKey(readValue: readElapsedMinutes) int get elapsedMinutes;@JsonKey(readValue: readCurrentImpact) num? get currentImpact; String get status;
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -870,7 +870,7 @@ abstract mixin class $LiveSessionCopyWith<$Res>  {
   factory $LiveSessionCopyWith(LiveSession value, $Res Function(LiveSession) _then) = _$LiveSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, String? label, DateTime startedAt, int elapsedMinutes, num? currentImpact, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, String status
 });
 
 
@@ -980,7 +980,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime startedAt,  int elapsedMinutes,  num? currentImpact,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
 return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.status);case _:
@@ -1001,7 +1001,7 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime startedAt,  int elapsedMinutes,  num? currentImpact,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  String status)  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession():
 return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.status);case _:
@@ -1021,7 +1021,7 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  DateTime startedAt,  int elapsedMinutes,  num? currentImpact,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  String status)?  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
 return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.status);case _:
@@ -1036,15 +1036,15 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 @JsonSerializable()
 
 class _LiveSession extends LiveSession {
-  const _LiveSession({required this.id, this.label, required this.startedAt, required this.elapsedMinutes, this.currentImpact, required this.status}): super._();
+  const _LiveSession({@JsonKey(readValue: readSessionId) required this.id, this.label, required this.startedAt, @JsonKey(readValue: readElapsedMinutes) this.elapsedMinutes = 0, @JsonKey(readValue: readCurrentImpact) this.currentImpact, this.status = 'closed'}): super._();
   factory _LiveSession.fromJson(Map<String, dynamic> json) => _$LiveSessionFromJson(json);
 
-@override final  String id;
+@override@JsonKey(readValue: readSessionId) final  String id;
 @override final  String? label;
 @override final  DateTime startedAt;
-@override final  int elapsedMinutes;
-@override final  num? currentImpact;
-@override final  String status;
+@override@JsonKey(readValue: readElapsedMinutes) final  int elapsedMinutes;
+@override@JsonKey(readValue: readCurrentImpact) final  num? currentImpact;
+@override@JsonKey() final  String status;
 
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
@@ -1079,7 +1079,7 @@ abstract mixin class _$LiveSessionCopyWith<$Res> implements $LiveSessionCopyWith
   factory _$LiveSessionCopyWith(_LiveSession value, $Res Function(_LiveSession) _then) = __$LiveSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? label, DateTime startedAt, int elapsedMinutes, num? currentImpact, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, String status
 });
 
 
@@ -1677,7 +1677,7 @@ as num,
 /// @nodoc
 mixin _$Player {
 
- String get id; String get displayName; String get status; num get walletTotal; int get stayDurationMinutes; DateTime? get createdAt;
+ String get id; String get displayName; String get status; num get walletTotal; String? get activeSessionId; int get stayDurationMinutes; DateTime? get createdAt;
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1690,16 +1690,16 @@ $PlayerCopyWith<Player> get copyWith => _$PlayerCopyWithImpl<Player>(this as Pla
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,stayDurationMinutes,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt);
 
 @override
 String toString() {
-  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
+  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
 }
 
 
@@ -1710,7 +1710,7 @@ abstract mixin class $PlayerCopyWith<$Res>  {
   factory $PlayerCopyWith(Player value, $Res Function(Player) _then) = _$PlayerCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName, String status, num walletTotal, int stayDurationMinutes, DateTime? createdAt
+ String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt
 });
 
 
@@ -1727,13 +1727,14 @@ class _$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // ignore: cast_nullable_to_non_nullable
-as num,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
+as num,activeSessionId: freezed == activeSessionId ? _self.activeSessionId : activeSessionId // ignore: cast_nullable_to_non_nullable
+as String?,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -1820,10 +1821,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
   return orElse();
 
 }
@@ -1841,10 +1842,10 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Player():
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1861,10 +1862,10 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
   return null;
 
 }
@@ -1876,13 +1877,14 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 @JsonSerializable()
 
 class _Player implements Player {
-  const _Player({required this.id, required this.displayName, required this.status, this.walletTotal = 0, this.stayDurationMinutes = 0, this.createdAt});
+  const _Player({required this.id, required this.displayName, required this.status, this.walletTotal = 0, this.activeSessionId, this.stayDurationMinutes = 0, this.createdAt});
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String id;
 @override final  String displayName;
 @override final  String status;
 @override@JsonKey() final  num walletTotal;
+@override final  String? activeSessionId;
 @override@JsonKey() final  int stayDurationMinutes;
 @override final  DateTime? createdAt;
 
@@ -1899,16 +1901,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,stayDurationMinutes,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt);
 
 @override
 String toString() {
-  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
+  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
 }
 
 
@@ -1919,7 +1921,7 @@ abstract mixin class _$PlayerCopyWith<$Res> implements $PlayerCopyWith<$Res> {
   factory _$PlayerCopyWith(_Player value, $Res Function(_Player) _then) = __$PlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName, String status, num walletTotal, int stayDurationMinutes, DateTime? createdAt
+ String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt
 });
 
 
@@ -1936,13 +1938,14 @@ class __$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
   return _then(_Player(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // ignore: cast_nullable_to_non_nullable
-as num,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
+as num,activeSessionId: freezed == activeSessionId ? _self.activeSessionId : activeSessionId // ignore: cast_nullable_to_non_nullable
+as String?,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -2227,7 +2230,7 @@ as bool,
 /// @nodoc
 mixin _$AssetHolding {
 
- String get assetType; String get assetCode;@JsonKey(readValue: readAmount) num get amount;
+ String get assetType; String get assetCode; String? get assetName;@JsonKey(readValue: readAmount) num get amount;
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2240,16 +2243,16 @@ $AssetHoldingCopyWith<AssetHolding> get copyWith => _$AssetHoldingCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.amount, amount) || other.amount == amount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,assetType,assetCode,amount);
+int get hashCode => Object.hash(runtimeType,assetType,assetCode,assetName,amount);
 
 @override
 String toString() {
-  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, amount: $amount)';
+  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount)';
 }
 
 
@@ -2260,7 +2263,7 @@ abstract mixin class $AssetHoldingCopyWith<$Res>  {
   factory $AssetHoldingCopyWith(AssetHolding value, $Res Function(AssetHolding) _then) = _$AssetHoldingCopyWithImpl;
 @useResult
 $Res call({
- String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount
+ String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount
 });
 
 
@@ -2277,11 +2280,12 @@ class _$AssetHoldingCopyWithImpl<$Res>
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? assetType = null,Object? assetCode = null,Object? amount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,}) {
   return _then(_self.copyWith(
 assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
-as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
+as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,
   ));
 }
@@ -2367,10 +2371,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
-return $default(_that.assetType,_that.assetCode,_that.amount);case _:
+return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount);case _:
   return orElse();
 
 }
@@ -2388,10 +2392,10 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount)  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding():
-return $default(_that.assetType,_that.assetCode,_that.amount);case _:
+return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2408,10 +2412,10 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
-return $default(_that.assetType,_that.assetCode,_that.amount);case _:
+return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount);case _:
   return null;
 
 }
@@ -2423,11 +2427,12 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 @JsonSerializable()
 
 class _AssetHolding implements AssetHolding {
-  const _AssetHolding({required this.assetType, required this.assetCode, @JsonKey(readValue: readAmount) required this.amount});
+  const _AssetHolding({required this.assetType, required this.assetCode, this.assetName, @JsonKey(readValue: readAmount) required this.amount});
   factory _AssetHolding.fromJson(Map<String, dynamic> json) => _$AssetHoldingFromJson(json);
 
 @override final  String assetType;
 @override final  String assetCode;
+@override final  String? assetName;
 @override@JsonKey(readValue: readAmount) final  num amount;
 
 /// Create a copy of AssetHolding
@@ -2443,16 +2448,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.amount, amount) || other.amount == amount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,assetType,assetCode,amount);
+int get hashCode => Object.hash(runtimeType,assetType,assetCode,assetName,amount);
 
 @override
 String toString() {
-  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, amount: $amount)';
+  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount)';
 }
 
 
@@ -2463,7 +2468,7 @@ abstract mixin class _$AssetHoldingCopyWith<$Res> implements $AssetHoldingCopyWi
   factory _$AssetHoldingCopyWith(_AssetHolding value, $Res Function(_AssetHolding) _then) = __$AssetHoldingCopyWithImpl;
 @override @useResult
 $Res call({
- String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount
+ String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount
 });
 
 
@@ -2480,11 +2485,12 @@ class __$AssetHoldingCopyWithImpl<$Res>
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? assetType = null,Object? assetCode = null,Object? amount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,}) {
   return _then(_AssetHolding(
 assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
-as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
+as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,
   ));
 }
@@ -2496,7 +2502,7 @@ as num,
 /// @nodoc
 mixin _$AssetLedgerEntry {
 
- String get id; String get assetType; String get assetCode;@JsonKey(readValue: readAmount) num get amount;@JsonKey(readValue: readDirection) String get direction; String get reason; DateTime get createdAt;
+ String get id; String get assetType; String get assetCode; String? get assetName;@JsonKey(readValue: readAmount) num get amount;@JsonKey(readValue: readDirection) String get direction; String get reason; DateTime get createdAt;
 /// Create a copy of AssetLedgerEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2509,16 +2515,16 @@ $AssetLedgerEntryCopyWith<AssetLedgerEntry> get copyWith => _$AssetLedgerEntryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetLedgerEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetLedgerEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,amount,direction,reason,createdAt);
+int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,assetName,amount,direction,reason,createdAt);
 
 @override
 String toString() {
-  return 'AssetLedgerEntry(id: $id, assetType: $assetType, assetCode: $assetCode, amount: $amount, direction: $direction, reason: $reason, createdAt: $createdAt)';
+  return 'AssetLedgerEntry(id: $id, assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, direction: $direction, reason: $reason, createdAt: $createdAt)';
 }
 
 
@@ -2529,7 +2535,7 @@ abstract mixin class $AssetLedgerEntryCopyWith<$Res>  {
   factory $AssetLedgerEntryCopyWith(AssetLedgerEntry value, $Res Function(AssetLedgerEntry) _then) = _$AssetLedgerEntryCopyWithImpl;
 @useResult
 $Res call({
- String id, String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
+ String id, String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
 });
 
 
@@ -2546,12 +2552,13 @@ class _$AssetLedgerEntryCopyWithImpl<$Res>
 
 /// Create a copy of AssetLedgerEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? amount = null,Object? direction = null,Object? reason = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? direction = null,Object? reason = null,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
-as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
+as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -2640,10 +2647,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry() when $default != null:
-return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
   return orElse();
 
 }
@@ -2661,10 +2668,10 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry():
-return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2681,10 +2688,10 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry() when $default != null:
-return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
   return null;
 
 }
@@ -2696,12 +2703,13 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 @JsonSerializable()
 
 class _AssetLedgerEntry implements AssetLedgerEntry {
-  const _AssetLedgerEntry({this.id = '', required this.assetType, required this.assetCode, @JsonKey(readValue: readAmount) required this.amount, @JsonKey(readValue: readDirection) required this.direction, required this.reason, required this.createdAt});
+  const _AssetLedgerEntry({this.id = '', required this.assetType, required this.assetCode, this.assetName, @JsonKey(readValue: readAmount) required this.amount, @JsonKey(readValue: readDirection) required this.direction, required this.reason, required this.createdAt});
   factory _AssetLedgerEntry.fromJson(Map<String, dynamic> json) => _$AssetLedgerEntryFromJson(json);
 
 @override@JsonKey() final  String id;
 @override final  String assetType;
 @override final  String assetCode;
+@override final  String? assetName;
 @override@JsonKey(readValue: readAmount) final  num amount;
 @override@JsonKey(readValue: readDirection) final  String direction;
 @override final  String reason;
@@ -2720,16 +2728,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetLedgerEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetLedgerEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,amount,direction,reason,createdAt);
+int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,assetName,amount,direction,reason,createdAt);
 
 @override
 String toString() {
-  return 'AssetLedgerEntry(id: $id, assetType: $assetType, assetCode: $assetCode, amount: $amount, direction: $direction, reason: $reason, createdAt: $createdAt)';
+  return 'AssetLedgerEntry(id: $id, assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, direction: $direction, reason: $reason, createdAt: $createdAt)';
 }
 
 
@@ -2740,7 +2748,7 @@ abstract mixin class _$AssetLedgerEntryCopyWith<$Res> implements $AssetLedgerEnt
   factory _$AssetLedgerEntryCopyWith(_AssetLedgerEntry value, $Res Function(_AssetLedgerEntry) _then) = __$AssetLedgerEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
+ String id, String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
 });
 
 
@@ -2757,12 +2765,13 @@ class __$AssetLedgerEntryCopyWithImpl<$Res>
 
 /// Create a copy of AssetLedgerEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? amount = null,Object? direction = null,Object? reason = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? direction = null,Object? reason = null,Object? createdAt = null,}) {
   return _then(_AssetLedgerEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
-as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
+as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

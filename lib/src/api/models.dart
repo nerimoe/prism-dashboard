@@ -57,12 +57,12 @@ abstract class LivePlayer with _$LivePlayer {
 abstract class LiveSession with _$LiveSession {
   const LiveSession._();
   const factory LiveSession({
-    required String id,
+    @JsonKey(readValue: readSessionId) required String id,
     String? label,
     required DateTime startedAt,
-    required int elapsedMinutes,
-    num? currentImpact,
-    required String status,
+    @JsonKey(readValue: readElapsedMinutes) @Default(0) int elapsedMinutes,
+    @JsonKey(readValue: readCurrentImpact) num? currentImpact,
+    @Default('closed') String status,
   }) = _LiveSession;
 
   String get title {
@@ -117,8 +117,9 @@ abstract class Player with _$Player {
   const factory Player({
     required String id,
     required String displayName,
-    required String status, // 'active' | 'inactive' | 'banned'
+    required String status, // 'active' | 'disabled' | 'banned'
     @Default(0) num walletTotal,
+    String? activeSessionId,
     @Default(0) int stayDurationMinutes,
     DateTime? createdAt,
   }) = _Player;
@@ -144,6 +145,7 @@ abstract class AssetHolding with _$AssetHolding {
   const factory AssetHolding({
     required String assetType,
     required String assetCode,
+    String? assetName,
     @JsonKey(readValue: readAmount) required num amount,
   }) = _AssetHolding;
 
@@ -157,6 +159,7 @@ abstract class AssetLedgerEntry with _$AssetLedgerEntry {
     @Default('') String id,
     required String assetType,
     required String assetCode,
+    String? assetName,
     @JsonKey(readValue: readAmount) required num amount,
     @JsonKey(readValue: readDirection)
     required String direction, // 'in' | 'out'
@@ -454,6 +457,10 @@ Object? nestedValue(Map json, List<String> keys) {
 
 Object? readDisplayName(Map json, String key) =>
     json[key] ?? json['name'] ?? json['playerDisplayName'];
+Object? readSessionId(Map json, String key) => json[key] ?? json['sessionId'];
+Object? readElapsedMinutes(Map json, String key) =>
+    json[key] ?? json['durationMinutes'];
+Object? readCurrentImpact(Map json, String key) => json[key] ?? json['total'];
 Object? readIsArchived(Map json, String key) =>
     json[key] ?? (json['status'] == 'archived');
 Object? readIsActive(Map json, String key) =>

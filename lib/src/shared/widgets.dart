@@ -238,10 +238,23 @@ class PlayerStatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (status) {
-      'active' => const StatusPill(label: '在店', color: Colors.green),
+      'active' => const StatusPill(label: '可使用', color: Colors.green),
       'banned' => const StatusPill(label: '已封禁', color: Colors.red),
-      _ => const StatusPill(label: '离店', color: Colors.grey),
+      'disabled' => const StatusPill(label: '已停用', color: Colors.orange),
+      _ => const StatusPill(label: '未知', color: Colors.grey),
     };
+  }
+}
+
+class PresenceStatusPill extends StatelessWidget {
+  const PresenceStatusPill({super.key, required this.isPresent});
+  final bool isPresent;
+
+  @override
+  Widget build(BuildContext context) {
+    return isPresent
+        ? const StatusPill(label: '在场', color: Colors.green)
+        : const StatusPill(label: '离店', color: Colors.grey);
   }
 }
 
