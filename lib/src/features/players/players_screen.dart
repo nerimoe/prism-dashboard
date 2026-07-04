@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
+import '../../context_extensions.dart';
 import '../../shared/admin_layout.dart';
-import '../../shared/admin_tables.dart';
 import '../../shared/widgets.dart';
 
 class PlayersScreen extends ConsumerStatefulWidget {
@@ -21,6 +21,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
   late Future<List<Player>> _playersFuture;
   String? _selectedPlayerId;
   String? _message;
+  String _searchQuery = '';
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -36,7 +37,8 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
       future: _playersFuture,
       builder: (context, snapshot) {
         final players = snapshot.data ?? const <Player>[];
-        final selected = _selectedPlayer(players);
+        final filteredPlayers = _filterPlayers(players);
+        final selected = _selectedPlayer(filteredPlayers);
 
         return AdminWorkspace(
           title: '玩家档案',
@@ -62,11 +64,15 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                 hasSelection: selected != null,
                 onBack: () => setState(() => _selectedPlayerId = null),
                 list: _PlayerTable(
-                  players: players,
+                  players: filteredPlayers,
+                  totalCount: players.length,
                   selectedPlayerId: selected?.id,
+                  searchQuery: _searchQuery,
                   isLoading: snapshot.connectionState != ConnectionState.done,
                   error: snapshot.error,
                   onRefresh: _refresh,
+                  onSearchChanged: (value) =>
+                      setState(() => _searchQuery = value),
                   onSelect: (player) =>
                       setState(() => _selectedPlayerId = player.id),
                 ),
@@ -116,6 +122,21 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
       (player) => player.id == _selectedPlayerId,
       orElse: () => players.first,
     );
+  }
+
+  List<Player> _filterPlayers(List<Player> players) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return players;
+    return players.where((player) {
+      final searchable = [
+        player.displayName,
+        player.status,
+        player.walletTotal.toString(),
+        for (final identity in player.identities) identity.provider,
+        for (final identity in player.identities) identity.subject,
+      ].join(' ').toLowerCase();
+      return searchable.contains(query);
+    }).toList();
   }
 
   void _refresh() {
@@ -327,18 +348,24 @@ enum _AssetChangeMode { grant, adjust }
 class _PlayerTable extends StatelessWidget {
   const _PlayerTable({
     required this.players,
+    required this.totalCount,
     required this.selectedPlayerId,
+    required this.searchQuery,
     required this.isLoading,
     required this.error,
     required this.onRefresh,
+    required this.onSearchChanged,
     required this.onSelect,
   });
 
   final List<Player> players;
+  final int totalCount;
   final String? selectedPlayerId;
+  final String searchQuery;
   final bool isLoading;
   final Object? error;
   final VoidCallback onRefresh;
+  final ValueChanged<String> onSearchChanged;
   final ValueChanged<Player> onSelect;
 
   @override
@@ -356,55 +383,207 @@ class _PlayerTable extends StatelessWidget {
       );
     }
 
-    return AdminTablePanel(
-      title: '玩家列表',
-      subtitle: '按玩家查看余额、状态和当前到店情况。',
-      headers: const ['玩家', '在场', '账号', '余额'],
-      itemCount: players.length,
-      isLoading: isLoading,
-      isEmpty: players.isEmpty && !isLoading,
-      emptyIcon: Icons.group_off,
-      emptyMessage: '还没有玩家档案。',
-      trailing: IconButton(
-        tooltip: '刷新',
-        onPressed: onRefresh,
-        icon: const Icon(Icons.refresh),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: context.colors.outlineVariant),
       ),
-      rowBuilder: (context, index) {
-        final player = players[index];
-        final selected = player.id == selectedPlayerId;
-        return Material(
-          color: selected
-              ? Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.32)
-              : Colors.transparent,
-          child: InkWell(
-            onTap: () => onSelect(player),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      player.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '玩家名册',
+                        style: context.text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        searchQuery.trim().isEmpty
+                            ? '$totalCount 名玩家'
+                            : '找到 ${players.length} 名玩家',
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: PresenceStatusPill(
-                      isPresent: player.activeSessionId != null,
-                    ),
-                  ),
-                  Expanded(child: PlayerStatusPill(status: player.status)),
-                  Expanded(child: MoneyText(value: player.walletTotal)),
-                ],
+                ),
+                IconButton(
+                  tooltip: '刷新',
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              key: const ValueKey('player-search-field'),
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: '搜索昵称、QQ、卡号或余额',
+                prefixIcon: const Icon(Icons.search),
               ),
             ),
+            const SizedBox(height: 12),
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (players.isEmpty)
+              EmptyState(
+                icon: searchQuery.trim().isEmpty
+                    ? Icons.group_off
+                    : Icons.person_search,
+                title: searchQuery.trim().isEmpty ? '暂无玩家' : '没有匹配玩家',
+                message: searchQuery.trim().isEmpty
+                    ? '添加玩家后，会显示在这里。'
+                    : '换个昵称、QQ 或卡号再试试。',
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 560),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: players.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final player = players[index];
+                    return _PlayerListItem(
+                      player: player,
+                      selected: player.id == selectedPlayerId,
+                      onTap: () => onSelect(player),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayerListItem extends StatelessWidget {
+  const _PlayerListItem({
+    required this.player,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Player player;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final identity = _primaryIdentityLabel(player.identities);
+    return Material(
+      color: selected
+          ? context.colors.primaryContainer.withValues(alpha: 0.42)
+          : context.colors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected
+                  ? context.colors.primary.withValues(alpha: 0.38)
+                  : context.colors.outlineVariant,
+            ),
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      },
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  _PlayerAvatar(name: player.displayName, size: 38),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          player.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.text.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          identity ?? '还没有绑定身份',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  MoneyText(value: player.walletTotal),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  PresenceStatusPill(isPresent: player.activeSessionId != null),
+                  PlayerStatusPill(status: player.status),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayerAvatar extends StatelessWidget {
+  const _PlayerAvatar({required this.name, required this.size});
+
+  final String name;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = name.trim();
+    final initial = trimmed.isEmpty ? '?' : trimmed.substring(0, 1);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: context.colors.primaryContainer,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        initial,
+        style: context.text.titleMedium?.copyWith(
+          color: context.colors.onPrimaryContainer,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -456,45 +635,44 @@ class _PlayerDetailState extends State<_PlayerDetail> {
       builder: (context, snapshot) {
         final data = snapshot.data;
         return AdminDetailPanel(
-          title: player.displayName,
-          actions: [PlayerStatusPill(status: player.status)],
+          title: '玩家详情',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _SectionTitle(
-                icon: Icons.badge,
-                title: '基本信息',
-                action: Wrap(
-                  spacing: 8,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => widget.onStatusChange(player, 'active'),
-                      child: const Text('允许入场'),
-                    ),
-                    OutlinedButton(
-                      onPressed: () =>
-                          widget.onStatusChange(player, 'disabled'),
-                      child: const Text('停用账号'),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => widget.onStatusChange(player, 'banned'),
-                      child: const Text('暂停使用'),
-                    ),
-                  ],
-                ),
-              ),
-              _InfoRow(label: '钱包余额', value: formatMoney(player.walletTotal)),
-              _InfoRow(label: '当前状态', value: _presenceLabel(data?.sessions)),
-              _InfoRow(
-                label: '当前计时项',
-                value: _activeSessionCount(data?.sessions),
-              ),
-              _InfoRow(
-                label: '在场时长',
-                value: formatDurationMinutes(player.stayDurationMinutes),
+              _PlayerDetailHero(
+                player: player,
+                sessions: data?.sessions,
+                onAllow: () => widget.onStatusChange(player, 'active'),
+                onDisable: () => widget.onStatusChange(player, 'disabled'),
+                onBan: () => widget.onStatusChange(player, 'banned'),
               ),
               const SizedBox(height: 18),
-              _SectionTitle(
+              _SummaryGrid(
+                items: [
+                  _SummaryItem(
+                    label: '钱包余额',
+                    value: formatMoney(player.walletTotal),
+                    icon: Icons.account_balance_wallet,
+                  ),
+                  _SummaryItem(
+                    label: '到店状态',
+                    value: _presenceLabel(data?.sessions),
+                    icon: Icons.storefront,
+                  ),
+                  _SummaryItem(
+                    label: '计时项',
+                    value: _activeSessionCount(data?.sessions),
+                    icon: Icons.timer,
+                  ),
+                  _SummaryItem(
+                    label: '在场时长',
+                    value: formatDurationMinutes(player.stayDurationMinutes),
+                    icon: Icons.schedule,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              _DetailSection(
                 icon: Icons.link,
                 title: '身份绑定',
                 action: FilledButton.icon(
@@ -502,14 +680,15 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                   icon: const Icon(Icons.add_link),
                   label: const Text('绑定身份'),
                 ),
+                child: _IdentityList(identities: player.identities),
               ),
-              _IdentityList(identities: player.identities),
-              const SizedBox(height: 18),
-              _SectionTitle(
+              const SizedBox(height: 12),
+              _DetailSection(
                 icon: Icons.account_balance_wallet,
                 title: '钱包资产',
                 action: Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: [
                     FilledButton.icon(
                       onPressed: widget.onGrantAsset,
@@ -523,19 +702,20 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                     ),
                   ],
                 ),
+                child: snapshot.connectionState != ConnectionState.done
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : snapshot.hasError
+                    ? Text('资产和记录没有加载成功：${snapshot.error}')
+                    : _AssetList(assets: data?.assets),
               ),
-              if (snapshot.connectionState != ConnectionState.done)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (snapshot.hasError)
-                Text('资产和记录没有加载成功：${snapshot.error}')
-              else ...[
-                _AssetList(assets: data?.assets),
-                const SizedBox(height: 18),
+              if (snapshot.connectionState == ConnectionState.done &&
+                  !snapshot.hasError) ...[
+                const SizedBox(height: 12),
                 _LedgerList(assets: data?.assets),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 _SessionHistoryList(sessions: data?.sessions ?? const []),
               ],
             ],
@@ -566,6 +746,216 @@ class _PlayerDetailState extends State<_PlayerDetail> {
       return widget.player.activeSessionId == null ? '0 项' : '至少 1 项';
     }
     return '$count 项';
+  }
+}
+
+class _PlayerDetailHero extends StatelessWidget {
+  const _PlayerDetailHero({
+    required this.player,
+    required this.sessions,
+    required this.onAllow,
+    required this.onDisable,
+    required this.onBan,
+  });
+
+  final Player player;
+  final List<LiveSession>? sessions;
+  final VoidCallback onAllow;
+  final VoidCallback onDisable;
+  final VoidCallback onBan;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLowest,
+        border: Border.all(color: context.colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PlayerAvatar(name: player.displayName, size: 52),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      player.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        PresenceStatusPill(
+                          isPresent:
+                              sessions?.any(
+                                (session) => session.status == 'active',
+                              ) ??
+                              player.activeSessionId != null,
+                        ),
+                        PlayerStatusPill(status: player.status),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onAllow,
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('允许入场'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onDisable,
+                icon: const Icon(Icons.pause_circle_outline),
+                label: const Text('停用账号'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onBan,
+                icon: const Icon(Icons.block),
+                label: const Text('暂停使用'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryItem {
+  const _SummaryItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+}
+
+class _SummaryGrid extends StatelessWidget {
+  const _SummaryGrid({required this.items});
+
+  final List<_SummaryItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 520 ? 2 : 1;
+        final width = (constraints.maxWidth - (columns - 1) * 8) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final item in items)
+              SizedBox(
+                width: width,
+                child: _SummaryTile(item: item),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SummaryTile extends StatelessWidget {
+  const _SummaryTile({required this.item});
+
+  final _SummaryItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainer,
+        border: Border.all(color: context.colors.outlineVariant),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(item.icon, size: 18, color: context.colors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: context.text.labelSmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailSection extends StatelessWidget {
+  const _DetailSection({
+    required this.icon,
+    required this.title,
+    required this.child,
+    this.action,
+  });
+
+  final IconData icon;
+  final String title;
+  final Widget child;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLowest,
+        border: Border.all(color: context.colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _SectionTitle(icon: icon, title: title, action: action),
+          child,
+        ],
+      ),
+    );
   }
 }
 
@@ -759,6 +1149,15 @@ String _identityProviderLabel(String provider) =>
       'aime' => 'Aime',
       _ => provider,
     };
+
+String? _primaryIdentityLabel(List<PlayerIdentity> identities) {
+  if (identities.isEmpty) return null;
+  final qq = identities.where(
+    (identity) => identity.provider.toLowerCase() == 'qq',
+  );
+  final identity = qq.isEmpty ? identities.first : qq.first;
+  return '${_identityProviderLabel(identity.provider)} ${identity.subject}';
+}
 
 String _ledgerReasonLabel(String reason) {
   if (reason.startsWith('legacy.')) return '迁移记录';

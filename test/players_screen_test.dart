@@ -17,8 +17,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('玩家档案'), findsOneWidget);
+    expect(find.text('玩家名册'), findsOneWidget);
+    expect(find.byKey(const ValueKey('player-search-field')), findsOneWidget);
     expect(find.text('A'), findsWidgets);
-    expect(find.text('B'), findsOneWidget);
+    expect(find.text('B'), findsWidgets);
     expect(find.text('在场'), findsWidgets);
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
@@ -26,11 +28,28 @@ void main() {
     await tester.ensureVisible(find.text('资产流水'));
     expect(find.textContaining('迁移记录'), findsOneWidget);
     expect(find.textContaining('legacy.UPDATE'), findsNothing);
-    expect(find.text('QQ 826225045'), findsOneWidget);
+    expect(find.text('QQ 826225045'), findsWidgets);
     expect(find.text('计时记录'), findsOneWidget);
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
     expect(find.text('2 项'), findsOneWidget);
+  });
+
+  testWidgets('filters player list by migrated QQ binding', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('player-search-field')),
+      '826225045',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('找到 1 名玩家'), findsOneWidget);
+    expect(find.text('A'), findsWidgets);
+    expect(find.text('B'), findsNothing);
+    expect(find.text('QQ 826225045'), findsWidgets);
   });
 
   testWidgets('create player posts display name', (tester) async {
@@ -38,10 +57,12 @@ void main() {
     await tester.pumpWidget(_buildPlayersScreen(requests));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('添加玩家'));
+    final addButton = find.widgetWithText(FilledButton, '添加玩家');
+    await tester.ensureVisible(addButton);
+    await tester.tap(addButton);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, '新玩家');
-    await tester.tap(find.text('保存'));
+    await tester.enterText(find.byType(TextField).last, '新玩家');
+    await tester.tap(find.widgetWithText(FilledButton, '保存'));
     await tester.pumpAndSettle();
 
     final request = requests.singleWhere(
@@ -58,7 +79,9 @@ void main() {
     await tester.pumpWidget(_buildPlayersScreen(requests));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('绑定身份'));
+    final bindIdentityButton = find.widgetWithText(FilledButton, '绑定身份');
+    await tester.ensureVisible(bindIdentityButton);
+    await tester.tap(bindIdentityButton);
     await tester.pumpAndSettle();
 
     expect(find.text('身份来源'), findsOneWidget);
@@ -67,9 +90,9 @@ void main() {
     expect(find.textContaining('subject'), findsNothing);
 
     final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), 'qq');
-    await tester.enterText(fields.at(1), '10001');
-    await tester.tap(find.text('绑定'));
+    await tester.enterText(fields.at(1), 'qq');
+    await tester.enterText(fields.at(2), '10001');
+    await tester.tap(find.widgetWithText(FilledButton, '绑定'));
     await tester.pumpAndSettle();
 
     final request = requests.singleWhere(

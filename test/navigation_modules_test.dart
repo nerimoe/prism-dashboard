@@ -141,8 +141,8 @@ void main() {
     // 5. Navigate to 玩家档案
     await tester.tap(find.text('玩家档案'));
     await tester.pumpAndSettle();
-    expect(find.text('玩家列表'), findsOneWidget);
-    expect(find.text('还没有玩家档案。'), findsOneWidget);
+    expect(find.text('玩家名册'), findsOneWidget);
+    expect(find.text('添加玩家后，会显示在这里。'), findsOneWidget);
     expect(find.text('新建玩家'), findsNothing); // Removed old _ActionTile
 
     _expectSingleSidebarSelection();

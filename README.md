@@ -15,6 +15,7 @@ The UI is built around store operations rather than backend table shapes:
 - Stopping one session only ends that timer and leaves it unpaid; player-level checkout settles all unpaid sessions together.
 - The live desk's temporary price change is a real settlement override: staff enter the final amount and reason, then the dashboard calls the staff checkout override RPC.
 - Player profiles display migrated external bindings such as QQ numbers from the staff player list response.
+- Player profiles use a searchable roster on the left and a structured detail view on the right; search matches display name, migrated identity values such as QQ, account status, and balance text.
 - Pricing configuration uses time pickers, date pickers, segmented controls, switches, and numeric steppers instead of raw `HH:mm`, ISO, or millisecond fields.
 - Copy is written for store staff, with developer payload fields hidden from normal workflows.
 - Migrated legacy names, asset codes, and ledger reasons are softened at the UI edge so staff see Chinese operational wording while API payloads keep the original IDs.
