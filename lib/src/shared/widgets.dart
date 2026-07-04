@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../api/models.dart';
 import '../context_extensions.dart';
 
 class ScreenPadding extends StatelessWidget {
@@ -153,3 +154,114 @@ class EmptyState extends StatelessWidget {
 }
 
 String compactId(String id) => id.length <= 8 ? id : '${id.substring(0, 4)}…${id.substring(id.length - 4)}';
+
+class MoneyText extends StatelessWidget {
+  const MoneyText({super.key, required this.value, this.style});
+  final num? value;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null) return Text('--', style: style);
+    final text = formatMoney(value);
+    final isNegative = value! < 0;
+    return Text(
+      text,
+      style: style?.copyWith(
+            color: isNegative ? context.colors.error : style?.color,
+            fontWeight: FontWeight.bold,
+          ) ??
+          TextStyle(
+            color: isNegative ? context.colors.error : context.colors.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+    );
+  }
+}
+
+class DateTimeText extends StatelessWidget {
+  const DateTimeText({super.key, required this.value, this.style});
+  final DateTime? value;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null) return Text('--', style: style);
+    final local = value!.toLocal();
+    final year = local.year;
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    final text = '$year-$month-$day $hour:$minute';
+    return Text(text, style: style ?? context.text.bodyMedium);
+  }
+}
+
+class PlayerStatusPill extends StatelessWidget {
+  const PlayerStatusPill({super.key, required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (status) {
+      'active' => const StatusPill(label: '在店', color: Colors.green),
+      'banned' => const StatusPill(label: '已封禁', color: Colors.red),
+      _ => const StatusPill(label: '离店', color: Colors.grey),
+    };
+  }
+}
+
+class ArchiveStatusPill extends StatelessWidget {
+  const ArchiveStatusPill({super.key, required this.isArchived});
+  final bool isArchived;
+
+  @override
+  Widget build(BuildContext context) {
+    return isArchived
+        ? const StatusPill(label: '已归档', color: Colors.orange)
+        : const StatusPill(label: '正常', color: Colors.green);
+  }
+}
+
+class OrderStatusPill extends StatelessWidget {
+  const OrderStatusPill({super.key, required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (status) {
+      'fulfilled' => const StatusPill(label: '已完成', color: Colors.green),
+      'cancelled' => const StatusPill(label: '已取消', color: Colors.red),
+      _ => const StatusPill(label: '待处理', color: Colors.orange),
+    };
+  }
+}
+
+class DeviceStatusPill extends StatelessWidget {
+  const DeviceStatusPill({super.key, required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (status) {
+      'online' => const StatusPill(label: '在线', color: Colors.green),
+      'degraded' => const StatusPill(label: '故障', color: Colors.orange),
+      _ => const StatusPill(label: '离线', color: Colors.red),
+    };
+  }
+}
+
+class StaffRolePill extends StatelessWidget {
+  const StaffRolePill({super.key, required this.role});
+  final StaffRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (role) {
+      StaffRole.owner => const StatusPill(label: '店主', color: Colors.purple),
+      StaffRole.manager => const StatusPill(label: '店长', color: Colors.blue),
+      StaffRole.viewer => const StatusPill(label: '店员', color: Colors.grey),
+    };
+  }
+}

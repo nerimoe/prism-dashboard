@@ -13,6 +13,25 @@ The UI is built around store operations rather than backend table shapes:
 - Pricing configuration uses time pickers, date pickers, segmented controls, switches, and numeric steppers instead of raw `HH:mm`, ISO, or millisecond fields.
 - Copy is written for store staff, with developer payload fields hidden from normal workflows.
 
+## Shared Admin Components
+
+Commonly used UI blocks live in `lib/src/shared/`:
+- **Layouts (`admin_layout.dart`)**:
+  - `AdminSplitPane`: Split layout (3:2) for desktop, auto-collapses to single detail panel on mobile.
+  - `AdminDetailPanel`: Elegant detail card wrapper with internal scrolling support.
+  - `FormSheet`: Bottom drawer on mobile, floating Dialog on desktop for form operations.
+- **Tables (`admin_tables.dart`)**:
+  - `AdminTablePanel`: Layout panel wrapping header titles, action buttons, list views with built-in Loading/Empty scaffold, and Y-axis internal scrolling limit.
+- **Controls & Forms (`admin_forms.dart`)**:
+  - `AdminToolbar`: Standard wrap-aligned toolbar row.
+  - `StepperNumberField`: Numeric stepper with `-`/`+` click bounds.
+  - `DateRangePickerButton`: Material-standard range selection button.
+  - `ConfirmActionDialog`: Two-step verification alert for destructive operations.
+- **Data Visuals (`widgets.dart`)**:
+  - `MoneyText`: Currency styling with standard color highlights (red for negative values).
+  - `DateTimeText`: Auto local-formatted timestamp labels.
+  - Status helper pills: `PlayerStatusPill`, `OrderStatusPill`, `DeviceStatusPill`, `StaffRolePill`.
+
 Useful commands:
 
 ```bash
