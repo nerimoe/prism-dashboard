@@ -178,8 +178,7 @@ class _GroupedSidebar extends StatelessWidget {
                     selected: selected,
                     items: const [
                       _SidebarEntry('现场工作台', DashboardDestination.operations),
-                      _SidebarEntry('玩家档案', DashboardDestination.players),
-                      _SidebarEntry('设备管理', DashboardDestination.devices),
+                      _SidebarEntry('设备看板', DashboardDestination.devices),
                     ],
                     onSelected: onSelected,
                   ),
@@ -188,8 +187,8 @@ class _GroupedSidebar extends StatelessWidget {
                     label: '玩家与资产',
                     selected: selected,
                     items: const [
-                      _SidebarEntry('玩家资产', DashboardDestination.assets),
-                      _SidebarEntry('礼包与兑换码', DashboardDestination.assets),
+                      _SidebarEntry('玩家档案', DashboardDestination.players),
+                      _SidebarEntry('资产与礼包', DashboardDestination.assets),
                     ],
                     onSelected: onSelected,
                   ),
@@ -198,8 +197,8 @@ class _GroupedSidebar extends StatelessWidget {
                     label: '经营配置',
                     selected: selected,
                     items: const [
-                      _SidebarEntry('按时计费', DashboardDestination.pricing),
-                      _SidebarEntry('服务项目', DashboardDestination.services),
+                      _SidebarEntry('计费配置', DashboardDestination.pricing),
+                      _SidebarEntry('服务项目与订单', DashboardDestination.services),
                       _SidebarEntry('营业报表', DashboardDestination.reports),
                     ],
                     onSelected: onSelected,
@@ -209,9 +208,7 @@ class _GroupedSidebar extends StatelessWidget {
                     label: '系统接入',
                     selected: selected,
                     items: const [
-                      _SidebarEntry('员工权限', DashboardDestination.system),
-                      _SidebarEntry('接入密钥', DashboardDestination.system),
-                      _SidebarEntry('店铺设置', DashboardDestination.system),
+                      _SidebarEntry('员工与系统', DashboardDestination.system),
                     ],
                     onSelected: onSelected,
                   ),
@@ -290,6 +287,7 @@ class _SidebarItem extends StatelessWidget {
         ? context.colors.onPrimaryContainer
         : context.colors.onSurface;
     return Material(
+      key: selected ? const ValueKey('sidebar-selected-item') : null,
       color: selected
           ? context.colors.surfaceContainerHigh
           : Colors.transparent,
@@ -299,11 +297,15 @@ class _SidebarItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-          child: Text(
-            item.label,
-            style: context.text.labelMedium?.copyWith(
-              color: color,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          child: Semantics(
+            selected: selected,
+            button: true,
+            child: Text(
+              item.label,
+              style: context.text.labelMedium?.copyWith(
+                color: color,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
             ),
           ),
         ),

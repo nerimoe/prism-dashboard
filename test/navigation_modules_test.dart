@@ -145,43 +145,55 @@ void main() {
     expect(find.text('还没有玩家档案。'), findsOneWidget);
     expect(find.text('新建玩家'), findsNothing); // Removed old _ActionTile
 
-    // 6. Navigate to 礼包与兑换码 (Wires to assets destination)
-    await tester.tap(find.text('礼包与兑换码'));
+    _expectSingleSidebarSelection();
+
+    // 6. Navigate to 资产与礼包
+    await tester.tap(find.text('资产与礼包'));
     await tester.pumpAndSettle();
     expect(find.text('资产与礼包'), findsWidgets);
     expect(find.text('资产定义'), findsOneWidget);
     expect(find.text('暂无资产定义'), findsOneWidget);
+    _expectSingleSidebarSelection();
 
-    // 7. Navigate to 设备管理 (Wires to devices destination)
-    await tester.tap(find.text('设备管理'));
+    // 7. Navigate to 设备看板
+    await tester.tap(find.text('设备看板').first);
     await tester.pumpAndSettle();
     expect(find.text('设备看板'), findsWidgets);
     expect(find.text('暂无设备上报'), findsOneWidget);
+    _expectSingleSidebarSelection();
 
-    // 8. Navigate to 按时计费 (Wires to pricing destination)
-    await tester.tap(find.text('按时计费'));
+    // 8. Navigate to 计费配置
+    await tester.tap(find.text('计费配置'));
     await tester.pumpAndSettle();
     expect(find.text('计费配置'), findsWidgets);
     expect(find.text('暂无计费配置'), findsOneWidget);
+    _expectSingleSidebarSelection();
 
-    // 9. Navigate to 服务项目 (Wires to services destination)
-    await tester.tap(find.text('服务项目'));
+    // 9. Navigate to 服务项目与订单
+    await tester.tap(find.text('服务项目与订单').first);
     await tester.pumpAndSettle();
     expect(find.text('服务项目与订单'), findsWidgets);
     expect(find.text('还没有可售服务'), findsOneWidget);
+    _expectSingleSidebarSelection();
 
-    // 10. Navigate to 营业报表 (Wires to reports destination)
+    // 10. Navigate to 营业报表
     await tester.tap(find.text('营业报表'));
     await tester.pumpAndSettle();
     expect(find.text('营业报表'), findsWidgets);
     expect(find.text('营业收入'), findsOneWidget);
     expect(find.text('还没有结算记录'), findsOneWidget);
+    _expectSingleSidebarSelection();
 
-    // 11. Navigate to 员工权限 (Wires to system destination)
-    await tester.tap(find.text('员工权限'));
+    // 11. Navigate to 员工与系统
+    await tester.tap(find.text('员工与系统').first);
     await tester.pumpAndSettle();
     expect(find.text('员工与系统'), findsWidgets);
     expect(find.text('店铺设置'), findsWidgets);
     expect(find.text('PRiSM 店铺'), findsOneWidget);
+    _expectSingleSidebarSelection();
   });
+}
+
+void _expectSingleSidebarSelection() {
+  expect(find.byKey(const ValueKey('sidebar-selected-item')), findsOneWidget);
 }

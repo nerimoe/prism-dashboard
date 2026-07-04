@@ -10,7 +10,7 @@ The UI is built around store operations rather than backend table shapes:
 - The player preview shows stay duration, current estimated total, wallet balance, and per-session impact.
 - Live desk metrics are derived from the live player RPC response. Do not show placeholder operational numbers unless a real backend read model provides them.
 - Browser previews and click checks must run against the local PRiSM Bun backend. The app may use mocked HTTP clients in widget tests, but visible screens must not be validated with preview stubs or hard-coded demo rows.
-- The live desk matches the approved `player-first-session-detail-v9.html` shell: 230px grouped text sidebar, compact four-metric strip, player table on the left, and the selected player's bill table on the right.
+- The live desk matches the approved `player-first-session-detail-v9.html` shell: 230px grouped text sidebar, compact four-metric strip, player table on the left, and the selected player's bill table on the right. The sidebar contains one entry per real module; sub-workflows such as store settings, staff users, and access keys live inside their module tabs instead of duplicating sidebar destinations.
 - On desktop, the live player and bill panels keep their natural height when the visible rows fit; they scroll internally only when content exceeds the available workspace height.
 - Stopping one session only ends that timer and leaves it unpaid; player-level checkout settles all unpaid sessions together.
 - Pricing configuration uses time pickers, date pickers, segmented controls, switches, and numeric steppers instead of raw `HH:mm`, ISO, or millisecond fields.
