@@ -33,7 +33,9 @@ void main() {
       expect(find.text('没有任何冷冻物品'), findsOneWidget);
     });
 
-    testWidgets('ConfirmActionDialog matches title and destructive colors', (tester) async {
+    testWidgets('ConfirmActionDialog matches title and destructive colors', (
+      tester,
+    ) async {
       var confirmed = false;
 
       await tester.pumpWidget(
@@ -78,7 +80,9 @@ void main() {
       expect(find.text('危险操作确认'), findsNothing); // Dialog dismissed
     });
 
-    testWidgets('StepperNumberField enforces min/max boundaries', (tester) async {
+    testWidgets('StepperNumberField enforces min/max boundaries', (
+      tester,
+    ) async {
       var value = 5;
 
       await tester.pumpWidget(
@@ -131,7 +135,9 @@ void main() {
       expect(addBtn.onPressed, null);
     });
 
-    testWidgets('AdminTablePanel height wraps content naturally when rows fit', (tester) async {
+    testWidgets('AdminTablePanel height wraps content naturally when rows fit', (
+      tester,
+    ) async {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.binding.setSurfaceSize(const Size(1280, 720));
 
@@ -154,7 +160,7 @@ void main() {
       expect(panelHeight, lessThan(300.0));
       expect(panelHeight, greaterThan(120.0));
     });
-   group('MoneyText and DateTimeText format validations', () {
+    group('MoneyText and DateTimeText format validations', () {
       testWidgets('MoneyText formats currency correctly', (tester) async {
         await tester.pumpWidget(
           buildTestableWidget(
@@ -179,57 +185,62 @@ void main() {
             matching: find.byType(Text),
           ),
         );
-        final theme = Theme.of(tester.element(find.byKey(const ValueKey('negative'))));
+        final theme = Theme.of(
+          tester.element(find.byKey(const ValueKey('negative'))),
+        );
         expect(negativeTextWidget.style?.color, theme.colorScheme.error);
       });
 
       testWidgets('DateTimeText formats date correctly', (tester) async {
         final date = DateTime.utc(2026, 7, 4, 12, 30);
-        await tester.pumpWidget(
-          buildTestableWidget(
-            DateTimeText(value: date),
-          ),
-        );
+        await tester.pumpWidget(buildTestableWidget(DateTimeText(value: date)));
         // Generates local formatted string
         final local = date.toLocal();
-        final text = '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+        final text =
+            '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
         expect(find.text(text), findsOneWidget);
       });
     });
 
-    testWidgets('AdminSplitPane renders list on compact screen, row on desktop screen', (tester) async {
-      final splitPane = AdminSplitPane(
-        list: const Text('列表数据'),
-        detail: const Text('详情数据'),
-        hasSelection: true,
-        onBack: () {},
-      );
+    testWidgets(
+      'AdminSplitPane renders list on compact screen, row on desktop screen',
+      (tester) async {
+        final splitPane = AdminSplitPane(
+          list: const Text('列表数据'),
+          detail: const Text('详情数据'),
+          hasSelection: true,
+          onBack: () {},
+        );
 
-      // Test desktop size
-      await tester.pumpWidget(
-        buildTestableWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(1280, 720)),
-            child: splitPane,
+        // Test desktop size
+        await tester.pumpWidget(
+          buildTestableWidget(
+            MediaQuery(
+              data: const MediaQueryData(size: Size(1280, 720)),
+              child: splitPane,
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('列表数据'), findsOneWidget);
-      expect(find.text('详情数据'), findsOneWidget);
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('列表数据'), findsOneWidget);
+        expect(find.text('详情数据'), findsOneWidget);
 
-      // Test compact mobile size
-      await tester.pumpWidget(
-        buildTestableWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(360, 640)),
-            child: splitPane,
+        // Test compact mobile size
+        await tester.pumpWidget(
+          buildTestableWidget(
+            MediaQuery(
+              data: const MediaQueryData(size: Size(360, 640)),
+              child: splitPane,
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('详情数据'), findsOneWidget);
-      expect(find.text('列表数据'), findsNothing); // Under selection, list is hidden on mobile
-    });
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('详情数据'), findsOneWidget);
+        expect(
+          find.text('列表数据'),
+          findsNothing,
+        ); // Under selection, list is hidden on mobile
+      },
+    );
   });
 }

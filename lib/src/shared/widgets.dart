@@ -48,7 +48,12 @@ class PrismPanel extends StatelessWidget {
                       Text(title, style: context.text.titleMedium),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
-                        Text(subtitle!, style: context.text.bodySmall?.copyWith(color: context.colors.onSurfaceVariant)),
+                        Text(
+                          subtitle!,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -66,7 +71,13 @@ class PrismPanel extends StatelessWidget {
 }
 
 class MetricTile extends StatelessWidget {
-  const MetricTile({super.key, required this.label, required this.value, required this.icon, this.tone});
+  const MetricTile({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.tone,
+  });
 
   final String label;
   final String value;
@@ -95,7 +106,12 @@ class MetricTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: context.text.bodySmall?.copyWith(color: context.colors.onSurfaceVariant)),
+                  Text(
+                    label,
+                    style: context.text.bodySmall?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(value, style: context.text.titleLarge),
                 ],
@@ -122,13 +138,21 @@ class StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
         border: Border.all(color: color.withValues(alpha: 0.32)),
       ),
-      child: Text(label, style: context.text.labelSmall?.copyWith(color: color)),
+      child: Text(
+        label,
+        style: context.text.labelSmall?.copyWith(color: color),
+      ),
     );
   }
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.icon, required this.title, required this.message});
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
   final IconData icon;
   final String title;
   final String message;
@@ -145,7 +169,13 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(title, style: context.text.titleMedium),
             const SizedBox(height: 6),
-            Text(message, textAlign: TextAlign.center, style: context.text.bodyMedium?.copyWith(color: context.colors.onSurfaceVariant)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -153,7 +183,9 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-String compactId(String id) => id.length <= 8 ? id : '${id.substring(0, 4)}…${id.substring(id.length - 4)}';
+String compactId(String id) => id.length <= 8
+    ? id
+    : '${id.substring(0, 4)}…${id.substring(id.length - 4)}';
 
 class MoneyText extends StatelessWidget {
   const MoneyText({super.key, required this.value, this.style});
@@ -167,7 +199,8 @@ class MoneyText extends StatelessWidget {
     final isNegative = value! < 0;
     return Text(
       text,
-      style: style?.copyWith(
+      style:
+          style?.copyWith(
             color: isNegative ? context.colors.error : style?.color,
             fontWeight: FontWeight.bold,
           ) ??
@@ -263,5 +296,29 @@ class StaffRolePill extends StatelessWidget {
       StaffRole.manager => const StatusPill(label: '店长', color: Colors.blue),
       StaffRole.viewer => const StatusPill(label: '店员', color: Colors.grey),
     };
+  }
+}
+
+class StaffUserStatusPill extends StatelessWidget {
+  const StaffUserStatusPill({super.key, required this.isArchived});
+  final bool isArchived;
+
+  @override
+  Widget build(BuildContext context) {
+    return isArchived
+        ? const StatusPill(label: '已停用', color: Colors.orange)
+        : const StatusPill(label: '可登录', color: Colors.green);
+  }
+}
+
+class ApiTokenStatusPill extends StatelessWidget {
+  const ApiTokenStatusPill({super.key, required this.isRevoked});
+  final bool isRevoked;
+
+  @override
+  Widget build(BuildContext context) {
+    return isRevoked
+        ? const StatusPill(label: '已撤销', color: Colors.red)
+        : const StatusPill(label: '可使用', color: Colors.green);
   }
 }

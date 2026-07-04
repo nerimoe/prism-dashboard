@@ -7,16 +7,23 @@ import 'api/models.dart';
 const _baseUrlKey = 'prism.dashboard.api.baseurl';
 const _tokenKey = 'prism.dashboard.admin.token';
 
-final appControllerProvider = AsyncNotifierProvider<AppController, AppState>(AppController.new);
+final appControllerProvider = AsyncNotifierProvider<AppController, AppState>(
+  AppController.new,
+);
 
 final apiClientProvider = Provider<PrismApiClient>((ref) {
   final state = ref.watch(appControllerProvider).value;
-  return PrismApiClient(baseUrl: state?.baseUrl ?? defaultBaseUrl, token: state?.token);
+  return PrismApiClient(
+    baseUrl: state?.baseUrl ?? defaultBaseUrl,
+    token: state?.token,
+  );
 });
 
 String get defaultBaseUrl {
   final uri = Uri.base;
-  if (uri.hasScheme && uri.host.isNotEmpty) return '${uri.scheme}://${uri.host}:8787';
+  if (uri.hasScheme && uri.host.isNotEmpty) {
+    return '${uri.scheme}://${uri.host}:8787';
+  }
   return 'http://localhost:8787';
 }
 
@@ -74,7 +81,12 @@ class AppController extends AsyncNotifier<AppState> {
       setupStatus = null;
     }
 
-    return AppState(baseUrl: baseUrl, token: staff == null ? null : token, setupStatus: setupStatus, staff: staff);
+    return AppState(
+      baseUrl: baseUrl,
+      token: staff == null ? null : token,
+      setupStatus: setupStatus,
+      staff: staff,
+    );
   }
 
   Future<void> updateBaseUrl(String value) async {
@@ -82,7 +94,13 @@ class AppController extends AsyncNotifier<AppState> {
     await _prefs.setString(_baseUrlKey, value);
     await _prefs.remove(_tokenKey);
     state = AsyncData(
-      (current ?? AppState(baseUrl: value, token: null, setupStatus: null, staff: null))
+      (current ??
+              AppState(
+                baseUrl: value,
+                token: null,
+                setupStatus: null,
+                staff: null,
+              ))
           .copyWith(baseUrl: value, clearToken: true, clearStaff: true),
     );
     await refreshSetupStatus();
@@ -112,13 +130,20 @@ class AppController extends AsyncNotifier<AppState> {
       password: password,
       coinCooldownMs: coinCooldownMs,
     );
-    state = AsyncData(current.copyWith(setupStatus: const SetupStatus(installed: true)));
+    state = AsyncData(
+      current.copyWith(setupStatus: const SetupStatus(installed: true)),
+    );
     await login(username: username, password: password);
   }
 
-  Future<void> login({required String username, required String password}) async {
+  Future<void> login({
+    required String username,
+    required String password,
+  }) async {
     final current = state.value!;
-    final result = await PrismApiClient(baseUrl: current.baseUrl).login(username: username, password: password);
+    final result = await PrismApiClient(
+      baseUrl: current.baseUrl,
+    ).login(username: username, password: password);
     await _prefs.setString(_tokenKey, result.$1);
     state = AsyncData(current.copyWith(token: result.$1, staff: result.$2));
   }
@@ -126,6 +151,8 @@ class AppController extends AsyncNotifier<AppState> {
   Future<void> logout() async {
     final current = state.value;
     await _prefs.remove(_tokenKey);
-    if (current != null) state = AsyncData(current.copyWith(clearToken: true, clearStaff: true));
+    if (current != null) {
+      state = AsyncData(current.copyWith(clearToken: true, clearStaff: true));
+    }
   }
 }

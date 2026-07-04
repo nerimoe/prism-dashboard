@@ -3,11 +3,7 @@ import '../context_extensions.dart';
 
 /// 过滤器/操作按钮的一行工具栏容器
 class AdminToolbar extends StatelessWidget {
-  const AdminToolbar({
-    super.key,
-    required this.children,
-    this.spacing = 12,
-  });
+  const AdminToolbar({super.key, required this.children, this.spacing = 12});
 
   final List<Widget> children;
   final double spacing;
@@ -71,7 +67,11 @@ class _StepperNumberFieldState extends State<StepperNumberField> {
                 onPressed: widget.value <= widget.min
                     ? null
                     : () {
-                        widget.onChanged(widget.value - widget.step);
+                        widget.onChanged(
+                          (widget.value - widget.step)
+                              .clamp(widget.min, widget.max)
+                              .toInt(),
+                        );
                       },
               ),
               Container(
@@ -91,7 +91,11 @@ class _StepperNumberFieldState extends State<StepperNumberField> {
                 onPressed: widget.value >= widget.max
                     ? null
                     : () {
-                        widget.onChanged(widget.value + widget.step);
+                        widget.onChanged(
+                          (widget.value + widget.step)
+                              .clamp(widget.min, widget.max)
+                              .toInt(),
+                        );
                       },
               ),
             ],
@@ -115,14 +119,14 @@ class DateRangePickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final startText = '${selectedRange.start.year}-${selectedRange.start.month}-${selectedRange.start.day}';
-    final endText = '${selectedRange.end.year}-${selectedRange.end.month}-${selectedRange.end.day}';
+    final startText =
+        '${selectedRange.start.year}-${selectedRange.start.month}-${selectedRange.start.day}';
+    final endText =
+        '${selectedRange.end.year}-${selectedRange.end.month}-${selectedRange.end.day}';
 
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
       icon: const Icon(Icons.date_range, size: 18),
       label: Text('$startText 至 $endText'),
@@ -185,9 +189,7 @@ class ConfirmActionDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(
         title,
-        style: context.text.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
       content: Text(message, style: context.text.bodyMedium),
       actions: [

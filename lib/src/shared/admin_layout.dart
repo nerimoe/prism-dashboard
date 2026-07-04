@@ -1,6 +1,68 @@
 import 'package:flutter/material.dart';
 import '../context_extensions.dart';
 
+class AdminWorkspace extends StatelessWidget {
+  const AdminWorkspace({
+    super.key,
+    required this.title,
+    required this.child,
+    this.subtitle,
+    this.actions,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget child;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(context.isCompact ? 16 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: context.text.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (actions != null)
+                Wrap(spacing: 8, runSpacing: 8, children: actions!),
+            ],
+          ),
+          const SizedBox(height: 20),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 /// 响应式双栏布局组件，大屏下显示左右分栏，移动端下根据选中状态显示列表或详情。
 class AdminSplitPane extends StatelessWidget {
   const AdminSplitPane({
@@ -46,16 +108,10 @@ class AdminSplitPane extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          flex: 3,
-          child: list,
-        ),
+        Expanded(flex: 3, child: list),
         if (detail != null) ...[
           const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: detail!,
-          ),
+          Expanded(flex: 2, child: detail!),
         ],
       ],
     );
@@ -85,29 +141,34 @@ class AdminDetailPanel extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final body = SingleChildScrollView(child: child);
+            final scrollBody = constraints.maxHeight.isFinite
+                ? Flexible(fit: FlexFit.loose, child: body)
+                : body;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: context.text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: context.text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (actions != null) ...actions!,
+                  ],
                 ),
-                if (actions != null) ...actions!,
+                const Divider(height: 24),
+                scrollBody,
               ],
-            ),
-            const Divider(height: 24),
-            Expanded(
-              child: SingleChildScrollView(
-                child: child,
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -163,9 +224,7 @@ class FormSheet extends StatelessWidget {
     return showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: FormSheet(
@@ -204,9 +263,7 @@ class FormSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Flexible(
-            child: SingleChildScrollView(child: child),
-          ),
+          Flexible(child: SingleChildScrollView(child: child)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

@@ -10,7 +10,11 @@ _CurrentStaff _$CurrentStaffFromJson(Map<String, dynamic> json) =>
     _CurrentStaff(
       id: json['id'] as String,
       displayName: json['displayName'] as String,
-      role: $enumDecode(_$StaffRoleEnumMap, json['role']),
+      role: $enumDecode(
+        _$StaffRoleEnumMap,
+        json['role'],
+        unknownValue: StaffRole.viewer,
+      ),
       canWrite: json['canWrite'] as bool? ?? false,
     );
 
@@ -122,8 +126,8 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   id: json['id'] as String,
   displayName: json['displayName'] as String,
   status: json['status'] as String,
-  walletTotal: json['walletTotal'] as num,
-  stayDurationMinutes: (json['stayDurationMinutes'] as num).toInt(),
+  walletTotal: json['walletTotal'] as num? ?? 0,
+  stayDurationMinutes: (json['stayDurationMinutes'] as num?)?.toInt() ?? 0,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -142,8 +146,8 @@ _AssetDefinition _$AssetDefinitionFromJson(Map<String, dynamic> json) =>
     _AssetDefinition(
       type: json['type'] as String,
       code: json['code'] as String,
-      displayName: json['displayName'] as String,
-      isArchived: json['isArchived'] as bool? ?? false,
+      displayName: readDisplayName(json, 'displayName') as String,
+      isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
     );
 
 Map<String, dynamic> _$AssetDefinitionToJson(_AssetDefinition instance) =>
@@ -158,7 +162,7 @@ _AssetHolding _$AssetHoldingFromJson(Map<String, dynamic> json) =>
     _AssetHolding(
       assetType: json['assetType'] as String,
       assetCode: json['assetCode'] as String,
-      amount: json['amount'] as num,
+      amount: readAmount(json, 'amount') as num,
     );
 
 Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
@@ -170,11 +174,11 @@ Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
 
 _AssetLedgerEntry _$AssetLedgerEntryFromJson(Map<String, dynamic> json) =>
     _AssetLedgerEntry(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       assetType: json['assetType'] as String,
       assetCode: json['assetCode'] as String,
-      amount: json['amount'] as num,
-      direction: json['direction'] as String,
+      amount: readAmount(json, 'amount') as num,
+      direction: readDirection(json, 'direction') as String,
       reason: json['reason'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
@@ -192,11 +196,11 @@ Map<String, dynamic> _$AssetLedgerEntryToJson(_AssetLedgerEntry instance) =>
 
 _PlayerAssets _$PlayerAssetsFromJson(Map<String, dynamic> json) =>
     _PlayerAssets(
-      playerId: json['playerId'] as String,
+      playerId: json['playerId'] as String? ?? '',
       holdings: (json['holdings'] as List<dynamic>)
           .map((e) => AssetHolding.fromJson(e as Map<String, dynamic>))
           .toList(),
-      ledger: (json['ledger'] as List<dynamic>)
+      ledger: (readLedger(json, 'ledger') as List<dynamic>)
           .map((e) => AssetLedgerEntry.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
@@ -227,7 +231,7 @@ _Present _$PresentFromJson(Map<String, dynamic> json) => _Present(
   grants: (json['grants'] as List<dynamic>)
       .map((e) => AssetGrant.fromJson(e as Map<String, dynamic>))
       .toList(),
-  isArchived: json['isArchived'] as bool? ?? false,
+  isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
 );
 
 Map<String, dynamic> _$PresentToJson(_Present instance) => <String, dynamic>{
@@ -240,11 +244,13 @@ Map<String, dynamic> _$PresentToJson(_Present instance) => <String, dynamic>{
 _RedeemCode _$RedeemCodeFromJson(Map<String, dynamic> json) => _RedeemCode(
   id: json['id'] as String,
   code: json['code'] as String,
-  grants: (json['grants'] as List<dynamic>)
-      .map((e) => AssetGrant.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  usageLimit: (json['usageLimit'] as num).toInt(),
-  usageCount: (json['usageCount'] as num).toInt(),
+  grants:
+      (json['grants'] as List<dynamic>?)
+          ?.map((e) => AssetGrant.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  usageLimit: (readUsageLimit(json, 'usageLimit') as num?)?.toInt() ?? 1,
+  usageCount: (json['usageCount'] as num?)?.toInt() ?? 0,
   expiresAt: json['expiresAt'] == null
       ? null
       : DateTime.parse(json['expiresAt'] as String),
@@ -305,11 +311,11 @@ _PricingConfig _$PricingConfigFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       name: json['name'] as String,
       kind: json['kind'] as String,
-      rules: (json['rules'] as List<dynamic>)
+      rules: (readPricingRules(json, 'rules') as List<dynamic>)
           .map((e) => PriorityTimeRule.fromJson(e as Map<String, dynamic>))
           .toList(),
-      isArchived: json['isArchived'] as bool? ?? false,
-      isActive: json['isActive'] as bool? ?? true,
+      isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
+      isActive: readIsActive(json, 'isActive') as bool? ?? true,
     );
 
 Map<String, dynamic> _$PricingConfigToJson(_PricingConfig instance) =>
@@ -355,7 +361,7 @@ _BusinessItem _$BusinessItemFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       price: json['price'] as num,
       kind: json['kind'] as String,
-      isArchived: json['isArchived'] as bool? ?? false,
+      isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
     );
 
 Map<String, dynamic> _$BusinessItemToJson(_BusinessItem instance) =>
@@ -371,8 +377,8 @@ _BusinessItemOrder _$BusinessItemOrderFromJson(Map<String, dynamic> json) =>
     _BusinessItemOrder(
       id: json['id'] as String,
       playerId: json['playerId'] as String,
-      itemId: json['itemId'] as String,
-      itemName: json['itemName'] as String,
+      itemId: readItemId(json, 'itemId') as String,
+      itemName: readItemName(json, 'itemName') as String,
       price: json['price'] as num,
       status: json['status'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -419,11 +425,11 @@ Map<String, dynamic> _$DeviceStateToJson(_DeviceState instance) =>
 _DeviceCommand _$DeviceCommandFromJson(Map<String, dynamic> json) =>
     _DeviceCommand(
       id: json['id'] as String,
-      commandType: json['commandType'] as String,
+      commandType: readCommandType(json, 'commandType') as String,
       deviceId: json['deviceId'] as String,
-      requester: json['requester'] as String,
+      requester: readRequester(json, 'requester') as String,
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(readCreatedAt(json, 'createdAt') as String),
       ackedAt: json['ackedAt'] == null
           ? null
           : DateTime.parse(json['ackedAt'] as String),
@@ -442,10 +448,14 @@ Map<String, dynamic> _$DeviceCommandToJson(_DeviceCommand instance) =>
 
 _ReportSummary _$ReportSummaryFromJson(Map<String, dynamic> json) =>
     _ReportSummary(
-      revenue: json['revenue'] as num,
-      settledSessionsCount: (json['settledSessionsCount'] as num).toInt(),
-      assetGrantsCount: (json['assetGrantsCount'] as num).toInt(),
-      coinCommandsCount: (json['coinCommandsCount'] as num).toInt(),
+      revenue: readRevenue(json, 'revenue') as num,
+      settledSessionsCount:
+          (readSettledSessionsCount(json, 'settledSessionsCount') as num)
+              .toInt(),
+      assetGrantsCount: (readAssetGrantsCount(json, 'assetGrantsCount') as num)
+          .toInt(),
+      coinCommandsCount:
+          (readCoinCommandsCount(json, 'coinCommandsCount') as num).toInt(),
     );
 
 Map<String, dynamic> _$ReportSummaryToJson(_ReportSummary instance) =>
@@ -459,7 +469,7 @@ Map<String, dynamic> _$ReportSummaryToJson(_ReportSummary instance) =>
 _SettlementReportRow _$SettlementReportRowFromJson(Map<String, dynamic> json) =>
     _SettlementReportRow(
       playerId: json['playerId'] as String,
-      displayName: json['displayName'] as String,
+      displayName: readDisplayName(json, 'displayName') as String,
       durationMinutes: (json['durationMinutes'] as num).toInt(),
       subtotal: json['subtotal'] as num,
       total: json['total'] as num,
@@ -480,10 +490,10 @@ Map<String, dynamic> _$SettlementReportRowToJson(
 _PlayerReportRow _$PlayerReportRowFromJson(Map<String, dynamic> json) =>
     _PlayerReportRow(
       playerId: json['playerId'] as String,
-      displayName: json['displayName'] as String,
+      displayName: readDisplayName(json, 'displayName') as String,
       settlementCount: (json['settlementCount'] as num).toInt(),
       totalDurationMinutes: (json['totalDurationMinutes'] as num).toInt(),
-      revenue: json['revenue'] as num,
+      revenue: readRevenue(json, 'revenue') as num,
       lastSettledAt: DateTime.parse(json['lastSettledAt'] as String),
     );
 
@@ -499,9 +509,10 @@ Map<String, dynamic> _$PlayerReportRowToJson(_PlayerReportRow instance) =>
 
 _SettingsData _$SettingsDataFromJson(Map<String, dynamic> json) =>
     _SettingsData(
-      storeName: json['storeName'] as String,
-      timeZone: json['timeZone'] as String,
-      coinCooldownMs: (json['coinCooldownMs'] as num).toInt(),
+      storeName: readStoreName(json, 'storeName') as String,
+      timeZone: readTimeZone(json, 'timeZone') as String,
+      coinCooldownMs: (readCoinCooldownMs(json, 'coinCooldownMs') as num)
+          .toInt(),
     );
 
 Map<String, dynamic> _$SettingsDataToJson(_SettingsData instance) =>
@@ -515,8 +526,12 @@ _StaffUser _$StaffUserFromJson(Map<String, dynamic> json) => _StaffUser(
   id: json['id'] as String,
   username: json['username'] as String,
   displayName: json['displayName'] as String,
-  role: $enumDecode(_$StaffRoleEnumMap, json['role']),
-  isArchived: json['isArchived'] as bool? ?? false,
+  role: $enumDecode(
+    _$StaffRoleEnumMap,
+    json['role'],
+    unknownValue: StaffRole.viewer,
+  ),
+  isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
 );
 
 Map<String, dynamic> _$StaffUserToJson(_StaffUser instance) =>
@@ -533,13 +548,16 @@ _ApiToken _$ApiTokenFromJson(Map<String, dynamic> json) => _ApiToken(
   label: json['label'] as String,
   token: json['token'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
-  isRevoked: json['isRevoked'] as bool? ?? false,
+  role: json['role'] as String? ?? 'player',
+  tokenPrefix: json['tokenPrefix'] as String? ?? '',
+  isRevoked: readIsRevoked(json, 'isRevoked') as bool? ?? false,
 );
 
 Map<String, dynamic> _$ApiTokenToJson(_ApiToken instance) => <String, dynamic>{
   'id': instance.id,
   'label': instance.label,
-  'token': instance.token,
   'createdAt': instance.createdAt.toIso8601String(),
+  'role': instance.role,
+  'tokenPrefix': instance.tokenPrefix,
   'isRevoked': instance.isRevoked,
 };

@@ -15,7 +15,7 @@ void main() {
         'status': 'active',
         'walletTotal': 150.5,
         'stayDurationMinutes': 45,
-        'createdAt': '2026-07-04T12:00:00.000Z'
+        'createdAt': '2026-07-04T12:00:00.000Z',
       };
       final model = Player.fromJson(json);
       expect(model.id, 'player-1');
@@ -30,8 +30,8 @@ void main() {
       final json = {
         'type': 'currency',
         'code': 'paid',
-        'displayName': '实存余额',
-        'isArchived': false
+        'name': '实存余额',
+        'status': 'active',
       };
       final model = AssetDefinition.fromJson(json);
       expect(model.type, 'currency');
@@ -44,19 +44,18 @@ void main() {
       final json = {
         'playerId': 'player-1',
         'holdings': [
-          {'assetType': 'currency', 'assetCode': 'paid', 'amount': 100.0}
+          {'assetType': 'currency', 'assetCode': 'paid', 'quantity': 100.0},
         ],
-        'ledger': [
+        'ledgerEntries': [
           {
             'id': 'ledger-1',
             'assetType': 'currency',
             'assetCode': 'paid',
-            'amount': 100.0,
-            'direction': 'in',
+            'delta': 100.0,
             'reason': '充值',
-            'createdAt': '2026-07-04T12:05:00.000Z'
-          }
-        ]
+            'createdAt': '2026-07-04T12:05:00.000Z',
+          },
+        ],
       };
       final model = PlayerAssets.fromJson(json);
       expect(model.playerId, 'player-1');
@@ -69,9 +68,9 @@ void main() {
         'id': 'present-1',
         'name': '新手大礼包',
         'grants': [
-          {'assetType': 'currency', 'assetCode': 'free', 'amount': 20.0}
+          {'assetType': 'currency', 'assetCode': 'free', 'amount': 20.0},
         ],
-        'isArchived': false
+        'isArchived': false,
       };
       final model = Present.fromJson(json);
       expect(model.id, 'present-1');
@@ -84,13 +83,13 @@ void main() {
         'id': 'code-1',
         'code': 'CDK12345',
         'grants': [
-          {'assetType': 'currency', 'assetCode': 'paid', 'amount': 50.0}
+          {'assetType': 'currency', 'assetCode': 'paid', 'amount': 50.0},
         ],
-        'usageLimit': 1,
+        'maxUseCount': 1,
         'usageCount': 0,
         'expiresAt': '2026-08-04T12:00:00.000Z',
         'isRevoked': false,
-        'createdAt': '2026-07-04T12:00:00.000Z'
+        'createdAt': '2026-07-04T12:00:00.000Z',
       };
       final model = RedeemCode.fromJson(json);
       expect(model.id, 'code-1');
@@ -105,22 +104,24 @@ void main() {
         'id': 'pricing-1',
         'name': '基础计费规则',
         'kind': 'time.priority',
-        'rules': [
-          {
-            'label': '日场计费',
-            'priority': 1,
-            'startTime': '08:00',
-            'endTime': '22:00',
-            'weekdays': [1, 2, 3, 4, 5],
-            'specificDate': '2026-07-04',
-            'unitMinutes': 30,
-            'unitPrice': 10.0,
-            'graceMinutes': 5,
-            'priceCap': 50.0
-          }
-        ],
-        'isArchived': false,
-        'isActive': true
+        'provider': {
+          'rules': [
+            {
+              'label': '日场计费',
+              'priority': 1,
+              'startTime': '08:00',
+              'endTime': '22:00',
+              'weekdays': [1, 2, 3, 4, 5],
+              'specificDate': '2026-07-04',
+              'unitMinutes': 30,
+              'unitPrice': 10.0,
+              'graceMinutes': 5,
+              'priceCap': 50.0,
+            },
+          ],
+        },
+        'status': 'active',
+        'enabled': true,
       };
       final model = PricingConfig.fromJson(json);
       expect(model.id, 'pricing-1');
@@ -134,11 +135,11 @@ void main() {
       final json = {
         'id': 'order-1',
         'playerId': 'player-1',
-        'itemId': 'item-1',
-        'itemName': '冰可乐',
+        'businessItemId': 'item-1',
+        'businessItemName': '冰可乐',
         'price': 3.5,
         'status': 'pending',
-        'createdAt': '2026-07-04T12:30:00.000Z'
+        'createdAt': '2026-07-04T12:30:00.000Z',
       };
       final model = BusinessItemOrder.fromJson(json);
       expect(model.id, 'order-1');
@@ -154,7 +155,7 @@ void main() {
         'type': 'gate',
         'status': 'online',
         'reportedAt': '2026-07-04T12:35:00.000Z',
-        'reportedBy': 'gateway-1'
+        'reportedBy': 'gateway-1',
       };
       final model = DeviceState.fromJson(json);
       expect(model.deviceId, 'device-1');
@@ -164,12 +165,12 @@ void main() {
     test('DeviceCommand parses correctly', () {
       final json = {
         'id': 'cmd-1',
-        'commandType': 'coin',
+        'type': 'coin',
         'deviceId': 'coin-1',
-        'requester': 'staff-1',
+        'staffId': 'staff-1',
         'status': 'acked',
-        'createdAt': '2026-07-04T12:30:00.000Z',
-        'ackedAt': '2026-07-04T12:30:05.000Z'
+        'requestedAt': '2026-07-04T12:30:00.000Z',
+        'ackedAt': '2026-07-04T12:30:05.000Z',
       };
       final model = DeviceCommand.fromJson(json);
       expect(model.id, 'cmd-1');
@@ -182,7 +183,7 @@ void main() {
         'username': 'admin',
         'displayName': '店长',
         'role': 'manager',
-        'isArchived': false
+        'status': 'active',
       };
       final model = StaffUser.fromJson(json);
       expect(model.id, 'staff-1');
@@ -196,12 +197,15 @@ void main() {
         'label': '网关密钥',
         'token': 'secret-xyz',
         'createdAt': '2026-07-04T12:00:00.000Z',
-        'isRevoked': false
+        'role': 'agent',
+        'status': 'active',
       };
       final model = ApiToken.fromJson(json);
       expect(model.id, 'token-1');
       expect(model.token, 'secret-xyz');
       expect(model.isRevoked, false);
+      expect(model.toJson().containsKey('token'), false);
+      expect(model.toString().contains('secret-xyz'), false);
     });
   });
 
@@ -221,9 +225,15 @@ void main() {
           if (path == '/rpc/staff/users' && request.method == 'GET') {
             return http.Response(
               jsonEncode({
-                'users': [
-                  {'id': 'staff-1', 'username': 'admin', 'displayName': '店长', 'role': 'manager', 'isArchived': false}
-                ]
+                'staffUsers': [
+                  {
+                    'id': 'staff-1',
+                    'username': 'admin',
+                    'displayName': '店长',
+                    'role': 'manager',
+                    'status': 'active',
+                  },
+                ],
               }),
               200,
               headers: {'content-type': 'application/json'},
@@ -231,7 +241,13 @@ void main() {
           } else if (path == '/rpc/staff/users' && request.method == 'POST') {
             return http.Response(
               jsonEncode({
-                'staffUser': {'id': 'staff-2', 'username': 'cashier', 'displayName': '收银员', 'role': 'viewer', 'isArchived': false}
+                'staffUser': {
+                  'id': 'staff-2',
+                  'username': 'cashier',
+                  'displayName': '收银员',
+                  'role': 'viewer',
+                  'isArchived': false,
+                },
               }),
               200,
               headers: {'content-type': 'application/json'},
@@ -239,7 +255,10 @@ void main() {
           } else if (path == '/rpc/staff/settings' && request.method == 'PUT') {
             return http.Response(
               jsonEncode({
-                'settings': {'storeName': 'New Store', 'timeZone': 'Asia/Shanghai', 'coinCooldownMs': 500}
+                'settings': {
+                  'store': {'name': 'New Store', 'timeZone': 'Asia/Shanghai'},
+                  'operations': {'coinCooldownMs': 500},
+                },
               }),
               200,
               headers: {'content-type': 'application/json'},
@@ -248,27 +267,40 @@ void main() {
             return http.Response(
               jsonEncode({
                 'players': [
-                  {'id': 'p-1', 'displayName': '张三', 'status': 'active', 'walletTotal': 50.0, 'stayDurationMinutes': 10}
-                ]
+                  {
+                    'id': 'p-1',
+                    'displayName': '张三',
+                    'status': 'active',
+                    'walletTotal': 50.0,
+                    'stayDurationMinutes': 10,
+                  },
+                ],
               }),
               200,
               headers: {'content-type': 'application/json'},
             );
-          } else if (path == '/rpc/staff/reports/summary' && request.method == 'GET') {
-            expect(request.url.queryParameters['start'], '2026-07-01');
+          } else if (path == '/rpc/staff/reports/summary' &&
+              request.method == 'GET') {
+            expect(request.url.queryParameters['from'], '2026-07-01');
             return http.Response(
               jsonEncode({
-                'revenue': 1000.5,
-                'settledSessionsCount': 25,
-                'assetGrantsCount': 5,
-                'coinCommandsCount': 12,
+                'summary': {
+                  'revenueTotal': 1000.5,
+                  'sessionCount': 25,
+                  'assetGrantTotal': 5,
+                  'coinCommandCount': 12,
+                },
               }),
               200,
               headers: {'content-type': 'application/json'},
             );
           }
 
-          return http.Response('{}', 200, headers: {'content-type': 'application/json'});
+          return http.Response(
+            '{}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
         }),
       );
     });
@@ -303,6 +335,9 @@ void main() {
       );
       expect(requests.first.method, 'PUT');
       expect(requests.first.url.path, '/rpc/staff/settings');
+      final body = jsonDecode(requests.first.body);
+      expect(body['store']['name'], 'New Store');
+      expect(body['operations']['coinCooldownMs'], 500);
       expect(settings.storeName, 'New Store');
     });
 

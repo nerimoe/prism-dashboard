@@ -7,8 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:prism_dashboard/src/api/api_client.dart';
 import 'package:prism_dashboard/src/api/models.dart';
-import 'package:prism_dashboard/src/features/modules/module_pages.dart';
 import 'package:prism_dashboard/src/features/operations/operations_screen.dart';
+import 'package:prism_dashboard/src/features/pricing/pricing_screen.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
@@ -152,13 +152,11 @@ void main() {
           theme: buildPrismDashboardTheme(
             ColorScheme.fromSeed(seedColor: prismSeedColor),
           ),
-          home: const PricingModulePage(),
+          home: const PricingScreen(),
         ),
       );
 
-      expect(find.byIcon(Icons.schedule), findsOneWidget);
-      expect(find.byType(SegmentedButton<String>), findsOneWidget);
-      expect(find.byType(SwitchListTile), findsOneWidget);
+      expect(find.text('计费配置'), findsOneWidget);
       expect(find.textContaining('HH:mm'), findsNothing);
       expect(find.textContaining('millisecond'), findsNothing);
     },

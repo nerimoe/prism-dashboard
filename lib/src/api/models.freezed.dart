@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CurrentStaff {
 
- String get id; String get displayName; StaffRole get role; bool get canWrite;
+ String get id; String get displayName;@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole get role; bool get canWrite;
 /// Create a copy of CurrentStaff
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $CurrentStaffCopyWith<$Res>  {
   factory $CurrentStaffCopyWith(CurrentStaff value, $Res Function(CurrentStaff) _then) = _$CurrentStaffCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName, StaffRole role, bool canWrite
+ String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role, bool canWrite
 });
 
 
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  StaffRole role,  bool canWrite)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CurrentStaff() when $default != null:
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -177,7 +177,7 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  StaffRole role,  bool canWrite)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)  $default,) {final _that = this;
 switch (_that) {
 case _CurrentStaff():
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  StaffRole role,  bool canWrite)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)?  $default,) {final _that = this;
 switch (_that) {
 case _CurrentStaff() when $default != null:
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -212,12 +212,12 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 @JsonSerializable()
 
 class _CurrentStaff implements CurrentStaff {
-  const _CurrentStaff({required this.id, required this.displayName, required this.role, this.canWrite = false});
+  const _CurrentStaff({required this.id, required this.displayName, @JsonKey(unknownEnumValue: StaffRole.viewer) required this.role, this.canWrite = false});
   factory _CurrentStaff.fromJson(Map<String, dynamic> json) => _$CurrentStaffFromJson(json);
 
 @override final  String id;
 @override final  String displayName;
-@override final  StaffRole role;
+@override@JsonKey(unknownEnumValue: StaffRole.viewer) final  StaffRole role;
 @override@JsonKey() final  bool canWrite;
 
 /// Create a copy of CurrentStaff
@@ -253,7 +253,7 @@ abstract mixin class _$CurrentStaffCopyWith<$Res> implements $CurrentStaffCopyWi
   factory _$CurrentStaffCopyWith(_CurrentStaff value, $Res Function(_CurrentStaff) _then) = __$CurrentStaffCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName, StaffRole role, bool canWrite
+ String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role, bool canWrite
 });
 
 
@@ -1876,14 +1876,14 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 @JsonSerializable()
 
 class _Player implements Player {
-  const _Player({required this.id, required this.displayName, required this.status, required this.walletTotal, required this.stayDurationMinutes, this.createdAt});
+  const _Player({required this.id, required this.displayName, required this.status, this.walletTotal = 0, this.stayDurationMinutes = 0, this.createdAt});
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String id;
 @override final  String displayName;
 @override final  String status;
-@override final  num walletTotal;
-@override final  int stayDurationMinutes;
+@override@JsonKey() final  num walletTotal;
+@override@JsonKey() final  int stayDurationMinutes;
 @override final  DateTime? createdAt;
 
 /// Create a copy of Player
@@ -1955,7 +1955,7 @@ as DateTime?,
 /// @nodoc
 mixin _$AssetDefinition {
 
- String get type; String get code; String get displayName; bool get isArchived;
+ String get type; String get code;@JsonKey(readValue: readDisplayName) String get displayName;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of AssetDefinition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1988,7 +1988,7 @@ abstract mixin class $AssetDefinitionCopyWith<$Res>  {
   factory $AssetDefinitionCopyWith(AssetDefinition value, $Res Function(AssetDefinition) _then) = _$AssetDefinitionCopyWithImpl;
 @useResult
 $Res call({
- String type, String code, String displayName, bool isArchived
+ String type, String code,@JsonKey(readValue: readDisplayName) String displayName,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -2096,7 +2096,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String code,  String displayName,  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetDefinition() when $default != null:
 return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
@@ -2117,7 +2117,7 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String code,  String displayName,  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _AssetDefinition():
 return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
@@ -2137,7 +2137,7 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String code,  String displayName,  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String code, @JsonKey(readValue: readDisplayName)  String displayName, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetDefinition() when $default != null:
 return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _:
@@ -2152,13 +2152,13 @@ return $default(_that.type,_that.code,_that.displayName,_that.isArchived);case _
 @JsonSerializable()
 
 class _AssetDefinition implements AssetDefinition {
-  const _AssetDefinition({required this.type, required this.code, required this.displayName, this.isArchived = false});
+  const _AssetDefinition({required this.type, required this.code, @JsonKey(readValue: readDisplayName) required this.displayName, @JsonKey(readValue: readIsArchived) this.isArchived = false});
   factory _AssetDefinition.fromJson(Map<String, dynamic> json) => _$AssetDefinitionFromJson(json);
 
 @override final  String type;
 @override final  String code;
-@override final  String displayName;
-@override@JsonKey() final  bool isArchived;
+@override@JsonKey(readValue: readDisplayName) final  String displayName;
+@override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of AssetDefinition
 /// with the given fields replaced by the non-null parameter values.
@@ -2193,7 +2193,7 @@ abstract mixin class _$AssetDefinitionCopyWith<$Res> implements $AssetDefinition
   factory _$AssetDefinitionCopyWith(_AssetDefinition value, $Res Function(_AssetDefinition) _then) = __$AssetDefinitionCopyWithImpl;
 @override @useResult
 $Res call({
- String type, String code, String displayName, bool isArchived
+ String type, String code,@JsonKey(readValue: readDisplayName) String displayName,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -2227,7 +2227,7 @@ as bool,
 /// @nodoc
 mixin _$AssetHolding {
 
- String get assetType; String get assetCode; num get amount;
+ String get assetType; String get assetCode;@JsonKey(readValue: readAmount) num get amount;
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2260,7 +2260,7 @@ abstract mixin class $AssetHoldingCopyWith<$Res>  {
   factory $AssetHoldingCopyWith(AssetHolding value, $Res Function(AssetHolding) _then) = _$AssetHoldingCopyWithImpl;
 @useResult
 $Res call({
- String assetType, String assetCode, num amount
+ String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount
 });
 
 
@@ -2367,7 +2367,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  num amount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
 return $default(_that.assetType,_that.assetCode,_that.amount);case _:
@@ -2388,7 +2388,7 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  num amount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding():
 return $default(_that.assetType,_that.assetCode,_that.amount);case _:
@@ -2408,7 +2408,7 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String assetType,  String assetCode,  num amount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
 return $default(_that.assetType,_that.assetCode,_that.amount);case _:
@@ -2423,12 +2423,12 @@ return $default(_that.assetType,_that.assetCode,_that.amount);case _:
 @JsonSerializable()
 
 class _AssetHolding implements AssetHolding {
-  const _AssetHolding({required this.assetType, required this.assetCode, required this.amount});
+  const _AssetHolding({required this.assetType, required this.assetCode, @JsonKey(readValue: readAmount) required this.amount});
   factory _AssetHolding.fromJson(Map<String, dynamic> json) => _$AssetHoldingFromJson(json);
 
 @override final  String assetType;
 @override final  String assetCode;
-@override final  num amount;
+@override@JsonKey(readValue: readAmount) final  num amount;
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
@@ -2463,7 +2463,7 @@ abstract mixin class _$AssetHoldingCopyWith<$Res> implements $AssetHoldingCopyWi
   factory _$AssetHoldingCopyWith(_AssetHolding value, $Res Function(_AssetHolding) _then) = __$AssetHoldingCopyWithImpl;
 @override @useResult
 $Res call({
- String assetType, String assetCode, num amount
+ String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount
 });
 
 
@@ -2496,7 +2496,7 @@ as num,
 /// @nodoc
 mixin _$AssetLedgerEntry {
 
- String get id; String get assetType; String get assetCode; num get amount; String get direction; String get reason; DateTime get createdAt;
+ String get id; String get assetType; String get assetCode;@JsonKey(readValue: readAmount) num get amount;@JsonKey(readValue: readDirection) String get direction; String get reason; DateTime get createdAt;
 /// Create a copy of AssetLedgerEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2529,7 +2529,7 @@ abstract mixin class $AssetLedgerEntryCopyWith<$Res>  {
   factory $AssetLedgerEntryCopyWith(AssetLedgerEntry value, $Res Function(AssetLedgerEntry) _then) = _$AssetLedgerEntryCopyWithImpl;
 @useResult
 $Res call({
- String id, String assetType, String assetCode, num amount, String direction, String reason, DateTime createdAt
+ String id, String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
 });
 
 
@@ -2640,7 +2640,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  num amount,  String direction,  String reason,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry() when $default != null:
 return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
@@ -2661,7 +2661,7 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  num amount,  String direction,  String reason,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry():
 return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
@@ -2681,7 +2681,7 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String assetType,  String assetCode,  num amount,  String direction,  String reason,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String assetType,  String assetCode, @JsonKey(readValue: readAmount)  num amount, @JsonKey(readValue: readDirection)  String direction,  String reason,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetLedgerEntry() when $default != null:
 return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.direction,_that.reason,_that.createdAt);case _:
@@ -2696,14 +2696,14 @@ return $default(_that.id,_that.assetType,_that.assetCode,_that.amount,_that.dire
 @JsonSerializable()
 
 class _AssetLedgerEntry implements AssetLedgerEntry {
-  const _AssetLedgerEntry({required this.id, required this.assetType, required this.assetCode, required this.amount, required this.direction, required this.reason, required this.createdAt});
+  const _AssetLedgerEntry({this.id = '', required this.assetType, required this.assetCode, @JsonKey(readValue: readAmount) required this.amount, @JsonKey(readValue: readDirection) required this.direction, required this.reason, required this.createdAt});
   factory _AssetLedgerEntry.fromJson(Map<String, dynamic> json) => _$AssetLedgerEntryFromJson(json);
 
-@override final  String id;
+@override@JsonKey() final  String id;
 @override final  String assetType;
 @override final  String assetCode;
-@override final  num amount;
-@override final  String direction;
+@override@JsonKey(readValue: readAmount) final  num amount;
+@override@JsonKey(readValue: readDirection) final  String direction;
 @override final  String reason;
 @override final  DateTime createdAt;
 
@@ -2740,7 +2740,7 @@ abstract mixin class _$AssetLedgerEntryCopyWith<$Res> implements $AssetLedgerEnt
   factory _$AssetLedgerEntryCopyWith(_AssetLedgerEntry value, $Res Function(_AssetLedgerEntry) _then) = __$AssetLedgerEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String assetType, String assetCode, num amount, String direction, String reason, DateTime createdAt
+ String id, String assetType, String assetCode,@JsonKey(readValue: readAmount) num amount,@JsonKey(readValue: readDirection) String direction, String reason, DateTime createdAt
 });
 
 
@@ -2777,7 +2777,7 @@ as DateTime,
 /// @nodoc
 mixin _$PlayerAssets {
 
- String get playerId; List<AssetHolding> get holdings; List<AssetLedgerEntry> get ledger;
+ String get playerId; List<AssetHolding> get holdings;@JsonKey(readValue: readLedger) List<AssetLedgerEntry> get ledger;
 /// Create a copy of PlayerAssets
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2810,7 +2810,7 @@ abstract mixin class $PlayerAssetsCopyWith<$Res>  {
   factory $PlayerAssetsCopyWith(PlayerAssets value, $Res Function(PlayerAssets) _then) = _$PlayerAssetsCopyWithImpl;
 @useResult
 $Res call({
- String playerId, List<AssetHolding> holdings, List<AssetLedgerEntry> ledger
+ String playerId, List<AssetHolding> holdings,@JsonKey(readValue: readLedger) List<AssetLedgerEntry> ledger
 });
 
 
@@ -2917,7 +2917,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  List<AssetHolding> holdings,  List<AssetLedgerEntry> ledger)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  List<AssetHolding> holdings, @JsonKey(readValue: readLedger)  List<AssetLedgerEntry> ledger)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerAssets() when $default != null:
 return $default(_that.playerId,_that.holdings,_that.ledger);case _:
@@ -2938,7 +2938,7 @@ return $default(_that.playerId,_that.holdings,_that.ledger);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  List<AssetHolding> holdings,  List<AssetLedgerEntry> ledger)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  List<AssetHolding> holdings, @JsonKey(readValue: readLedger)  List<AssetLedgerEntry> ledger)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerAssets():
 return $default(_that.playerId,_that.holdings,_that.ledger);case _:
@@ -2958,7 +2958,7 @@ return $default(_that.playerId,_that.holdings,_that.ledger);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  List<AssetHolding> holdings,  List<AssetLedgerEntry> ledger)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  List<AssetHolding> holdings, @JsonKey(readValue: readLedger)  List<AssetLedgerEntry> ledger)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerAssets() when $default != null:
 return $default(_that.playerId,_that.holdings,_that.ledger);case _:
@@ -2973,10 +2973,10 @@ return $default(_that.playerId,_that.holdings,_that.ledger);case _:
 @JsonSerializable()
 
 class _PlayerAssets implements PlayerAssets {
-  const _PlayerAssets({required this.playerId, required final  List<AssetHolding> holdings, required final  List<AssetLedgerEntry> ledger}): _holdings = holdings,_ledger = ledger;
+  const _PlayerAssets({this.playerId = '', required final  List<AssetHolding> holdings, @JsonKey(readValue: readLedger) required final  List<AssetLedgerEntry> ledger}): _holdings = holdings,_ledger = ledger;
   factory _PlayerAssets.fromJson(Map<String, dynamic> json) => _$PlayerAssetsFromJson(json);
 
-@override final  String playerId;
+@override@JsonKey() final  String playerId;
  final  List<AssetHolding> _holdings;
 @override List<AssetHolding> get holdings {
   if (_holdings is EqualUnmodifiableListView) return _holdings;
@@ -2985,7 +2985,7 @@ class _PlayerAssets implements PlayerAssets {
 }
 
  final  List<AssetLedgerEntry> _ledger;
-@override List<AssetLedgerEntry> get ledger {
+@override@JsonKey(readValue: readLedger) List<AssetLedgerEntry> get ledger {
   if (_ledger is EqualUnmodifiableListView) return _ledger;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_ledger);
@@ -3025,7 +3025,7 @@ abstract mixin class _$PlayerAssetsCopyWith<$Res> implements $PlayerAssetsCopyWi
   factory _$PlayerAssetsCopyWith(_PlayerAssets value, $Res Function(_PlayerAssets) _then) = __$PlayerAssetsCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId, List<AssetHolding> holdings, List<AssetLedgerEntry> ledger
+ String playerId, List<AssetHolding> holdings,@JsonKey(readValue: readLedger) List<AssetLedgerEntry> ledger
 });
 
 
@@ -3327,7 +3327,7 @@ as num,
 /// @nodoc
 mixin _$Present {
 
- String get id; String get name; List<AssetGrant> get grants; bool get isArchived;
+ String get id; String get name; List<AssetGrant> get grants;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of Present
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3360,7 +3360,7 @@ abstract mixin class $PresentCopyWith<$Res>  {
   factory $PresentCopyWith(Present value, $Res Function(Present) _then) = _$PresentCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, List<AssetGrant> grants, bool isArchived
+ String id, String name, List<AssetGrant> grants,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -3468,7 +3468,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants,  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Present() when $default != null:
 return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
@@ -3489,7 +3489,7 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants,  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _Present():
 return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
@@ -3509,7 +3509,7 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<AssetGrant> grants,  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _Present() when $default != null:
 return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
@@ -3524,7 +3524,7 @@ return $default(_that.id,_that.name,_that.grants,_that.isArchived);case _:
 @JsonSerializable()
 
 class _Present implements Present {
-  const _Present({required this.id, required this.name, required final  List<AssetGrant> grants, this.isArchived = false}): _grants = grants;
+  const _Present({required this.id, required this.name, required final  List<AssetGrant> grants, @JsonKey(readValue: readIsArchived) this.isArchived = false}): _grants = grants;
   factory _Present.fromJson(Map<String, dynamic> json) => _$PresentFromJson(json);
 
 @override final  String id;
@@ -3536,7 +3536,7 @@ class _Present implements Present {
   return EqualUnmodifiableListView(_grants);
 }
 
-@override@JsonKey() final  bool isArchived;
+@override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of Present
 /// with the given fields replaced by the non-null parameter values.
@@ -3571,7 +3571,7 @@ abstract mixin class _$PresentCopyWith<$Res> implements $PresentCopyWith<$Res> {
   factory _$PresentCopyWith(_Present value, $Res Function(_Present) _then) = __$PresentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, List<AssetGrant> grants, bool isArchived
+ String id, String name, List<AssetGrant> grants,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -3605,7 +3605,7 @@ as bool,
 /// @nodoc
 mixin _$RedeemCode {
 
- String get id; String get code; List<AssetGrant> get grants; int get usageLimit; int get usageCount; DateTime? get expiresAt; bool get isRevoked; DateTime? get createdAt;
+ String get id; String get code; List<AssetGrant> get grants;@JsonKey(readValue: readUsageLimit) int get usageLimit; int get usageCount; DateTime? get expiresAt; bool get isRevoked; DateTime? get createdAt;
 /// Create a copy of RedeemCode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3638,7 +3638,7 @@ abstract mixin class $RedeemCodeCopyWith<$Res>  {
   factory $RedeemCodeCopyWith(RedeemCode value, $Res Function(RedeemCode) _then) = _$RedeemCodeCopyWithImpl;
 @useResult
 $Res call({
- String id, String code, List<AssetGrant> grants, int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
+ String id, String code, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
 });
 
 
@@ -3750,7 +3750,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants,  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RedeemCode() when $default != null:
 return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
@@ -3771,7 +3771,7 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants,  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _RedeemCode():
 return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
@@ -3791,7 +3791,7 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  List<AssetGrant> grants,  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  List<AssetGrant> grants, @JsonKey(readValue: readUsageLimit)  int usageLimit,  int usageCount,  DateTime? expiresAt,  bool isRevoked,  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _RedeemCode() when $default != null:
 return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCount,_that.expiresAt,_that.isRevoked,_that.createdAt);case _:
@@ -3806,20 +3806,20 @@ return $default(_that.id,_that.code,_that.grants,_that.usageLimit,_that.usageCou
 @JsonSerializable()
 
 class _RedeemCode implements RedeemCode {
-  const _RedeemCode({required this.id, required this.code, required final  List<AssetGrant> grants, required this.usageLimit, required this.usageCount, this.expiresAt, this.isRevoked = false, this.createdAt}): _grants = grants;
+  const _RedeemCode({required this.id, required this.code, final  List<AssetGrant> grants = const [], @JsonKey(readValue: readUsageLimit) this.usageLimit = 1, this.usageCount = 0, this.expiresAt, this.isRevoked = false, this.createdAt}): _grants = grants;
   factory _RedeemCode.fromJson(Map<String, dynamic> json) => _$RedeemCodeFromJson(json);
 
 @override final  String id;
 @override final  String code;
  final  List<AssetGrant> _grants;
-@override List<AssetGrant> get grants {
+@override@JsonKey() List<AssetGrant> get grants {
   if (_grants is EqualUnmodifiableListView) return _grants;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_grants);
 }
 
-@override final  int usageLimit;
-@override final  int usageCount;
+@override@JsonKey(readValue: readUsageLimit) final  int usageLimit;
+@override@JsonKey() final  int usageCount;
 @override final  DateTime? expiresAt;
 @override@JsonKey() final  bool isRevoked;
 @override final  DateTime? createdAt;
@@ -3857,7 +3857,7 @@ abstract mixin class _$RedeemCodeCopyWith<$Res> implements $RedeemCodeCopyWith<$
   factory _$RedeemCodeCopyWith(_RedeemCode value, $Res Function(_RedeemCode) _then) = __$RedeemCodeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String code, List<AssetGrant> grants, int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
+ String id, String code, List<AssetGrant> grants,@JsonKey(readValue: readUsageLimit) int usageLimit, int usageCount, DateTime? expiresAt, bool isRevoked, DateTime? createdAt
 });
 
 
@@ -4197,7 +4197,7 @@ as num?,
 /// @nodoc
 mixin _$PricingConfig {
 
- String get id; String get name; String get kind; List<PriorityTimeRule> get rules; bool get isArchived; bool get isActive;
+ String get id; String get name; String get kind;@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> get rules;@JsonKey(readValue: readIsArchived) bool get isArchived;@JsonKey(readValue: readIsActive) bool get isActive;
 /// Create a copy of PricingConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4230,7 +4230,7 @@ abstract mixin class $PricingConfigCopyWith<$Res>  {
   factory $PricingConfigCopyWith(PricingConfig value, $Res Function(PricingConfig) _then) = _$PricingConfigCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String kind, List<PriorityTimeRule> rules, bool isArchived, bool isActive
+ String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
 });
 
 
@@ -4340,7 +4340,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String kind,  List<PriorityTimeRule> rules,  bool isArchived,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PricingConfig() when $default != null:
 return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_that.isActive);case _:
@@ -4361,7 +4361,7 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String kind,  List<PriorityTimeRule> rules,  bool isArchived,  bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _PricingConfig():
 return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_that.isActive);case _:
@@ -4381,7 +4381,7 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String kind,  List<PriorityTimeRule> rules,  bool isArchived,  bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _PricingConfig() when $default != null:
 return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_that.isActive);case _:
@@ -4396,21 +4396,21 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.isArchived,_tha
 @JsonSerializable()
 
 class _PricingConfig implements PricingConfig {
-  const _PricingConfig({required this.id, required this.name, required this.kind, required final  List<PriorityTimeRule> rules, this.isArchived = false, this.isActive = true}): _rules = rules;
+  const _PricingConfig({required this.id, required this.name, required this.kind, @JsonKey(readValue: readPricingRules) required final  List<PriorityTimeRule> rules, @JsonKey(readValue: readIsArchived) this.isArchived = false, @JsonKey(readValue: readIsActive) this.isActive = true}): _rules = rules;
   factory _PricingConfig.fromJson(Map<String, dynamic> json) => _$PricingConfigFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String kind;
  final  List<PriorityTimeRule> _rules;
-@override List<PriorityTimeRule> get rules {
+@override@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> get rules {
   if (_rules is EqualUnmodifiableListView) return _rules;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_rules);
 }
 
-@override@JsonKey() final  bool isArchived;
-@override@JsonKey() final  bool isActive;
+@override@JsonKey(readValue: readIsArchived) final  bool isArchived;
+@override@JsonKey(readValue: readIsActive) final  bool isActive;
 
 /// Create a copy of PricingConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -4445,7 +4445,7 @@ abstract mixin class _$PricingConfigCopyWith<$Res> implements $PricingConfigCopy
   factory _$PricingConfigCopyWith(_PricingConfig value, $Res Function(_PricingConfig) _then) = __$PricingConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String kind, List<PriorityTimeRule> rules, bool isArchived, bool isActive
+ String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
 });
 
 
@@ -5022,7 +5022,7 @@ as String,
 /// @nodoc
 mixin _$BusinessItem {
 
- String get id; String get name; num get price; String get kind; bool get isArchived;
+ String get id; String get name; num get price; String get kind;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of BusinessItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5055,7 +5055,7 @@ abstract mixin class $BusinessItemCopyWith<$Res>  {
   factory $BusinessItemCopyWith(BusinessItem value, $Res Function(BusinessItem) _then) = _$BusinessItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, num price, String kind, bool isArchived
+ String id, String name, num price, String kind,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -5164,7 +5164,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind,  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BusinessItem() when $default != null:
 return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
@@ -5185,7 +5185,7 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind,  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItem():
 return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
@@ -5205,7 +5205,7 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  num price,  String kind,  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItem() when $default != null:
 return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
@@ -5220,14 +5220,14 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 @JsonSerializable()
 
 class _BusinessItem implements BusinessItem {
-  const _BusinessItem({required this.id, required this.name, required this.price, required this.kind, this.isArchived = false});
+  const _BusinessItem({required this.id, required this.name, required this.price, required this.kind, @JsonKey(readValue: readIsArchived) this.isArchived = false});
   factory _BusinessItem.fromJson(Map<String, dynamic> json) => _$BusinessItemFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  num price;
 @override final  String kind;
-@override@JsonKey() final  bool isArchived;
+@override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of BusinessItem
 /// with the given fields replaced by the non-null parameter values.
@@ -5262,7 +5262,7 @@ abstract mixin class _$BusinessItemCopyWith<$Res> implements $BusinessItemCopyWi
   factory _$BusinessItemCopyWith(_BusinessItem value, $Res Function(_BusinessItem) _then) = __$BusinessItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, num price, String kind, bool isArchived
+ String id, String name, num price, String kind,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -5297,7 +5297,7 @@ as bool,
 /// @nodoc
 mixin _$BusinessItemOrder {
 
- String get id; String get playerId; String get itemId; String get itemName; num get price; String get status; DateTime get createdAt; DateTime? get fulfilledAt; DateTime? get cancelledAt;
+ String get id; String get playerId;@JsonKey(readValue: readItemId) String get itemId;@JsonKey(readValue: readItemName) String get itemName; num get price; String get status; DateTime get createdAt; DateTime? get fulfilledAt; DateTime? get cancelledAt;
 /// Create a copy of BusinessItemOrder
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5330,7 +5330,7 @@ abstract mixin class $BusinessItemOrderCopyWith<$Res>  {
   factory $BusinessItemOrderCopyWith(BusinessItemOrder value, $Res Function(BusinessItemOrder) _then) = _$BusinessItemOrderCopyWithImpl;
 @useResult
 $Res call({
- String id, String playerId, String itemId, String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
+ String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
 });
 
 
@@ -5443,7 +5443,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String playerId,  String itemId,  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder() when $default != null:
 return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
@@ -5464,7 +5464,7 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String playerId,  String itemId,  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder():
 return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
@@ -5484,7 +5484,7 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String playerId,  String itemId,  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder() when $default != null:
 return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
@@ -5499,13 +5499,13 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 @JsonSerializable()
 
 class _BusinessItemOrder implements BusinessItemOrder {
-  const _BusinessItemOrder({required this.id, required this.playerId, required this.itemId, required this.itemName, required this.price, required this.status, required this.createdAt, this.fulfilledAt, this.cancelledAt});
+  const _BusinessItemOrder({required this.id, required this.playerId, @JsonKey(readValue: readItemId) required this.itemId, @JsonKey(readValue: readItemName) required this.itemName, required this.price, required this.status, required this.createdAt, this.fulfilledAt, this.cancelledAt});
   factory _BusinessItemOrder.fromJson(Map<String, dynamic> json) => _$BusinessItemOrderFromJson(json);
 
 @override final  String id;
 @override final  String playerId;
-@override final  String itemId;
-@override final  String itemName;
+@override@JsonKey(readValue: readItemId) final  String itemId;
+@override@JsonKey(readValue: readItemName) final  String itemName;
 @override final  num price;
 @override final  String status;
 @override final  DateTime createdAt;
@@ -5545,7 +5545,7 @@ abstract mixin class _$BusinessItemOrderCopyWith<$Res> implements $BusinessItemO
   factory _$BusinessItemOrderCopyWith(_BusinessItemOrder value, $Res Function(_BusinessItemOrder) _then) = __$BusinessItemOrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String playerId, String itemId, String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
+ String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
 });
 
 
@@ -5862,7 +5862,7 @@ as String,
 /// @nodoc
 mixin _$DeviceCommand {
 
- String get id; String get commandType; String get deviceId; String get requester; String get status; DateTime get createdAt; DateTime? get ackedAt;
+ String get id;@JsonKey(readValue: readCommandType) String get commandType; String get deviceId;@JsonKey(readValue: readRequester) String get requester; String get status;@JsonKey(readValue: readCreatedAt) DateTime get createdAt; DateTime? get ackedAt;
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5895,7 +5895,7 @@ abstract mixin class $DeviceCommandCopyWith<$Res>  {
   factory $DeviceCommandCopyWith(DeviceCommand value, $Res Function(DeviceCommand) _then) = _$DeviceCommandCopyWithImpl;
 @useResult
 $Res call({
- String id, String commandType, String deviceId, String requester, String status, DateTime createdAt, DateTime? ackedAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readRequester) String requester, String status,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt
 });
 
 
@@ -6006,7 +6006,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String commandType,  String deviceId,  String requester,  String status,  DateTime createdAt,  DateTime? ackedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
 return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.status,_that.createdAt,_that.ackedAt);case _:
@@ -6027,7 +6027,7 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String commandType,  String deviceId,  String requester,  String status,  DateTime createdAt,  DateTime? ackedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand():
 return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.status,_that.createdAt,_that.ackedAt);case _:
@@ -6047,7 +6047,7 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String commandType,  String deviceId,  String requester,  String status,  DateTime createdAt,  DateTime? ackedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
 return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.status,_that.createdAt,_that.ackedAt);case _:
@@ -6062,15 +6062,15 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 @JsonSerializable()
 
 class _DeviceCommand implements DeviceCommand {
-  const _DeviceCommand({required this.id, required this.commandType, required this.deviceId, required this.requester, required this.status, required this.createdAt, this.ackedAt});
+  const _DeviceCommand({required this.id, @JsonKey(readValue: readCommandType) required this.commandType, required this.deviceId, @JsonKey(readValue: readRequester) required this.requester, required this.status, @JsonKey(readValue: readCreatedAt) required this.createdAt, this.ackedAt});
   factory _DeviceCommand.fromJson(Map<String, dynamic> json) => _$DeviceCommandFromJson(json);
 
 @override final  String id;
-@override final  String commandType;
+@override@JsonKey(readValue: readCommandType) final  String commandType;
 @override final  String deviceId;
-@override final  String requester;
+@override@JsonKey(readValue: readRequester) final  String requester;
 @override final  String status;
-@override final  DateTime createdAt;
+@override@JsonKey(readValue: readCreatedAt) final  DateTime createdAt;
 @override final  DateTime? ackedAt;
 
 /// Create a copy of DeviceCommand
@@ -6106,7 +6106,7 @@ abstract mixin class _$DeviceCommandCopyWith<$Res> implements $DeviceCommandCopy
   factory _$DeviceCommandCopyWith(_DeviceCommand value, $Res Function(_DeviceCommand) _then) = __$DeviceCommandCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String commandType, String deviceId, String requester, String status, DateTime createdAt, DateTime? ackedAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readRequester) String requester, String status,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt
 });
 
 
@@ -6143,7 +6143,7 @@ as DateTime?,
 /// @nodoc
 mixin _$ReportSummary {
 
- num get revenue; int get settledSessionsCount; int get assetGrantsCount; int get coinCommandsCount;
+@JsonKey(readValue: readRevenue) num get revenue;@JsonKey(readValue: readSettledSessionsCount) int get settledSessionsCount;@JsonKey(readValue: readAssetGrantsCount) int get assetGrantsCount;@JsonKey(readValue: readCoinCommandsCount) int get coinCommandsCount;
 /// Create a copy of ReportSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6176,7 +6176,7 @@ abstract mixin class $ReportSummaryCopyWith<$Res>  {
   factory $ReportSummaryCopyWith(ReportSummary value, $Res Function(ReportSummary) _then) = _$ReportSummaryCopyWithImpl;
 @useResult
 $Res call({
- num revenue, int settledSessionsCount, int assetGrantsCount, int coinCommandsCount
+@JsonKey(readValue: readRevenue) num revenue,@JsonKey(readValue: readSettledSessionsCount) int settledSessionsCount,@JsonKey(readValue: readAssetGrantsCount) int assetGrantsCount,@JsonKey(readValue: readCoinCommandsCount) int coinCommandsCount
 });
 
 
@@ -6284,7 +6284,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( num revenue,  int settledSessionsCount,  int assetGrantsCount,  int coinCommandsCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readRevenue)  num revenue, @JsonKey(readValue: readSettledSessionsCount)  int settledSessionsCount, @JsonKey(readValue: readAssetGrantsCount)  int assetGrantsCount, @JsonKey(readValue: readCoinCommandsCount)  int coinCommandsCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportSummary() when $default != null:
 return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,_that.coinCommandsCount);case _:
@@ -6305,7 +6305,7 @@ return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( num revenue,  int settledSessionsCount,  int assetGrantsCount,  int coinCommandsCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readRevenue)  num revenue, @JsonKey(readValue: readSettledSessionsCount)  int settledSessionsCount, @JsonKey(readValue: readAssetGrantsCount)  int assetGrantsCount, @JsonKey(readValue: readCoinCommandsCount)  int coinCommandsCount)  $default,) {final _that = this;
 switch (_that) {
 case _ReportSummary():
 return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,_that.coinCommandsCount);case _:
@@ -6325,7 +6325,7 @@ return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( num revenue,  int settledSessionsCount,  int assetGrantsCount,  int coinCommandsCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readRevenue)  num revenue, @JsonKey(readValue: readSettledSessionsCount)  int settledSessionsCount, @JsonKey(readValue: readAssetGrantsCount)  int assetGrantsCount, @JsonKey(readValue: readCoinCommandsCount)  int coinCommandsCount)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportSummary() when $default != null:
 return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,_that.coinCommandsCount);case _:
@@ -6340,13 +6340,13 @@ return $default(_that.revenue,_that.settledSessionsCount,_that.assetGrantsCount,
 @JsonSerializable()
 
 class _ReportSummary implements ReportSummary {
-  const _ReportSummary({required this.revenue, required this.settledSessionsCount, required this.assetGrantsCount, required this.coinCommandsCount});
+  const _ReportSummary({@JsonKey(readValue: readRevenue) required this.revenue, @JsonKey(readValue: readSettledSessionsCount) required this.settledSessionsCount, @JsonKey(readValue: readAssetGrantsCount) required this.assetGrantsCount, @JsonKey(readValue: readCoinCommandsCount) required this.coinCommandsCount});
   factory _ReportSummary.fromJson(Map<String, dynamic> json) => _$ReportSummaryFromJson(json);
 
-@override final  num revenue;
-@override final  int settledSessionsCount;
-@override final  int assetGrantsCount;
-@override final  int coinCommandsCount;
+@override@JsonKey(readValue: readRevenue) final  num revenue;
+@override@JsonKey(readValue: readSettledSessionsCount) final  int settledSessionsCount;
+@override@JsonKey(readValue: readAssetGrantsCount) final  int assetGrantsCount;
+@override@JsonKey(readValue: readCoinCommandsCount) final  int coinCommandsCount;
 
 /// Create a copy of ReportSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -6381,7 +6381,7 @@ abstract mixin class _$ReportSummaryCopyWith<$Res> implements $ReportSummaryCopy
   factory _$ReportSummaryCopyWith(_ReportSummary value, $Res Function(_ReportSummary) _then) = __$ReportSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- num revenue, int settledSessionsCount, int assetGrantsCount, int coinCommandsCount
+@JsonKey(readValue: readRevenue) num revenue,@JsonKey(readValue: readSettledSessionsCount) int settledSessionsCount,@JsonKey(readValue: readAssetGrantsCount) int assetGrantsCount,@JsonKey(readValue: readCoinCommandsCount) int coinCommandsCount
 });
 
 
@@ -6415,7 +6415,7 @@ as int,
 /// @nodoc
 mixin _$SettlementReportRow {
 
- String get playerId; String get displayName; int get durationMinutes; num get subtotal; num get total; DateTime get settledAt;
+ String get playerId;@JsonKey(readValue: readDisplayName) String get displayName; int get durationMinutes; num get subtotal; num get total; DateTime get settledAt;
 /// Create a copy of SettlementReportRow
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6448,7 +6448,7 @@ abstract mixin class $SettlementReportRowCopyWith<$Res>  {
   factory $SettlementReportRowCopyWith(SettlementReportRow value, $Res Function(SettlementReportRow) _then) = _$SettlementReportRowCopyWithImpl;
 @useResult
 $Res call({
- String playerId, String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
 });
 
 
@@ -6558,7 +6558,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettlementReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6579,7 +6579,7 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)  $default,) {final _that = this;
 switch (_that) {
 case _SettlementReportRow():
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6599,7 +6599,7 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SettlementReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6614,11 +6614,11 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 @JsonSerializable()
 
 class _SettlementReportRow implements SettlementReportRow {
-  const _SettlementReportRow({required this.playerId, required this.displayName, required this.durationMinutes, required this.subtotal, required this.total, required this.settledAt});
+  const _SettlementReportRow({required this.playerId, @JsonKey(readValue: readDisplayName) required this.displayName, required this.durationMinutes, required this.subtotal, required this.total, required this.settledAt});
   factory _SettlementReportRow.fromJson(Map<String, dynamic> json) => _$SettlementReportRowFromJson(json);
 
 @override final  String playerId;
-@override final  String displayName;
+@override@JsonKey(readValue: readDisplayName) final  String displayName;
 @override final  int durationMinutes;
 @override final  num subtotal;
 @override final  num total;
@@ -6657,7 +6657,7 @@ abstract mixin class _$SettlementReportRowCopyWith<$Res> implements $SettlementR
   factory _$SettlementReportRowCopyWith(_SettlementReportRow value, $Res Function(_SettlementReportRow) _then) = __$SettlementReportRowCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId, String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
 });
 
 
@@ -6693,7 +6693,7 @@ as DateTime,
 /// @nodoc
 mixin _$PlayerReportRow {
 
- String get playerId; String get displayName; int get settlementCount; int get totalDurationMinutes; num get revenue; DateTime get lastSettledAt;
+ String get playerId;@JsonKey(readValue: readDisplayName) String get displayName; int get settlementCount; int get totalDurationMinutes;@JsonKey(readValue: readRevenue) num get revenue; DateTime get lastSettledAt;
 /// Create a copy of PlayerReportRow
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6726,7 +6726,7 @@ abstract mixin class $PlayerReportRowCopyWith<$Res>  {
   factory $PlayerReportRowCopyWith(PlayerReportRow value, $Res Function(PlayerReportRow) _then) = _$PlayerReportRowCopyWithImpl;
 @useResult
 $Res call({
- String playerId, String displayName, int settlementCount, int totalDurationMinutes, num revenue, DateTime lastSettledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int settlementCount, int totalDurationMinutes,@JsonKey(readValue: readRevenue) num revenue, DateTime lastSettledAt
 });
 
 
@@ -6836,7 +6836,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String displayName,  int settlementCount,  int totalDurationMinutes,  num revenue,  DateTime lastSettledAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int settlementCount,  int totalDurationMinutes, @JsonKey(readValue: readRevenue)  num revenue,  DateTime lastSettledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.totalDurationMinutes,_that.revenue,_that.lastSettledAt);case _:
@@ -6857,7 +6857,7 @@ return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.tot
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String displayName,  int settlementCount,  int totalDurationMinutes,  num revenue,  DateTime lastSettledAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int settlementCount,  int totalDurationMinutes, @JsonKey(readValue: readRevenue)  num revenue,  DateTime lastSettledAt)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerReportRow():
 return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.totalDurationMinutes,_that.revenue,_that.lastSettledAt);case _:
@@ -6877,7 +6877,7 @@ return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.tot
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String displayName,  int settlementCount,  int totalDurationMinutes,  num revenue,  DateTime lastSettledAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int settlementCount,  int totalDurationMinutes, @JsonKey(readValue: readRevenue)  num revenue,  DateTime lastSettledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.totalDurationMinutes,_that.revenue,_that.lastSettledAt);case _:
@@ -6892,14 +6892,14 @@ return $default(_that.playerId,_that.displayName,_that.settlementCount,_that.tot
 @JsonSerializable()
 
 class _PlayerReportRow implements PlayerReportRow {
-  const _PlayerReportRow({required this.playerId, required this.displayName, required this.settlementCount, required this.totalDurationMinutes, required this.revenue, required this.lastSettledAt});
+  const _PlayerReportRow({required this.playerId, @JsonKey(readValue: readDisplayName) required this.displayName, required this.settlementCount, required this.totalDurationMinutes, @JsonKey(readValue: readRevenue) required this.revenue, required this.lastSettledAt});
   factory _PlayerReportRow.fromJson(Map<String, dynamic> json) => _$PlayerReportRowFromJson(json);
 
 @override final  String playerId;
-@override final  String displayName;
+@override@JsonKey(readValue: readDisplayName) final  String displayName;
 @override final  int settlementCount;
 @override final  int totalDurationMinutes;
-@override final  num revenue;
+@override@JsonKey(readValue: readRevenue) final  num revenue;
 @override final  DateTime lastSettledAt;
 
 /// Create a copy of PlayerReportRow
@@ -6935,7 +6935,7 @@ abstract mixin class _$PlayerReportRowCopyWith<$Res> implements $PlayerReportRow
   factory _$PlayerReportRowCopyWith(_PlayerReportRow value, $Res Function(_PlayerReportRow) _then) = __$PlayerReportRowCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId, String displayName, int settlementCount, int totalDurationMinutes, num revenue, DateTime lastSettledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int settlementCount, int totalDurationMinutes,@JsonKey(readValue: readRevenue) num revenue, DateTime lastSettledAt
 });
 
 
@@ -6971,7 +6971,7 @@ as DateTime,
 /// @nodoc
 mixin _$SettingsData {
 
- String get storeName; String get timeZone; int get coinCooldownMs;
+@JsonKey(readValue: readStoreName) String get storeName;@JsonKey(readValue: readTimeZone) String get timeZone;@JsonKey(readValue: readCoinCooldownMs) int get coinCooldownMs;
 /// Create a copy of SettingsData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7004,7 +7004,7 @@ abstract mixin class $SettingsDataCopyWith<$Res>  {
   factory $SettingsDataCopyWith(SettingsData value, $Res Function(SettingsData) _then) = _$SettingsDataCopyWithImpl;
 @useResult
 $Res call({
- String storeName, String timeZone, int coinCooldownMs
+@JsonKey(readValue: readStoreName) String storeName,@JsonKey(readValue: readTimeZone) String timeZone,@JsonKey(readValue: readCoinCooldownMs) int coinCooldownMs
 });
 
 
@@ -7111,7 +7111,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String storeName,  String timeZone,  int coinCooldownMs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readStoreName)  String storeName, @JsonKey(readValue: readTimeZone)  String timeZone, @JsonKey(readValue: readCoinCooldownMs)  int coinCooldownMs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsData() when $default != null:
 return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
@@ -7132,7 +7132,7 @@ return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String storeName,  String timeZone,  int coinCooldownMs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readStoreName)  String storeName, @JsonKey(readValue: readTimeZone)  String timeZone, @JsonKey(readValue: readCoinCooldownMs)  int coinCooldownMs)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsData():
 return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
@@ -7152,7 +7152,7 @@ return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String storeName,  String timeZone,  int coinCooldownMs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readStoreName)  String storeName, @JsonKey(readValue: readTimeZone)  String timeZone, @JsonKey(readValue: readCoinCooldownMs)  int coinCooldownMs)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsData() when $default != null:
 return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
@@ -7167,12 +7167,12 @@ return $default(_that.storeName,_that.timeZone,_that.coinCooldownMs);case _:
 @JsonSerializable()
 
 class _SettingsData implements SettingsData {
-  const _SettingsData({required this.storeName, required this.timeZone, required this.coinCooldownMs});
+  const _SettingsData({@JsonKey(readValue: readStoreName) required this.storeName, @JsonKey(readValue: readTimeZone) required this.timeZone, @JsonKey(readValue: readCoinCooldownMs) required this.coinCooldownMs});
   factory _SettingsData.fromJson(Map<String, dynamic> json) => _$SettingsDataFromJson(json);
 
-@override final  String storeName;
-@override final  String timeZone;
-@override final  int coinCooldownMs;
+@override@JsonKey(readValue: readStoreName) final  String storeName;
+@override@JsonKey(readValue: readTimeZone) final  String timeZone;
+@override@JsonKey(readValue: readCoinCooldownMs) final  int coinCooldownMs;
 
 /// Create a copy of SettingsData
 /// with the given fields replaced by the non-null parameter values.
@@ -7207,7 +7207,7 @@ abstract mixin class _$SettingsDataCopyWith<$Res> implements $SettingsDataCopyWi
   factory _$SettingsDataCopyWith(_SettingsData value, $Res Function(_SettingsData) _then) = __$SettingsDataCopyWithImpl;
 @override @useResult
 $Res call({
- String storeName, String timeZone, int coinCooldownMs
+@JsonKey(readValue: readStoreName) String storeName,@JsonKey(readValue: readTimeZone) String timeZone,@JsonKey(readValue: readCoinCooldownMs) int coinCooldownMs
 });
 
 
@@ -7240,7 +7240,7 @@ as int,
 /// @nodoc
 mixin _$StaffUser {
 
- String get id; String get username; String get displayName; StaffRole get role; bool get isArchived;
+ String get id; String get username; String get displayName;@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole get role;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of StaffUser
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7273,7 +7273,7 @@ abstract mixin class $StaffUserCopyWith<$Res>  {
   factory $StaffUserCopyWith(StaffUser value, $Res Function(StaffUser) _then) = _$StaffUserCopyWithImpl;
 @useResult
 $Res call({
- String id, String username, String displayName, StaffRole role, bool isArchived
+ String id, String username, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -7382,7 +7382,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  StaffRole role,  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StaffUser() when $default != null:
 return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArchived);case _:
@@ -7403,7 +7403,7 @@ return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  StaffRole role,  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _StaffUser():
 return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArchived);case _:
@@ -7423,7 +7423,7 @@ return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String displayName,  StaffRole role,  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _StaffUser() when $default != null:
 return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArchived);case _:
@@ -7438,14 +7438,14 @@ return $default(_that.id,_that.username,_that.displayName,_that.role,_that.isArc
 @JsonSerializable()
 
 class _StaffUser implements StaffUser {
-  const _StaffUser({required this.id, required this.username, required this.displayName, required this.role, this.isArchived = false});
+  const _StaffUser({required this.id, required this.username, required this.displayName, @JsonKey(unknownEnumValue: StaffRole.viewer) required this.role, @JsonKey(readValue: readIsArchived) this.isArchived = false});
   factory _StaffUser.fromJson(Map<String, dynamic> json) => _$StaffUserFromJson(json);
 
 @override final  String id;
 @override final  String username;
 @override final  String displayName;
-@override final  StaffRole role;
-@override@JsonKey() final  bool isArchived;
+@override@JsonKey(unknownEnumValue: StaffRole.viewer) final  StaffRole role;
+@override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of StaffUser
 /// with the given fields replaced by the non-null parameter values.
@@ -7480,7 +7480,7 @@ abstract mixin class _$StaffUserCopyWith<$Res> implements $StaffUserCopyWith<$Re
   factory _$StaffUserCopyWith(_StaffUser value, $Res Function(_StaffUser) _then) = __$StaffUserCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String username, String displayName, StaffRole role, bool isArchived
+ String id, String username, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -7515,7 +7515,7 @@ as bool,
 /// @nodoc
 mixin _$ApiToken {
 
- String get id; String get label; String? get token; DateTime get createdAt; bool get isRevoked;
+ String get id; String get label;@JsonKey(includeToJson: false) String? get token; DateTime get createdAt; String get role; String get tokenPrefix;@JsonKey(readValue: readIsRevoked) bool get isRevoked;
 /// Create a copy of ApiToken
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7528,17 +7528,13 @@ $ApiTokenCopyWith<ApiToken> get copyWith => _$ApiTokenCopyWithImpl<ApiToken>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApiToken&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.token, token) || other.token == token)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApiToken&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.token, token) || other.token == token)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenPrefix, tokenPrefix) || other.tokenPrefix == tokenPrefix)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,token,createdAt,isRevoked);
+int get hashCode => Object.hash(runtimeType,id,label,token,createdAt,role,tokenPrefix,isRevoked);
 
-@override
-String toString() {
-  return 'ApiToken(id: $id, label: $label, token: $token, createdAt: $createdAt, isRevoked: $isRevoked)';
-}
 
 
 }
@@ -7548,7 +7544,7 @@ abstract mixin class $ApiTokenCopyWith<$Res>  {
   factory $ApiTokenCopyWith(ApiToken value, $Res Function(ApiToken) _then) = _$ApiTokenCopyWithImpl;
 @useResult
 $Res call({
- String id, String label, String? token, DateTime createdAt, bool isRevoked
+ String id, String label,@JsonKey(includeToJson: false) String? token, DateTime createdAt, String role, String tokenPrefix,@JsonKey(readValue: readIsRevoked) bool isRevoked
 });
 
 
@@ -7565,13 +7561,15 @@ class _$ApiTokenCopyWithImpl<$Res>
 
 /// Create a copy of ApiToken
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? token = freezed,Object? createdAt = null,Object? isRevoked = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? token = freezed,Object? createdAt = null,Object? role = null,Object? tokenPrefix = null,Object? isRevoked = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,isRevoked: null == isRevoked ? _self.isRevoked : isRevoked // ignore: cast_nullable_to_non_nullable
+as DateTime,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,tokenPrefix: null == tokenPrefix ? _self.tokenPrefix : tokenPrefix // ignore: cast_nullable_to_non_nullable
+as String,isRevoked: null == isRevoked ? _self.isRevoked : isRevoked // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -7657,10 +7655,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  String? token,  DateTime createdAt,  bool isRevoked)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label, @JsonKey(includeToJson: false)  String? token,  DateTime createdAt,  String role,  String tokenPrefix, @JsonKey(readValue: readIsRevoked)  bool isRevoked)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ApiToken() when $default != null:
-return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked);case _:
+return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.role,_that.tokenPrefix,_that.isRevoked);case _:
   return orElse();
 
 }
@@ -7678,10 +7676,10 @@ return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  String? token,  DateTime createdAt,  bool isRevoked)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label, @JsonKey(includeToJson: false)  String? token,  DateTime createdAt,  String role,  String tokenPrefix, @JsonKey(readValue: readIsRevoked)  bool isRevoked)  $default,) {final _that = this;
 switch (_that) {
 case _ApiToken():
-return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked);case _:
+return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.role,_that.tokenPrefix,_that.isRevoked);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7698,10 +7696,10 @@ return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  String? token,  DateTime createdAt,  bool isRevoked)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label, @JsonKey(includeToJson: false)  String? token,  DateTime createdAt,  String role,  String tokenPrefix, @JsonKey(readValue: readIsRevoked)  bool isRevoked)?  $default,) {final _that = this;
 switch (_that) {
 case _ApiToken() when $default != null:
-return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked);case _:
+return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.role,_that.tokenPrefix,_that.isRevoked);case _:
   return null;
 
 }
@@ -7713,14 +7711,16 @@ return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.isRevoked
 @JsonSerializable()
 
 class _ApiToken implements ApiToken {
-  const _ApiToken({required this.id, required this.label, this.token, required this.createdAt, this.isRevoked = false});
+  const _ApiToken({required this.id, required this.label, @JsonKey(includeToJson: false) this.token, required this.createdAt, this.role = 'player', this.tokenPrefix = '', @JsonKey(readValue: readIsRevoked) this.isRevoked = false});
   factory _ApiToken.fromJson(Map<String, dynamic> json) => _$ApiTokenFromJson(json);
 
 @override final  String id;
 @override final  String label;
-@override final  String? token;
+@override@JsonKey(includeToJson: false) final  String? token;
 @override final  DateTime createdAt;
-@override@JsonKey() final  bool isRevoked;
+@override@JsonKey() final  String role;
+@override@JsonKey() final  String tokenPrefix;
+@override@JsonKey(readValue: readIsRevoked) final  bool isRevoked;
 
 /// Create a copy of ApiToken
 /// with the given fields replaced by the non-null parameter values.
@@ -7735,17 +7735,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ApiToken&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.token, token) || other.token == token)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ApiToken&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.token, token) || other.token == token)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenPrefix, tokenPrefix) || other.tokenPrefix == tokenPrefix)&&(identical(other.isRevoked, isRevoked) || other.isRevoked == isRevoked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,token,createdAt,isRevoked);
+int get hashCode => Object.hash(runtimeType,id,label,token,createdAt,role,tokenPrefix,isRevoked);
 
-@override
-String toString() {
-  return 'ApiToken(id: $id, label: $label, token: $token, createdAt: $createdAt, isRevoked: $isRevoked)';
-}
 
 
 }
@@ -7755,7 +7751,7 @@ abstract mixin class _$ApiTokenCopyWith<$Res> implements $ApiTokenCopyWith<$Res>
   factory _$ApiTokenCopyWith(_ApiToken value, $Res Function(_ApiToken) _then) = __$ApiTokenCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String label, String? token, DateTime createdAt, bool isRevoked
+ String id, String label,@JsonKey(includeToJson: false) String? token, DateTime createdAt, String role, String tokenPrefix,@JsonKey(readValue: readIsRevoked) bool isRevoked
 });
 
 
@@ -7772,13 +7768,15 @@ class __$ApiTokenCopyWithImpl<$Res>
 
 /// Create a copy of ApiToken
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? token = freezed,Object? createdAt = null,Object? isRevoked = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? token = freezed,Object? createdAt = null,Object? role = null,Object? tokenPrefix = null,Object? isRevoked = null,}) {
   return _then(_ApiToken(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,isRevoked: null == isRevoked ? _self.isRevoked : isRevoked // ignore: cast_nullable_to_non_nullable
+as DateTime,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,tokenPrefix: null == tokenPrefix ? _self.tokenPrefix : tokenPrefix // ignore: cast_nullable_to_non_nullable
+as String,isRevoked: null == isRevoked ? _self.isRevoked : isRevoked // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

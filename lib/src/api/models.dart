@@ -17,20 +17,20 @@ abstract class CurrentStaff with _$CurrentStaff {
   const factory CurrentStaff({
     required String id,
     required String displayName,
-    required StaffRole role,
+    @JsonKey(unknownEnumValue: StaffRole.viewer) required StaffRole role,
     @Default(false) bool canWrite,
   }) = _CurrentStaff;
 
-  factory CurrentStaff.fromJson(Map<String, dynamic> json) => _$CurrentStaffFromJson(json);
+  factory CurrentStaff.fromJson(Map<String, dynamic> json) =>
+      _$CurrentStaffFromJson(json);
 }
 
 @freezed
 abstract class SetupStatus with _$SetupStatus {
-  const factory SetupStatus({
-    required bool installed,
-  }) = _SetupStatus;
+  const factory SetupStatus({required bool installed}) = _SetupStatus;
 
-  factory SetupStatus.fromJson(Map<String, dynamic> json) => _$SetupStatusFromJson(json);
+  factory SetupStatus.fromJson(Map<String, dynamic> json) =>
+      _$SetupStatusFromJson(json);
 }
 
 @freezed
@@ -49,7 +49,8 @@ abstract class LivePlayer with _$LivePlayer {
   int get sessionCount => sessions.length;
   bool get isActive => status == 'active';
 
-  factory LivePlayer.fromJson(Map<String, dynamic> json) => _$LivePlayerFromJson(json);
+  factory LivePlayer.fromJson(Map<String, dynamic> json) =>
+      _$LivePlayerFromJson(json);
 }
 
 @freezed
@@ -69,15 +70,18 @@ abstract class LiveSession with _$LiveSession {
     return value == null || value.isEmpty ? '现场入场' : value;
   }
 
-  String get sourceLine => '${titleSource(title)} /入场 · ${formatClock(startedAt)}';
+  String get sourceLine =>
+      '${titleSource(title)} /入场 · ${formatClock(startedAt)}';
   String get startedLine => '${formatClock(startedAt)} 开始';
-  String get entrySourceLine => '${entrySource(title)} · ${formatClock(startedAt)}';
+  String get entrySourceLine =>
+      '${entrySource(title)} · ${formatClock(startedAt)}';
   String get pricingRuleLabel {
     if (title.contains('麻将') || title.contains('自定义')) return '店内加减价';
     return '音游按时收费';
   }
 
-  factory LiveSession.fromJson(Map<String, dynamic> json) => _$LiveSessionFromJson(json);
+  factory LiveSession.fromJson(Map<String, dynamic> json) =>
+      _$LiveSessionFromJson(json);
 }
 
 @freezed
@@ -92,7 +96,8 @@ abstract class SettlementPreview with _$SettlementPreview {
     required List<SessionPreview> sessionPreviews,
   }) = _SettlementPreview;
 
-  factory SettlementPreview.fromJson(Map<String, dynamic> json) => _$SettlementPreviewFromJson(json);
+  factory SettlementPreview.fromJson(Map<String, dynamic> json) =>
+      _$SettlementPreviewFromJson(json);
 }
 
 @freezed
@@ -103,7 +108,8 @@ abstract class SessionPreview with _$SessionPreview {
     required num total,
   }) = _SessionPreview;
 
-  factory SessionPreview.fromJson(Map<String, dynamic> json) => _$SessionPreviewFromJson(json);
+  factory SessionPreview.fromJson(Map<String, dynamic> json) =>
+      _$SessionPreviewFromJson(json);
 }
 
 @freezed
@@ -112,8 +118,8 @@ abstract class Player with _$Player {
     required String id,
     required String displayName,
     required String status, // 'active' | 'inactive' | 'banned'
-    required num walletTotal,
-    required int stayDurationMinutes,
+    @Default(0) num walletTotal,
+    @Default(0) int stayDurationMinutes,
     DateTime? createdAt,
   }) = _Player;
 
@@ -125,11 +131,12 @@ abstract class AssetDefinition with _$AssetDefinition {
   const factory AssetDefinition({
     required String type,
     required String code,
-    required String displayName,
-    @Default(false) bool isArchived,
+    @JsonKey(readValue: readDisplayName) required String displayName,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _AssetDefinition;
 
-  factory AssetDefinition.fromJson(Map<String, dynamic> json) => _$AssetDefinitionFromJson(json);
+  factory AssetDefinition.fromJson(Map<String, dynamic> json) =>
+      _$AssetDefinitionFromJson(json);
 }
 
 @freezed
@@ -137,36 +144,40 @@ abstract class AssetHolding with _$AssetHolding {
   const factory AssetHolding({
     required String assetType,
     required String assetCode,
-    required num amount,
+    @JsonKey(readValue: readAmount) required num amount,
   }) = _AssetHolding;
 
-  factory AssetHolding.fromJson(Map<String, dynamic> json) => _$AssetHoldingFromJson(json);
+  factory AssetHolding.fromJson(Map<String, dynamic> json) =>
+      _$AssetHoldingFromJson(json);
 }
 
 @freezed
 abstract class AssetLedgerEntry with _$AssetLedgerEntry {
   const factory AssetLedgerEntry({
-    required String id,
+    @Default('') String id,
     required String assetType,
     required String assetCode,
-    required num amount,
+    @JsonKey(readValue: readAmount) required num amount,
+    @JsonKey(readValue: readDirection)
     required String direction, // 'in' | 'out'
     required String reason,
     required DateTime createdAt,
   }) = _AssetLedgerEntry;
 
-  factory AssetLedgerEntry.fromJson(Map<String, dynamic> json) => _$AssetLedgerEntryFromJson(json);
+  factory AssetLedgerEntry.fromJson(Map<String, dynamic> json) =>
+      _$AssetLedgerEntryFromJson(json);
 }
 
 @freezed
 abstract class PlayerAssets with _$PlayerAssets {
   const factory PlayerAssets({
-    required String playerId,
+    @Default('') String playerId,
     required List<AssetHolding> holdings,
-    required List<AssetLedgerEntry> ledger,
+    @JsonKey(readValue: readLedger) required List<AssetLedgerEntry> ledger,
   }) = _PlayerAssets;
 
-  factory PlayerAssets.fromJson(Map<String, dynamic> json) => _$PlayerAssetsFromJson(json);
+  factory PlayerAssets.fromJson(Map<String, dynamic> json) =>
+      _$PlayerAssetsFromJson(json);
 }
 
 @freezed
@@ -177,7 +188,8 @@ abstract class AssetGrant with _$AssetGrant {
     required num amount,
   }) = _AssetGrant;
 
-  factory AssetGrant.fromJson(Map<String, dynamic> json) => _$AssetGrantFromJson(json);
+  factory AssetGrant.fromJson(Map<String, dynamic> json) =>
+      _$AssetGrantFromJson(json);
 }
 
 @freezed
@@ -186,10 +198,11 @@ abstract class Present with _$Present {
     required String id,
     required String name,
     required List<AssetGrant> grants,
-    @Default(false) bool isArchived,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _Present;
 
-  factory Present.fromJson(Map<String, dynamic> json) => _$PresentFromJson(json);
+  factory Present.fromJson(Map<String, dynamic> json) =>
+      _$PresentFromJson(json);
 }
 
 @freezed
@@ -197,15 +210,16 @@ abstract class RedeemCode with _$RedeemCode {
   const factory RedeemCode({
     required String id,
     required String code,
-    required List<AssetGrant> grants,
-    required int usageLimit,
-    required int usageCount,
+    @Default([]) List<AssetGrant> grants,
+    @JsonKey(readValue: readUsageLimit) @Default(1) int usageLimit,
+    @Default(0) int usageCount,
     DateTime? expiresAt,
     @Default(false) bool isRevoked,
     DateTime? createdAt,
   }) = _RedeemCode;
 
-  factory RedeemCode.fromJson(Map<String, dynamic> json) => _$RedeemCodeFromJson(json);
+  factory RedeemCode.fromJson(Map<String, dynamic> json) =>
+      _$RedeemCodeFromJson(json);
 }
 
 @freezed
@@ -225,7 +239,8 @@ abstract class PriorityTimeRule with _$PriorityTimeRule {
     num? priceCap,
   }) = _PriorityTimeRule;
 
-  factory PriorityTimeRule.fromJson(Map<String, dynamic> json) => _$PriorityTimeRuleFromJson(json);
+  factory PriorityTimeRule.fromJson(Map<String, dynamic> json) =>
+      _$PriorityTimeRuleFromJson(json);
 }
 
 @freezed
@@ -234,12 +249,13 @@ abstract class PricingConfig with _$PricingConfig {
     required String id,
     required String name,
     required String kind,
-    required List<PriorityTimeRule> rules,
-    @Default(false) bool isArchived,
-    @Default(true) bool isActive,
+    @JsonKey(readValue: readPricingRules) required List<PriorityTimeRule> rules,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
+    @JsonKey(readValue: readIsActive) @Default(true) bool isActive,
   }) = _PricingConfig;
 
-  factory PricingConfig.fromJson(Map<String, dynamic> json) => _$PricingConfigFromJson(json);
+  factory PricingConfig.fromJson(Map<String, dynamic> json) =>
+      _$PricingConfigFromJson(json);
 }
 
 @freezed
@@ -250,7 +266,8 @@ abstract class UnitPricing with _$UnitPricing {
     required num price,
   }) = _UnitPricing;
 
-  factory UnitPricing.fromJson(Map<String, dynamic> json) => _$UnitPricingFromJson(json);
+  factory UnitPricing.fromJson(Map<String, dynamic> json) =>
+      _$UnitPricingFromJson(json);
 }
 
 @freezed
@@ -260,7 +277,8 @@ abstract class PricingTimeline with _$PricingTimeline {
     required String pricingConfigId,
   }) = _PricingTimeline;
 
-  factory PricingTimeline.fromJson(Map<String, dynamic> json) => _$PricingTimelineFromJson(json);
+  factory PricingTimeline.fromJson(Map<String, dynamic> json) =>
+      _$PricingTimelineFromJson(json);
 }
 
 @freezed
@@ -270,10 +288,11 @@ abstract class BusinessItem with _$BusinessItem {
     required String name,
     required num price,
     required String kind,
-    @Default(false) bool isArchived,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _BusinessItem;
 
-  factory BusinessItem.fromJson(Map<String, dynamic> json) => _$BusinessItemFromJson(json);
+  factory BusinessItem.fromJson(Map<String, dynamic> json) =>
+      _$BusinessItemFromJson(json);
 }
 
 @freezed
@@ -281,8 +300,8 @@ abstract class BusinessItemOrder with _$BusinessItemOrder {
   const factory BusinessItemOrder({
     required String id,
     required String playerId,
-    required String itemId,
-    required String itemName,
+    @JsonKey(readValue: readItemId) required String itemId,
+    @JsonKey(readValue: readItemName) required String itemName,
     required num price,
     required String status,
     required DateTime createdAt,
@@ -290,7 +309,8 @@ abstract class BusinessItemOrder with _$BusinessItemOrder {
     DateTime? cancelledAt,
   }) = _BusinessItemOrder;
 
-  factory BusinessItemOrder.fromJson(Map<String, dynamic> json) => _$BusinessItemOrderFromJson(json);
+  factory BusinessItemOrder.fromJson(Map<String, dynamic> json) =>
+      _$BusinessItemOrderFromJson(json);
 }
 
 @freezed
@@ -304,73 +324,80 @@ abstract class DeviceState with _$DeviceState {
     required String reportedBy,
   }) = _DeviceState;
 
-  factory DeviceState.fromJson(Map<String, dynamic> json) => _$DeviceStateFromJson(json);
+  factory DeviceState.fromJson(Map<String, dynamic> json) =>
+      _$DeviceStateFromJson(json);
 }
 
 @freezed
 abstract class DeviceCommand with _$DeviceCommand {
   const factory DeviceCommand({
     required String id,
-    required String commandType,
+    @JsonKey(readValue: readCommandType) required String commandType,
     required String deviceId,
-    required String requester,
+    @JsonKey(readValue: readRequester) required String requester,
     required String status,
-    required DateTime createdAt,
+    @JsonKey(readValue: readCreatedAt) required DateTime createdAt,
     DateTime? ackedAt,
   }) = _DeviceCommand;
 
-  factory DeviceCommand.fromJson(Map<String, dynamic> json) => _$DeviceCommandFromJson(json);
+  factory DeviceCommand.fromJson(Map<String, dynamic> json) =>
+      _$DeviceCommandFromJson(json);
 }
 
 @freezed
 abstract class ReportSummary with _$ReportSummary {
   const factory ReportSummary({
-    required num revenue,
+    @JsonKey(readValue: readRevenue) required num revenue,
+    @JsonKey(readValue: readSettledSessionsCount)
     required int settledSessionsCount,
-    required int assetGrantsCount,
-    required int coinCommandsCount,
+    @JsonKey(readValue: readAssetGrantsCount) required int assetGrantsCount,
+    @JsonKey(readValue: readCoinCommandsCount) required int coinCommandsCount,
   }) = _ReportSummary;
 
-  factory ReportSummary.fromJson(Map<String, dynamic> json) => _$ReportSummaryFromJson(json);
+  factory ReportSummary.fromJson(Map<String, dynamic> json) =>
+      _$ReportSummaryFromJson(json);
 }
 
 @freezed
 abstract class SettlementReportRow with _$SettlementReportRow {
   const factory SettlementReportRow({
     required String playerId,
-    required String displayName,
+    @JsonKey(readValue: readDisplayName) required String displayName,
     required int durationMinutes,
     required num subtotal,
     required num total,
     required DateTime settledAt,
   }) = _SettlementReportRow;
 
-  factory SettlementReportRow.fromJson(Map<String, dynamic> json) => _$SettlementReportRowFromJson(json);
+  factory SettlementReportRow.fromJson(Map<String, dynamic> json) =>
+      _$SettlementReportRowFromJson(json);
 }
 
 @freezed
 abstract class PlayerReportRow with _$PlayerReportRow {
   const factory PlayerReportRow({
     required String playerId,
-    required String displayName,
+    @JsonKey(readValue: readDisplayName) required String displayName,
     required int settlementCount,
     required int totalDurationMinutes,
-    required num revenue,
+    @JsonKey(readValue: readRevenue) required num revenue,
     required DateTime lastSettledAt,
   }) = _PlayerReportRow;
 
-  factory PlayerReportRow.fromJson(Map<String, dynamic> json) => _$PlayerReportRowFromJson(json);
+  factory PlayerReportRow.fromJson(Map<String, dynamic> json) =>
+      _$PlayerReportRowFromJson(json);
 }
 
 @freezed
 abstract class SettingsData with _$SettingsData {
   const factory SettingsData({
-    required String storeName,
-    required String timeZone,
-    required int coinCooldownMs,
+    @JsonKey(readValue: readStoreName) required String storeName,
+    @JsonKey(readValue: readTimeZone) required String timeZone,
+    @JsonKey(readValue: readCoinCooldownMs) required int coinCooldownMs,
   }) = _SettingsData;
 
-  factory SettingsData.fromJson(Map<String, dynamic> json) => _$SettingsDataFromJson(json);
+  factory SettingsData.fromJson(Map<String, dynamic> json) =>
+      _$SettingsDataFromJson(json);
 }
 
 @freezed
@@ -379,24 +406,28 @@ abstract class StaffUser with _$StaffUser {
     required String id,
     required String username,
     required String displayName,
-    required StaffRole role,
-    @Default(false) bool isArchived,
+    @JsonKey(unknownEnumValue: StaffRole.viewer) required StaffRole role,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _StaffUser;
 
-  factory StaffUser.fromJson(Map<String, dynamic> json) => _$StaffUserFromJson(json);
+  factory StaffUser.fromJson(Map<String, dynamic> json) =>
+      _$StaffUserFromJson(json);
 }
 
-@freezed
+@Freezed(toStringOverride: false)
 abstract class ApiToken with _$ApiToken {
   const factory ApiToken({
     required String id,
     required String label,
-    String? token,
+    @JsonKey(includeToJson: false) String? token,
     required DateTime createdAt,
-    @Default(false) bool isRevoked,
+    @Default('player') String role,
+    @Default('') String tokenPrefix,
+    @JsonKey(readValue: readIsRevoked) @Default(false) bool isRevoked,
   }) = _ApiToken;
 
-  factory ApiToken.fromJson(Map<String, dynamic> json) => _$ApiTokenFromJson(json);
+  factory ApiToken.fromJson(Map<String, dynamic> json) =>
+      _$ApiTokenFromJson(json);
 }
 
 DateTime? parseDate(dynamic value) {
@@ -411,6 +442,62 @@ List<T> listOf<T>(dynamic value, T Function(Map<String, dynamic>) mapper) {
       if (item is Map) mapper(item.cast<String, dynamic>()),
   ];
 }
+
+Object? nestedValue(Map json, List<String> keys) {
+  Object? current = json;
+  for (final key in keys) {
+    if (current is! Map) return null;
+    current = current[key];
+  }
+  return current;
+}
+
+Object? readDisplayName(Map json, String key) =>
+    json[key] ?? json['name'] ?? json['playerDisplayName'];
+Object? readIsArchived(Map json, String key) =>
+    json[key] ?? (json['status'] == 'archived');
+Object? readIsActive(Map json, String key) =>
+    json[key] ?? json['enabled'] ?? (json['status'] == 'active');
+Object? readAmount(Map json, String key) =>
+    json[key] ?? json['quantity'] ?? json['delta'];
+Object? readDirection(Map json, String key) {
+  final explicit = json[key];
+  if (explicit != null) return explicit;
+  final delta = json['delta'];
+  if (delta is num) return delta < 0 ? 'out' : 'in';
+  return 'in';
+}
+
+Object? readLedger(Map json, String key) => json[key] ?? json['ledgerEntries'];
+Object? readUsageLimit(Map json, String key) =>
+    json[key] ?? json['maxUseCount'];
+Object? readPricingRules(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['provider', 'rules']);
+Object? readItemId(Map json, String key) => json[key] ?? json['businessItemId'];
+Object? readItemName(Map json, String key) =>
+    json[key] ?? json['businessItemName'];
+Object? readCommandType(Map json, String key) => json[key] ?? json['type'];
+Object? readRequester(Map json, String key) =>
+    json[key] ?? json['requester'] ?? json['staffId'] ?? json['playerId'];
+Object? readCreatedAt(Map json, String key) => json[key] ?? json['requestedAt'];
+Object? readRevenue(Map json, String key) =>
+    json[key] ??
+    json['revenueTotal'] ??
+    nestedValue(json, ['summary', 'revenueTotal']);
+Object? readSettledSessionsCount(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['summary', 'sessionCount']);
+Object? readAssetGrantsCount(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['summary', 'assetGrantTotal']);
+Object? readCoinCommandsCount(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['summary', 'coinCommandCount']);
+Object? readStoreName(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['store', 'name']);
+Object? readTimeZone(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['store', 'timeZone']);
+Object? readCoinCooldownMs(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['operations', 'coinCooldownMs']);
+Object? readIsRevoked(Map json, String key) =>
+    json[key] ?? (json['status'] == 'revoked');
 
 String formatDurationMinutes(int minutes) {
   final hours = minutes ~/ 60;

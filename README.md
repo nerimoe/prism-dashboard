@@ -17,6 +17,7 @@ The UI is built around store operations rather than backend table shapes:
 
 Commonly used UI blocks live in `lib/src/shared/`:
 - **Layouts (`admin_layout.dart`)**:
+  - `AdminWorkspace`: Standard page shell with title, subtitle, actions, and responsive page padding.
   - `AdminSplitPane`: Split layout (3:2) for desktop, auto-collapses to single detail panel on mobile.
   - `AdminDetailPanel`: Elegant detail card wrapper with internal scrolling support.
   - `FormSheet`: Bottom drawer on mobile, floating Dialog on desktop for form operations.
@@ -30,7 +31,13 @@ Commonly used UI blocks live in `lib/src/shared/`:
 - **Data Visuals (`widgets.dart`)**:
   - `MoneyText`: Currency styling with standard color highlights (red for negative values).
   - `DateTimeText`: Auto local-formatted timestamp labels.
-  - Status helper pills: `PlayerStatusPill`, `OrderStatusPill`, `DeviceStatusPill`, `StaffRolePill`.
+  - Status helper pills: `PlayerStatusPill`, `ArchiveStatusPill`, `OrderStatusPill`, `DeviceStatusPill`, `StaffRolePill`, `StaffUserStatusPill`, `ApiTokenStatusPill`.
+
+## API Contract Notes
+
+- Dart models accept the current staff RPC view fields, including backend names such as `staffUsers`, `apiTokens`, `assetDefinitions`, `businessItems`, `pricingConfigs`, nested settings, and report `summary` payloads.
+- `ApiToken.token` is treated as a one-time secret: it can be read after creation, but it is omitted from `toJson()` and not printed by model `toString()`.
+- `PrismApiClient` exposes the staff session operations needed by the live desk: preview one timing item, checkout one timing item, preview all, checkout all, stop one timing item, list active timing items, and bulk checkout.
 
 Useful commands:
 

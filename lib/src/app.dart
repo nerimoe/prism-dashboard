@@ -6,7 +6,11 @@ import 'features/shell/auth_screen.dart';
 import 'features/shell/home_shell.dart';
 
 class PrismDashboardApp extends ConsumerWidget {
-  const PrismDashboardApp({super.key, required this.lightTheme, required this.darkTheme});
+  const PrismDashboardApp({
+    super.key,
+    required this.lightTheme,
+    required this.darkTheme,
+  });
 
   final ThemeData lightTheme;
   final ThemeData darkTheme;
@@ -21,9 +25,12 @@ class PrismDashboardApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       home: state.when(
         loading: () => const _BootScreen(),
-        error: (error, stackTrace) => AuthScreen(initialError: error.toString()),
+        error: (error, stackTrace) =>
+            AuthScreen(initialError: error.toString()),
         data: (appState) {
-          if (!appState.isInstalled || !appState.isAuthenticated) return AuthScreen(appState: appState);
+          if (!appState.isInstalled || !appState.isAuthenticated) {
+            return AuthScreen(appState: appState);
+          }
           return HomeShell(appState: appState);
         },
       ),

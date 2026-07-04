@@ -10,7 +10,9 @@ import 'package:prism_dashboard/src/features/shell/home_shell.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
-  testWidgets('HomeShell navigation switches between new feature screens', (tester) async {
+  testWidgets('HomeShell navigation switches between new feature screens', (
+    tester,
+  ) async {
     // 1. Set screen size to desktop view
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.binding.setSurfaceSize(const Size(1280, 720));
@@ -27,7 +29,11 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
-        return http.Response('{}', 200, headers: {'content-type': 'application/json'});
+        return http.Response(
+          '{}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
       }),
     );
 
@@ -48,9 +54,7 @@ void main() {
     // 3. Pump widget
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          apiClientProvider.overrideWithValue(mockApi),
-        ],
+        overrides: [apiClientProvider.overrideWithValue(mockApi)],
         child: MaterialApp(
           theme: buildPrismDashboardTheme(
             ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
@@ -62,7 +66,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 4. Assert default screen is OperationsScreen (现场工作台)
-    expect(find.text('在场玩家'), findsWidgets);
+    expect(find.text('现场工作台'), findsWidgets);
 
     // 5. Navigate to 玩家档案
     await tester.tap(find.text('玩家档案'));

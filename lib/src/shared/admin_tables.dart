@@ -73,10 +73,7 @@ class AdminTablePanel extends StatelessWidget {
                 if (trailing != null) trailing!,
               ],
             ),
-            if (toolbar != null) ...[
-              const SizedBox(height: 12),
-              toolbar!,
-            ],
+            if (toolbar != null) ...[const SizedBox(height: 12), toolbar!],
             const SizedBox(height: 16),
 
             // 表头
@@ -117,28 +114,20 @@ class AdminTablePanel extends StatelessWidget {
     if (isLoading) {
       return const Padding(
         padding: EdgeInsets.all(32),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (isEmpty || itemCount == 0) {
-      return EmptyState(
-        icon: emptyIcon,
-        title: '暂无数据',
-        message: emptyMessage,
-      );
+      return EmptyState(icon: emptyIcon, title: '暂无数据', message: emptyMessage);
     }
 
     return ListView.separated(
       shrinkWrap: true,
       physics: const ClampingScrollPhysics(),
       itemCount: itemCount,
-      separatorBuilder: (context, index) => Divider(
-        height: 1,
-        color: context.colors.outlineVariant,
-      ),
+      separatorBuilder: (context, index) =>
+          Divider(height: 1, color: context.colors.outlineVariant),
       itemBuilder: rowBuilder,
     );
   }
