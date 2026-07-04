@@ -389,6 +389,22 @@ _BusinessItem _$BusinessItemFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       price: json['price'] as num,
       kind: json['kind'] as String,
+      status: json['status'] as String? ?? 'active',
+      assetType: json['assetType'] as String?,
+      assetCode: json['assetCode'] as String?,
+      activeAt: json['activeAt'] == null
+          ? null
+          : DateTime.parse(json['activeAt'] as String),
+      expiresAt: json['expiresAt'] == null
+          ? null
+          : DateTime.parse(json['expiresAt'] as String),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
       isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
     );
 
@@ -398,6 +414,14 @@ Map<String, dynamic> _$BusinessItemToJson(_BusinessItem instance) =>
       'name': instance.name,
       'price': instance.price,
       'kind': instance.kind,
+      'status': instance.status,
+      'assetType': instance.assetType,
+      'assetCode': instance.assetCode,
+      'activeAt': instance.activeAt?.toIso8601String(),
+      'expiresAt': instance.expiresAt?.toIso8601String(),
+      'metadata': instance.metadata,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
       'isArchived': instance.isArchived,
     };
 
@@ -407,9 +431,17 @@ _BusinessItemOrder _$BusinessItemOrderFromJson(Map<String, dynamic> json) =>
       playerId: json['playerId'] as String,
       itemId: readItemId(json, 'itemId') as String,
       itemName: readItemName(json, 'itemName') as String,
+      businessItemKind: json['businessItemKind'] as String? ?? '',
       price: json['price'] as num,
       status: json['status'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      sessionId: json['sessionId'] as String?,
+      assetType: json['assetType'] as String?,
+      assetCode: json['assetCode'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
       fulfilledAt: json['fulfilledAt'] == null
           ? null
           : DateTime.parse(json['fulfilledAt'] as String),
@@ -424,9 +456,15 @@ Map<String, dynamic> _$BusinessItemOrderToJson(_BusinessItemOrder instance) =>
       'playerId': instance.playerId,
       'itemId': instance.itemId,
       'itemName': instance.itemName,
+      'businessItemKind': instance.businessItemKind,
       'price': instance.price,
       'status': instance.status,
       'createdAt': instance.createdAt.toIso8601String(),
+      'sessionId': instance.sessionId,
+      'assetType': instance.assetType,
+      'assetCode': instance.assetCode,
+      'metadata': instance.metadata,
+      'updatedAt': instance.updatedAt?.toIso8601String(),
       'fulfilledAt': instance.fulfilledAt?.toIso8601String(),
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
     };

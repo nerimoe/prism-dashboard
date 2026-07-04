@@ -216,6 +216,68 @@ void main() {
       expect(model.status, 'pending');
     });
 
+    test('BusinessItem parses backend management fields', () {
+      final json = {
+        'id': 'item-1',
+        'kind': 'event.entry',
+        'name': '周末挑战赛报名',
+        'status': 'active',
+        'price': 1200,
+        'assetType': 'ticket',
+        'assetCode': 'event.weekend',
+        'activeAt': '2026-06-08T01:00:00.000Z',
+        'expiresAt': '2026-06-09T01:00:00.000Z',
+        'metadata': {'capacity': 24},
+        'createdAt': '2026-06-01T01:00:00.000Z',
+        'updatedAt': '2026-06-02T01:00:00.000Z',
+      };
+
+      final model = BusinessItem.fromJson(json);
+
+      expect(model.id, 'item-1');
+      expect(model.kind, 'event.entry');
+      expect(model.status, 'active');
+      expect(model.isArchived, false);
+      expect(model.assetType, 'ticket');
+      expect(model.assetCode, 'event.weekend');
+      expect(model.activeAt?.toUtc(), DateTime.utc(2026, 6, 8, 1));
+      expect(model.expiresAt?.toUtc(), DateTime.utc(2026, 6, 9, 1));
+      expect(model.metadata?['capacity'], 24);
+    });
+
+    test('BusinessItemOrder parses backend staff order fields', () {
+      final json = {
+        'id': 'order-1',
+        'businessItemId': 'item-1',
+        'businessItemKind': 'food.drink',
+        'businessItemName': '冰可乐',
+        'playerId': 'player-1',
+        'sessionId': 'session-1',
+        'status': 'paid',
+        'price': 350,
+        'assetType': 'drink',
+        'assetCode': 'cola',
+        'metadata': {'channel': 'counter'},
+        'createdAt': '2026-07-04T12:30:00.000Z',
+        'updatedAt': '2026-07-04T12:31:00.000Z',
+        'fulfilledAt': null,
+        'cancelledAt': null,
+      };
+
+      final model = BusinessItemOrder.fromJson(json);
+
+      expect(model.id, 'order-1');
+      expect(model.itemId, 'item-1');
+      expect(model.businessItemKind, 'food.drink');
+      expect(model.itemName, '冰可乐');
+      expect(model.sessionId, 'session-1');
+      expect(model.status, 'paid');
+      expect(model.assetType, 'drink');
+      expect(model.assetCode, 'cola');
+      expect(model.metadata?['channel'], 'counter');
+      expect(model.updatedAt?.toUtc(), DateTime.utc(2026, 7, 4, 12, 31));
+    });
+
     test('DeviceState parses correctly', () {
       final json = {
         'deviceId': 'device-1',
@@ -347,6 +409,22 @@ void main() {
               200,
               headers: {'content-type': 'application/json'},
             );
+          } else if (path == '/rpc/staff/business-items' &&
+              request.method == 'POST') {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            return http.Response(
+              jsonEncode({
+                'businessItem': {
+                  'id': 'item-created',
+                  'status': 'active',
+                  'createdAt': '2026-07-04T12:00:00.000Z',
+                  'updatedAt': '2026-07-04T12:00:00.000Z',
+                  ...body,
+                },
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
           } else if (path == '/rpc/staff/reports/summary' &&
               request.method == 'GET') {
             expect(request.url.queryParameters['from'], '2026-07-01');
@@ -414,6 +492,33 @@ void main() {
       expect(requests.first.method, 'GET');
       expect(requests.first.url.path, '/rpc/staff/reports/summary');
       expect(summary.revenue, 1000.5);
+    });
+
+    test('createBusinessItem posts full backend body', () async {
+      await client.createBusinessItem(
+        name: '周末挑战赛报名',
+        price: 1200,
+        kind: 'event.entry',
+        assetType: 'ticket',
+        assetCode: 'event.weekend',
+        activeAt: DateTime.utc(2026, 6, 8, 1),
+        expiresAt: DateTime.utc(2026, 6, 9, 1),
+        metadata: {'capacity': 24},
+      );
+
+      final request = requests.last;
+      expect(request.method, 'POST');
+      expect(request.url.path, '/rpc/staff/business-items');
+      expect(jsonDecode(request.body), {
+        'kind': 'event.entry',
+        'name': '周末挑战赛报名',
+        'price': 1200,
+        'assetType': 'ticket',
+        'assetCode': 'event.weekend',
+        'activeAt': '2026-06-08T01:00:00.000Z',
+        'expiresAt': '2026-06-09T01:00:00.000Z',
+        'metadata': {'capacity': 24},
+      });
     });
   });
 }

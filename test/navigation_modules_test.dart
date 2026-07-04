@@ -126,7 +126,7 @@ void main() {
     await tester.tap(find.text('服务项目'));
     await tester.pumpAndSettle();
     expect(find.text('服务项目与订单'), findsWidgets);
-    expect(find.text('暂无订单记录'), findsOneWidget);
+    expect(find.text('还没有可售服务'), findsOneWidget);
 
     // 10. Navigate to 营业报表 (Wires to reports destination)
     await tester.tap(find.text('营业报表'));

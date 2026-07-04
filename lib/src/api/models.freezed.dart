@@ -5052,7 +5052,7 @@ as String,
 /// @nodoc
 mixin _$BusinessItem {
 
- String get id; String get name; num get price; String get kind;@JsonKey(readValue: readIsArchived) bool get isArchived;
+ String get id; String get name; num get price; String get kind; String get status; String? get assetType; String? get assetCode; DateTime? get activeAt; DateTime? get expiresAt; Map<String, dynamic>? get metadata; DateTime? get createdAt; DateTime? get updatedAt;@JsonKey(readValue: readIsArchived) bool get isArchived;
 /// Create a copy of BusinessItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5065,16 +5065,16 @@ $BusinessItemCopyWith<BusinessItem> get copyWith => _$BusinessItemCopyWithImpl<B
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusinessItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusinessItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price,kind,isArchived);
+int get hashCode => Object.hash(runtimeType,id,name,price,kind,status,assetType,assetCode,activeAt,expiresAt,const DeepCollectionEquality().hash(metadata),createdAt,updatedAt,isArchived);
 
 @override
 String toString() {
-  return 'BusinessItem(id: $id, name: $name, price: $price, kind: $kind, isArchived: $isArchived)';
+  return 'BusinessItem(id: $id, name: $name, price: $price, kind: $kind, status: $status, assetType: $assetType, assetCode: $assetCode, activeAt: $activeAt, expiresAt: $expiresAt, metadata: $metadata, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived)';
 }
 
 
@@ -5085,7 +5085,7 @@ abstract mixin class $BusinessItemCopyWith<$Res>  {
   factory $BusinessItemCopyWith(BusinessItem value, $Res Function(BusinessItem) _then) = _$BusinessItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, num price, String kind,@JsonKey(readValue: readIsArchived) bool isArchived
+ String id, String name, num price, String kind, String status, String? assetType, String? assetCode, DateTime? activeAt, DateTime? expiresAt, Map<String, dynamic>? metadata, DateTime? createdAt, DateTime? updatedAt,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -5102,13 +5102,21 @@ class _$BusinessItemCopyWithImpl<$Res>
 
 /// Create a copy of BusinessItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kind = null,Object? isArchived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kind = null,Object? status = null,Object? assetType = freezed,Object? assetCode = freezed,Object? activeAt = freezed,Object? expiresAt = freezed,Object? metadata = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? isArchived = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as String,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,assetType: freezed == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+as String?,assetCode: freezed == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
+as String?,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -5194,10 +5202,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind,  String status,  String? assetType,  String? assetCode,  DateTime? activeAt,  DateTime? expiresAt,  Map<String, dynamic>? metadata,  DateTime? createdAt,  DateTime? updatedAt, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BusinessItem() when $default != null:
-return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.price,_that.kind,_that.status,_that.assetType,_that.assetCode,_that.activeAt,_that.expiresAt,_that.metadata,_that.createdAt,_that.updatedAt,_that.isArchived);case _:
   return orElse();
 
 }
@@ -5215,10 +5223,10 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  num price,  String kind,  String status,  String? assetType,  String? assetCode,  DateTime? activeAt,  DateTime? expiresAt,  Map<String, dynamic>? metadata,  DateTime? createdAt,  DateTime? updatedAt, @JsonKey(readValue: readIsArchived)  bool isArchived)  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItem():
-return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.price,_that.kind,_that.status,_that.assetType,_that.assetCode,_that.activeAt,_that.expiresAt,_that.metadata,_that.createdAt,_that.updatedAt,_that.isArchived);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5235,10 +5243,10 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  num price,  String kind, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  num price,  String kind,  String status,  String? assetType,  String? assetCode,  DateTime? activeAt,  DateTime? expiresAt,  Map<String, dynamic>? metadata,  DateTime? createdAt,  DateTime? updatedAt, @JsonKey(readValue: readIsArchived)  bool isArchived)?  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItem() when $default != null:
-return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);case _:
+return $default(_that.id,_that.name,_that.price,_that.kind,_that.status,_that.assetType,_that.assetCode,_that.activeAt,_that.expiresAt,_that.metadata,_that.createdAt,_that.updatedAt,_that.isArchived);case _:
   return null;
 
 }
@@ -5250,13 +5258,29 @@ return $default(_that.id,_that.name,_that.price,_that.kind,_that.isArchived);cas
 @JsonSerializable()
 
 class _BusinessItem implements BusinessItem {
-  const _BusinessItem({required this.id, required this.name, required this.price, required this.kind, @JsonKey(readValue: readIsArchived) this.isArchived = false});
+  const _BusinessItem({required this.id, required this.name, required this.price, required this.kind, this.status = 'active', this.assetType, this.assetCode, this.activeAt, this.expiresAt, final  Map<String, dynamic>? metadata, this.createdAt, this.updatedAt, @JsonKey(readValue: readIsArchived) this.isArchived = false}): _metadata = metadata;
   factory _BusinessItem.fromJson(Map<String, dynamic> json) => _$BusinessItemFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  num price;
 @override final  String kind;
+@override@JsonKey() final  String status;
+@override final  String? assetType;
+@override final  String? assetCode;
+@override final  DateTime? activeAt;
+@override final  DateTime? expiresAt;
+ final  Map<String, dynamic>? _metadata;
+@override Map<String, dynamic>? get metadata {
+  final value = _metadata;
+  if (value == null) return null;
+  if (_metadata is EqualUnmodifiableMapView) return _metadata;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  DateTime? createdAt;
+@override final  DateTime? updatedAt;
 @override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 
 /// Create a copy of BusinessItem
@@ -5272,16 +5296,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusinessItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusinessItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price,kind,isArchived);
+int get hashCode => Object.hash(runtimeType,id,name,price,kind,status,assetType,assetCode,activeAt,expiresAt,const DeepCollectionEquality().hash(_metadata),createdAt,updatedAt,isArchived);
 
 @override
 String toString() {
-  return 'BusinessItem(id: $id, name: $name, price: $price, kind: $kind, isArchived: $isArchived)';
+  return 'BusinessItem(id: $id, name: $name, price: $price, kind: $kind, status: $status, assetType: $assetType, assetCode: $assetCode, activeAt: $activeAt, expiresAt: $expiresAt, metadata: $metadata, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived)';
 }
 
 
@@ -5292,7 +5316,7 @@ abstract mixin class _$BusinessItemCopyWith<$Res> implements $BusinessItemCopyWi
   factory _$BusinessItemCopyWith(_BusinessItem value, $Res Function(_BusinessItem) _then) = __$BusinessItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, num price, String kind,@JsonKey(readValue: readIsArchived) bool isArchived
+ String id, String name, num price, String kind, String status, String? assetType, String? assetCode, DateTime? activeAt, DateTime? expiresAt, Map<String, dynamic>? metadata, DateTime? createdAt, DateTime? updatedAt,@JsonKey(readValue: readIsArchived) bool isArchived
 });
 
 
@@ -5309,13 +5333,21 @@ class __$BusinessItemCopyWithImpl<$Res>
 
 /// Create a copy of BusinessItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kind = null,Object? isArchived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kind = null,Object? status = null,Object? assetType = freezed,Object? assetCode = freezed,Object? activeAt = freezed,Object? expiresAt = freezed,Object? metadata = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? isArchived = null,}) {
   return _then(_BusinessItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as String,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,assetType: freezed == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+as String?,assetCode: freezed == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
+as String?,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -5327,7 +5359,7 @@ as bool,
 /// @nodoc
 mixin _$BusinessItemOrder {
 
- String get id; String get playerId;@JsonKey(readValue: readItemId) String get itemId;@JsonKey(readValue: readItemName) String get itemName; num get price; String get status; DateTime get createdAt; DateTime? get fulfilledAt; DateTime? get cancelledAt;
+ String get id; String get playerId;@JsonKey(readValue: readItemId) String get itemId;@JsonKey(readValue: readItemName) String get itemName; String get businessItemKind; num get price; String get status; DateTime get createdAt; String? get sessionId; String? get assetType; String? get assetCode; Map<String, dynamic>? get metadata; DateTime? get updatedAt; DateTime? get fulfilledAt; DateTime? get cancelledAt;
 /// Create a copy of BusinessItemOrder
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5340,16 +5372,16 @@ $BusinessItemOrderCopyWith<BusinessItemOrder> get copyWith => _$BusinessItemOrde
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusinessItemOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.fulfilledAt, fulfilledAt) || other.fulfilledAt == fulfilledAt)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusinessItemOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.businessItemKind, businessItemKind) || other.businessItemKind == businessItemKind)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.fulfilledAt, fulfilledAt) || other.fulfilledAt == fulfilledAt)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,playerId,itemId,itemName,price,status,createdAt,fulfilledAt,cancelledAt);
+int get hashCode => Object.hash(runtimeType,id,playerId,itemId,itemName,businessItemKind,price,status,createdAt,sessionId,assetType,assetCode,const DeepCollectionEquality().hash(metadata),updatedAt,fulfilledAt,cancelledAt);
 
 @override
 String toString() {
-  return 'BusinessItemOrder(id: $id, playerId: $playerId, itemId: $itemId, itemName: $itemName, price: $price, status: $status, createdAt: $createdAt, fulfilledAt: $fulfilledAt, cancelledAt: $cancelledAt)';
+  return 'BusinessItemOrder(id: $id, playerId: $playerId, itemId: $itemId, itemName: $itemName, businessItemKind: $businessItemKind, price: $price, status: $status, createdAt: $createdAt, sessionId: $sessionId, assetType: $assetType, assetCode: $assetCode, metadata: $metadata, updatedAt: $updatedAt, fulfilledAt: $fulfilledAt, cancelledAt: $cancelledAt)';
 }
 
 
@@ -5360,7 +5392,7 @@ abstract mixin class $BusinessItemOrderCopyWith<$Res>  {
   factory $BusinessItemOrderCopyWith(BusinessItemOrder value, $Res Function(BusinessItemOrder) _then) = _$BusinessItemOrderCopyWithImpl;
 @useResult
 $Res call({
- String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
+ String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, String businessItemKind, num price, String status, DateTime createdAt, String? sessionId, String? assetType, String? assetCode, Map<String, dynamic>? metadata, DateTime? updatedAt, DateTime? fulfilledAt, DateTime? cancelledAt
 });
 
 
@@ -5377,16 +5409,22 @@ class _$BusinessItemOrderCopyWithImpl<$Res>
 
 /// Create a copy of BusinessItemOrder
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? playerId = null,Object? itemId = null,Object? itemName = null,Object? price = null,Object? status = null,Object? createdAt = null,Object? fulfilledAt = freezed,Object? cancelledAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? playerId = null,Object? itemId = null,Object? itemName = null,Object? businessItemKind = null,Object? price = null,Object? status = null,Object? createdAt = null,Object? sessionId = freezed,Object? assetType = freezed,Object? assetCode = freezed,Object? metadata = freezed,Object? updatedAt = freezed,Object? fulfilledAt = freezed,Object? cancelledAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,itemName: null == itemName ? _self.itemName : itemName // ignore: cast_nullable_to_non_nullable
+as String,businessItemKind: null == businessItemKind ? _self.businessItemKind : businessItemKind // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,fulfilledAt: freezed == fulfilledAt ? _self.fulfilledAt : fulfilledAt // ignore: cast_nullable_to_non_nullable
+as DateTime,sessionId: freezed == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String?,assetType: freezed == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+as String?,assetCode: freezed == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,fulfilledAt: freezed == fulfilledAt ? _self.fulfilledAt : fulfilledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,cancelledAt: freezed == cancelledAt ? _self.cancelledAt : cancelledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -5473,10 +5511,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  String businessItemKind,  num price,  String status,  DateTime createdAt,  String? sessionId,  String? assetType,  String? assetCode,  Map<String, dynamic>? metadata,  DateTime? updatedAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder() when $default != null:
-return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
+return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.businessItemKind,_that.price,_that.status,_that.createdAt,_that.sessionId,_that.assetType,_that.assetCode,_that.metadata,_that.updatedAt,_that.fulfilledAt,_that.cancelledAt);case _:
   return orElse();
 
 }
@@ -5494,10 +5532,10 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  String businessItemKind,  num price,  String status,  DateTime createdAt,  String? sessionId,  String? assetType,  String? assetCode,  Map<String, dynamic>? metadata,  DateTime? updatedAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder():
-return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
+return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.businessItemKind,_that.price,_that.status,_that.createdAt,_that.sessionId,_that.assetType,_that.assetCode,_that.metadata,_that.updatedAt,_that.fulfilledAt,_that.cancelledAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5514,10 +5552,10 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  num price,  String status,  DateTime createdAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String playerId, @JsonKey(readValue: readItemId)  String itemId, @JsonKey(readValue: readItemName)  String itemName,  String businessItemKind,  num price,  String status,  DateTime createdAt,  String? sessionId,  String? assetType,  String? assetCode,  Map<String, dynamic>? metadata,  DateTime? updatedAt,  DateTime? fulfilledAt,  DateTime? cancelledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BusinessItemOrder() when $default != null:
-return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,_that.status,_that.createdAt,_that.fulfilledAt,_that.cancelledAt);case _:
+return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.businessItemKind,_that.price,_that.status,_that.createdAt,_that.sessionId,_that.assetType,_that.assetCode,_that.metadata,_that.updatedAt,_that.fulfilledAt,_that.cancelledAt);case _:
   return null;
 
 }
@@ -5529,16 +5567,30 @@ return $default(_that.id,_that.playerId,_that.itemId,_that.itemName,_that.price,
 @JsonSerializable()
 
 class _BusinessItemOrder implements BusinessItemOrder {
-  const _BusinessItemOrder({required this.id, required this.playerId, @JsonKey(readValue: readItemId) required this.itemId, @JsonKey(readValue: readItemName) required this.itemName, required this.price, required this.status, required this.createdAt, this.fulfilledAt, this.cancelledAt});
+  const _BusinessItemOrder({required this.id, required this.playerId, @JsonKey(readValue: readItemId) required this.itemId, @JsonKey(readValue: readItemName) required this.itemName, this.businessItemKind = '', required this.price, required this.status, required this.createdAt, this.sessionId, this.assetType, this.assetCode, final  Map<String, dynamic>? metadata, this.updatedAt, this.fulfilledAt, this.cancelledAt}): _metadata = metadata;
   factory _BusinessItemOrder.fromJson(Map<String, dynamic> json) => _$BusinessItemOrderFromJson(json);
 
 @override final  String id;
 @override final  String playerId;
 @override@JsonKey(readValue: readItemId) final  String itemId;
 @override@JsonKey(readValue: readItemName) final  String itemName;
+@override@JsonKey() final  String businessItemKind;
 @override final  num price;
 @override final  String status;
 @override final  DateTime createdAt;
+@override final  String? sessionId;
+@override final  String? assetType;
+@override final  String? assetCode;
+ final  Map<String, dynamic>? _metadata;
+@override Map<String, dynamic>? get metadata {
+  final value = _metadata;
+  if (value == null) return null;
+  if (_metadata is EqualUnmodifiableMapView) return _metadata;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  DateTime? updatedAt;
 @override final  DateTime? fulfilledAt;
 @override final  DateTime? cancelledAt;
 
@@ -5555,16 +5607,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusinessItemOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.fulfilledAt, fulfilledAt) || other.fulfilledAt == fulfilledAt)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusinessItemOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.businessItemKind, businessItemKind) || other.businessItemKind == businessItemKind)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.fulfilledAt, fulfilledAt) || other.fulfilledAt == fulfilledAt)&&(identical(other.cancelledAt, cancelledAt) || other.cancelledAt == cancelledAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,playerId,itemId,itemName,price,status,createdAt,fulfilledAt,cancelledAt);
+int get hashCode => Object.hash(runtimeType,id,playerId,itemId,itemName,businessItemKind,price,status,createdAt,sessionId,assetType,assetCode,const DeepCollectionEquality().hash(_metadata),updatedAt,fulfilledAt,cancelledAt);
 
 @override
 String toString() {
-  return 'BusinessItemOrder(id: $id, playerId: $playerId, itemId: $itemId, itemName: $itemName, price: $price, status: $status, createdAt: $createdAt, fulfilledAt: $fulfilledAt, cancelledAt: $cancelledAt)';
+  return 'BusinessItemOrder(id: $id, playerId: $playerId, itemId: $itemId, itemName: $itemName, businessItemKind: $businessItemKind, price: $price, status: $status, createdAt: $createdAt, sessionId: $sessionId, assetType: $assetType, assetCode: $assetCode, metadata: $metadata, updatedAt: $updatedAt, fulfilledAt: $fulfilledAt, cancelledAt: $cancelledAt)';
 }
 
 
@@ -5575,7 +5627,7 @@ abstract mixin class _$BusinessItemOrderCopyWith<$Res> implements $BusinessItemO
   factory _$BusinessItemOrderCopyWith(_BusinessItemOrder value, $Res Function(_BusinessItemOrder) _then) = __$BusinessItemOrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, num price, String status, DateTime createdAt, DateTime? fulfilledAt, DateTime? cancelledAt
+ String id, String playerId,@JsonKey(readValue: readItemId) String itemId,@JsonKey(readValue: readItemName) String itemName, String businessItemKind, num price, String status, DateTime createdAt, String? sessionId, String? assetType, String? assetCode, Map<String, dynamic>? metadata, DateTime? updatedAt, DateTime? fulfilledAt, DateTime? cancelledAt
 });
 
 
@@ -5592,16 +5644,22 @@ class __$BusinessItemOrderCopyWithImpl<$Res>
 
 /// Create a copy of BusinessItemOrder
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? playerId = null,Object? itemId = null,Object? itemName = null,Object? price = null,Object? status = null,Object? createdAt = null,Object? fulfilledAt = freezed,Object? cancelledAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? playerId = null,Object? itemId = null,Object? itemName = null,Object? businessItemKind = null,Object? price = null,Object? status = null,Object? createdAt = null,Object? sessionId = freezed,Object? assetType = freezed,Object? assetCode = freezed,Object? metadata = freezed,Object? updatedAt = freezed,Object? fulfilledAt = freezed,Object? cancelledAt = freezed,}) {
   return _then(_BusinessItemOrder(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,itemName: null == itemName ? _self.itemName : itemName // ignore: cast_nullable_to_non_nullable
+as String,businessItemKind: null == businessItemKind ? _self.businessItemKind : businessItemKind // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,fulfilledAt: freezed == fulfilledAt ? _self.fulfilledAt : fulfilledAt // ignore: cast_nullable_to_non_nullable
+as DateTime,sessionId: freezed == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String?,assetType: freezed == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+as String?,assetCode: freezed == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,fulfilledAt: freezed == fulfilledAt ? _self.fulfilledAt : fulfilledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,cancelledAt: freezed == cancelledAt ? _self.cancelledAt : cancelledAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

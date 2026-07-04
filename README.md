@@ -43,6 +43,7 @@ Commonly used UI blocks live in `lib/src/shared/`:
 - `PrismApiClient` exposes the staff session operations needed by the live desk: preview one timing item, checkout one timing item, preview all, checkout all, stop one timing item, list active timing items, and bulk checkout.
 - Asset, present, and redeem code APIs follow the staff RPC contract: asset definitions use `name/status`, presents own their grant rows, and redeem codes reference `presentId` with `maxUseCount` instead of carrying grant rows directly.
 - Pricing APIs use the backend `time.priority` provider shape: rules are sent under `provider.rules`, time ranges live in `timeRange`, and price fields live in `pricing`. Timeline previews read backend `segments` and render them as staff-facing day segments.
+- Service item APIs use the staff business item contract: create requests include `kind`, `name`, `price`, optional issued content (`assetType`/`assetCode`), sale window dates, and `metadata: null` unless an advanced workflow provides metadata. Normal UI copy uses `下架`, `恢复售卖`, `待出品`, `核销`, and `取消订单` instead of raw backend state names.
 
 Useful commands:
 

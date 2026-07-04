@@ -504,10 +504,24 @@ class PrismApiClient {
     required String name,
     required num price,
     required String kind,
+    String? assetType,
+    String? assetCode,
+    DateTime? activeAt,
+    DateTime? expiresAt,
+    Map<String, dynamic>? metadata,
   }) async {
     final json = await post(
       '/rpc/staff/business-items',
-      body: {'name': name, 'price': price, 'kind': kind},
+      body: {
+        'kind': kind,
+        'name': name,
+        'price': price,
+        'assetType': assetType,
+        'assetCode': assetCode,
+        'activeAt': activeAt?.toUtc().toIso8601String(),
+        'expiresAt': expiresAt?.toUtc().toIso8601String(),
+        'metadata': metadata,
+      },
     );
     final item = (json['businessItem'] ?? json['item']) as Map;
     return BusinessItem.fromJson(item.cast<String, dynamic>());
