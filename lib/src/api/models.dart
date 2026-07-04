@@ -396,7 +396,7 @@ abstract class SettlementReportRow with _$SettlementReportRow {
   const factory SettlementReportRow({
     required String playerId,
     @JsonKey(readValue: readDisplayName) required String displayName,
-    required int durationMinutes,
+    int? durationMinutes,
     required num subtotal,
     required num total,
     required DateTime settledAt,
@@ -549,11 +549,17 @@ Object? readRevenue(Map json, String key) =>
     json['revenueTotal'] ??
     nestedValue(json, ['summary', 'revenueTotal']);
 Object? readSettledSessionsCount(Map json, String key) =>
-    json[key] ?? nestedValue(json, ['summary', 'sessionCount']);
+    json[key] ??
+    json['sessionCount'] ??
+    nestedValue(json, ['summary', 'sessionCount']);
 Object? readAssetGrantsCount(Map json, String key) =>
-    json[key] ?? nestedValue(json, ['summary', 'assetGrantTotal']);
+    json[key] ??
+    json['assetGrantTotal'] ??
+    nestedValue(json, ['summary', 'assetGrantTotal']);
 Object? readCoinCommandsCount(Map json, String key) =>
-    json[key] ?? nestedValue(json, ['summary', 'coinCommandCount']);
+    json[key] ??
+    json['coinCommandCount'] ??
+    nestedValue(json, ['summary', 'coinCommandCount']);
 Object? readStoreName(Map json, String key) =>
     json[key] ?? nestedValue(json, ['store', 'name']);
 Object? readTimeZone(Map json, String key) =>

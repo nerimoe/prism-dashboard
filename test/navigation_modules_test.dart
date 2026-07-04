@@ -57,6 +57,27 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/reports/summary') {
+          return http.Response(
+            '{"summary":{"revenueTotal":0,"sessionCount":0,"assetGrantTotal":0,"coinCommandCount":0}}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/reports/settlements') {
+          return http.Response(
+            '{"settlements": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/reports/players') {
+          return http.Response(
+            '{"players": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -132,7 +153,8 @@ void main() {
     await tester.tap(find.text('营业报表'));
     await tester.pumpAndSettle();
     expect(find.text('营业报表'), findsWidgets);
-    expect(find.text('暂无报表数据'), findsOneWidget);
+    expect(find.text('营业收入'), findsOneWidget);
+    expect(find.text('还没有结算记录'), findsOneWidget);
 
     // 11. Navigate to 员工权限 (Wires to system destination)
     await tester.tap(find.text('员工权限'));

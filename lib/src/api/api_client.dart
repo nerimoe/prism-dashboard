@@ -656,7 +656,8 @@ class PrismApiClient {
       '/rpc/staff/reports/summary',
       query: {if (start != null) 'from': start, if (end != null) 'to': end},
     );
-    return ReportSummary.fromJson(json);
+    final summary = json['summary'] ?? json;
+    return ReportSummary.fromJson((summary as Map).cast<String, dynamic>());
   }
 
   Future<List<SettlementReportRow>> reportSettlements({

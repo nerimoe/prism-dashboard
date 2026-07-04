@@ -503,6 +503,37 @@ void main() {
       expect(requests.first.method, 'GET');
       expect(requests.first.url.path, '/rpc/staff/reports/summary');
       expect(summary.revenue, 1000.5);
+      expect(summary.settledSessionsCount, 25);
+      expect(summary.assetGrantsCount, 5);
+      expect(summary.coinCommandsCount, 12);
+    });
+
+    test('report rows parse staff report fields', () {
+      final settlement = SettlementReportRow.fromJson({
+        'settlementId': 'settlement-1',
+        'sessionId': 'session-1',
+        'playerId': 'player-1',
+        'playerDisplayName': 'A',
+        'durationMinutes': null,
+        'subtotal': 120,
+        'total': 100,
+        'settledAt': '2026-07-04T12:30:00.000Z',
+      });
+      expect(settlement.displayName, 'A');
+      expect(settlement.durationMinutes, isNull);
+      expect(settlement.total, 100);
+
+      final player = PlayerReportRow.fromJson({
+        'playerId': 'player-1',
+        'playerDisplayName': 'A',
+        'settlementCount': 3,
+        'totalDurationMinutes': 180,
+        'revenueTotal': 240,
+        'lastSettledAt': '2026-07-04T12:30:00.000Z',
+      });
+      expect(player.displayName, 'A');
+      expect(player.revenue, 240);
+      expect(player.totalDurationMinutes, 180);
     });
 
     test('createBusinessItem posts full backend body', () async {

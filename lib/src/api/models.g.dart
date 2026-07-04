@@ -548,7 +548,7 @@ _SettlementReportRow _$SettlementReportRowFromJson(Map<String, dynamic> json) =>
     _SettlementReportRow(
       playerId: json['playerId'] as String,
       displayName: readDisplayName(json, 'displayName') as String,
-      durationMinutes: (json['durationMinutes'] as num).toInt(),
+      durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
       subtotal: json['subtotal'] as num,
       total: json['total'] as num,
       settledAt: DateTime.parse(json['settledAt'] as String),

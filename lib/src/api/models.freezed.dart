@@ -6526,7 +6526,7 @@ as int,
 /// @nodoc
 mixin _$SettlementReportRow {
 
- String get playerId;@JsonKey(readValue: readDisplayName) String get displayName; int get durationMinutes; num get subtotal; num get total; DateTime get settledAt;
+ String get playerId;@JsonKey(readValue: readDisplayName) String get displayName; int? get durationMinutes; num get subtotal; num get total; DateTime get settledAt;
 /// Create a copy of SettlementReportRow
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6559,7 +6559,7 @@ abstract mixin class $SettlementReportRowCopyWith<$Res>  {
   factory $SettlementReportRowCopyWith(SettlementReportRow value, $Res Function(SettlementReportRow) _then) = _$SettlementReportRowCopyWithImpl;
 @useResult
 $Res call({
- String playerId,@JsonKey(readValue: readDisplayName) String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int? durationMinutes, num subtotal, num total, DateTime settledAt
 });
 
 
@@ -6576,12 +6576,12 @@ class _$SettlementReportRowCopyWithImpl<$Res>
 
 /// Create a copy of SettlementReportRow
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? displayName = null,Object? durationMinutes = null,Object? subtotal = null,Object? total = null,Object? settledAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? displayName = null,Object? durationMinutes = freezed,Object? subtotal = null,Object? total = null,Object? settledAt = null,}) {
   return _then(_self.copyWith(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,durationMinutes: null == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
-as int,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
+as String,durationMinutes: freezed == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
+as int?,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
 as num,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as num,settledAt: null == settledAt ? _self.settledAt : settledAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -6669,7 +6669,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int? durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettlementReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6690,7 +6690,7 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int? durationMinutes,  num subtotal,  num total,  DateTime settledAt)  $default,) {final _that = this;
 switch (_that) {
 case _SettlementReportRow():
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6710,7 +6710,7 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId, @JsonKey(readValue: readDisplayName)  String displayName,  int? durationMinutes,  num subtotal,  num total,  DateTime settledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SettlementReportRow() when $default != null:
 return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.subtotal,_that.total,_that.settledAt);case _:
@@ -6725,12 +6725,12 @@ return $default(_that.playerId,_that.displayName,_that.durationMinutes,_that.sub
 @JsonSerializable()
 
 class _SettlementReportRow implements SettlementReportRow {
-  const _SettlementReportRow({required this.playerId, @JsonKey(readValue: readDisplayName) required this.displayName, required this.durationMinutes, required this.subtotal, required this.total, required this.settledAt});
+  const _SettlementReportRow({required this.playerId, @JsonKey(readValue: readDisplayName) required this.displayName, this.durationMinutes, required this.subtotal, required this.total, required this.settledAt});
   factory _SettlementReportRow.fromJson(Map<String, dynamic> json) => _$SettlementReportRowFromJson(json);
 
 @override final  String playerId;
 @override@JsonKey(readValue: readDisplayName) final  String displayName;
-@override final  int durationMinutes;
+@override final  int? durationMinutes;
 @override final  num subtotal;
 @override final  num total;
 @override final  DateTime settledAt;
@@ -6768,7 +6768,7 @@ abstract mixin class _$SettlementReportRowCopyWith<$Res> implements $SettlementR
   factory _$SettlementReportRowCopyWith(_SettlementReportRow value, $Res Function(_SettlementReportRow) _then) = __$SettlementReportRowCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId,@JsonKey(readValue: readDisplayName) String displayName, int durationMinutes, num subtotal, num total, DateTime settledAt
+ String playerId,@JsonKey(readValue: readDisplayName) String displayName, int? durationMinutes, num subtotal, num total, DateTime settledAt
 });
 
 
@@ -6785,12 +6785,12 @@ class __$SettlementReportRowCopyWithImpl<$Res>
 
 /// Create a copy of SettlementReportRow
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? displayName = null,Object? durationMinutes = null,Object? subtotal = null,Object? total = null,Object? settledAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? displayName = null,Object? durationMinutes = freezed,Object? subtotal = null,Object? total = null,Object? settledAt = null,}) {
   return _then(_SettlementReportRow(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,durationMinutes: null == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
-as int,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
+as String,durationMinutes: freezed == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
+as int?,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
 as num,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as num,settledAt: null == settledAt ? _self.settledAt : settledAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
