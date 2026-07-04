@@ -17,6 +17,10 @@ Useful commands:
 
 ```bash
 flutter pub get
+# Run code generation for freezed models
+flutter pub run build_runner build --delete-conflicting-outputs
+# Clean code generation cache
+flutter pub run build_runner clean
 flutter analyze --no-pub
 flutter test --no-pub
 flutter build web --no-pub
