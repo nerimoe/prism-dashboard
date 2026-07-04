@@ -503,7 +503,7 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                   label: const Text('绑定身份'),
                 ),
               ),
-              const Text('可把 QQ、扫码、Aime 等来源绑定到同一名玩家。'),
+              _IdentityList(identities: player.identities),
               const SizedBox(height: 18),
               _SectionTitle(
                 icon: Icons.account_balance_wallet,
@@ -592,6 +592,31 @@ class _AssetList extends StatelessWidget {
   }
 }
 
+class _IdentityList extends StatelessWidget {
+  const _IdentityList({required this.identities});
+
+  final List<PlayerIdentity> identities;
+
+  @override
+  Widget build(BuildContext context) {
+    if (identities.isEmpty) {
+      return const Text('还没有绑定 QQ、扫码或卡号。');
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final identity in identities)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              '${_identityProviderLabel(identity.provider)} ${identity.subject}',
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _LedgerList extends StatelessWidget {
   const _LedgerList({required this.assets});
 
@@ -608,8 +633,8 @@ class _LedgerList extends StatelessWidget {
         for (final entry in ledger.take(5))
           _InfoRow(
             label: entry.assetName == null
-                ? entry.reason
-                : '${entry.assetName} · ${entry.reason}',
+                ? _ledgerReasonLabel(entry.reason)
+                : '${entry.assetName} · ${_ledgerReasonLabel(entry.reason)}',
             value: '${entry.direction == 'out' ? '-' : '+'}${entry.amount}',
           ),
       ],
@@ -726,6 +751,19 @@ String _sessionStatusLabel(String status) => switch (status) {
   'settled' => '已结清',
   _ => '已结束',
 };
+
+String _identityProviderLabel(String provider) =>
+    switch (provider.toLowerCase()) {
+      'qq' => 'QQ',
+      'scan' => '扫码',
+      'aime' => 'Aime',
+      _ => provider,
+    };
+
+String _ledgerReasonLabel(String reason) {
+  if (reason.startsWith('legacy.')) return '迁移记录';
+  return reason;
+}
 
 class _MessageBanner extends StatelessWidget {
   const _MessageBanner({required this.message, required this.onClose});

@@ -113,6 +113,18 @@ abstract class SessionPreview with _$SessionPreview {
 }
 
 @freezed
+abstract class PlayerIdentity with _$PlayerIdentity {
+  const factory PlayerIdentity({
+    required String provider,
+    required String subject,
+    DateTime? createdAt,
+  }) = _PlayerIdentity;
+
+  factory PlayerIdentity.fromJson(Map<String, dynamic> json) =>
+      _$PlayerIdentityFromJson(json);
+}
+
+@freezed
 abstract class Player with _$Player {
   const factory Player({
     required String id,
@@ -122,6 +134,7 @@ abstract class Player with _$Player {
     String? activeSessionId,
     @Default(0) int stayDurationMinutes,
     DateTime? createdAt,
+    @Default([]) List<PlayerIdentity> identities,
   }) = _Player;
 
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
@@ -240,8 +253,8 @@ abstract class PriorityTimeRule with _$PriorityTimeRule {
     @JsonKey(readValue: readEndTime) required String endTime,
     @Default([]) List<int> weekdays,
     String? specificDate,
-    String? startDateTime,
-    String? endDateTime,
+    @JsonKey(readValue: readStartDateTime) String? startDateTime,
+    @JsonKey(readValue: readEndDateTime) String? endDateTime,
     @JsonKey(readValue: readUnitMinutes) required int unitMinutes,
     @JsonKey(readValue: readUnitPrice) required num unitPrice,
     @JsonKey(readValue: readGraceMinutes) required int graceMinutes,
@@ -513,9 +526,17 @@ Object? readPricingRules(Map json, String key) =>
 Object? readStartTime(Map json, String key) =>
     json[key] ??
     json['startLabel'] ??
-    nestedValue(json, ['timeRange', 'start']);
+    nestedValue(json, ['timeRange', 'start']) ??
+    clockFromIso(nestedValue(json, ['dateTimeRange', 'start']));
 Object? readEndTime(Map json, String key) =>
-    json[key] ?? json['endLabel'] ?? nestedValue(json, ['timeRange', 'end']);
+    json[key] ??
+    json['endLabel'] ??
+    nestedValue(json, ['timeRange', 'end']) ??
+    clockFromIso(nestedValue(json, ['dateTimeRange', 'end']));
+Object? readStartDateTime(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['dateTimeRange', 'start']);
+Object? readEndDateTime(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['dateTimeRange', 'end']);
 Object? readUnitMinutes(Map json, String key) =>
     json[key] ?? nestedValue(json, ['pricing', 'unitMinutes']);
 Object? readUnitPrice(Map json, String key) =>
@@ -595,6 +616,13 @@ String formatClock(DateTime value) {
   final hour = local.hour.toString().padLeft(2, '0');
   final minute = local.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
+}
+
+String? clockFromIso(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  final date = DateTime.tryParse(value);
+  if (date == null) return null;
+  return formatClock(date);
 }
 
 String titleSource(String label) {

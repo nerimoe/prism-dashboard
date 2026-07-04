@@ -79,8 +79,11 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
             final topContent = <Widget>[
               _OperationsHeader(
                 players: players,
+                selected: selected,
                 loadedAt: _loadedAt,
                 onRefresh: _refresh,
+                onStartSession: _showStartSessionDialog,
+                onBulkCheckout: _confirmBulkCheckout,
               ),
               const SizedBox(height: 16),
               _MetricRow(players: players),
@@ -180,6 +183,83 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
     setState(() => _future = _load());
   }
 
+  Future<void> _showStartSessionDialog(LivePlayer? player) async {
+    final value = player;
+    if (value == null) {
+      setState(() => _message = '请先选择一名在场玩家。');
+      return;
+    }
+    final labelController = TextEditingController(text: '现场加开');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('给 ${value.displayName} 加开计时'),
+        content: TextField(
+          controller: labelController,
+          decoration: const InputDecoration(
+            labelText: '计时名称',
+            hintText: '例如 四口麻将、八口麻将',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('开始计时'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _api.startPlayerSession(
+        value.playerId,
+        label: labelController.text.trim(),
+      );
+      setState(() {
+        _message = '${value.displayName} 已加开计时。';
+        _future = _load();
+      });
+    } catch (error) {
+      setState(() => _message = error.toString());
+    }
+  }
+
+  Future<void> _confirmBulkCheckout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('闭店统一结账'),
+        content: const Text('会结清所有仍在计时的玩家，请确认已经核对现场账单。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('统一结账'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _api.bulkCheckoutActiveSessions();
+      setState(() {
+        _selectedPlayerId = null;
+        _message = '已提交闭店统一结账。';
+        _future = _load();
+      });
+    } catch (error) {
+      setState(() => _message = error.toString());
+    }
+  }
+
   Future<void> _confirmStopSession(
     LivePlayer player,
     LiveSession session,
@@ -260,32 +340,87 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   }
 
   Future<void> _showManualAdjustNotice(LivePlayer player) async {
-    await showDialog<void>(
+    final totalController = TextEditingController(
+      text: (player.estimatedTotal ?? 0).toString(),
+    );
+    final reasonController = TextEditingController(text: '现场临时处理');
+    final submitted = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('现场改价'),
-        content: Text('${player.displayName} 这单暂时不能在这里改价。需要临时处理时，先线下备注差额。'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: totalController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: '临时金额',
+                prefixText: '¥ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(labelText: '处理原因'),
+            ),
+          ],
+        ),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
           FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('知道了'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('确认改价'),
           ),
         ],
       ),
     );
+    if (submitted != true) return;
+
+    final total = num.tryParse(totalController.text.trim());
+    final reason = reasonController.text.trim();
+    if (total == null || reason.isEmpty) {
+      setState(() => _message = '请输入临时金额和处理原因。');
+      return;
+    }
+    try {
+      await _api.checkoutWithOverride(
+        player.playerId,
+        total: total,
+        reason: reason,
+      );
+      setState(() {
+        _selectedPlayerId = null;
+        _message = '${player.displayName} 已按临时金额结账。';
+        _future = _load();
+      });
+    } catch (error) {
+      setState(() => _message = error.toString());
+    }
   }
 }
 
 class _OperationsHeader extends StatelessWidget {
   const _OperationsHeader({
     required this.players,
+    required this.selected,
     required this.loadedAt,
     required this.onRefresh,
+    required this.onStartSession,
+    required this.onBulkCheckout,
   });
 
   final List<LivePlayer> players;
+  final LivePlayer? selected;
   final DateTime? loadedAt;
   final VoidCallback onRefresh;
+  final ValueChanged<LivePlayer?> onStartSession;
+  final VoidCallback onBulkCheckout;
 
   @override
   Widget build(BuildContext context) {
@@ -321,8 +456,16 @@ class _OperationsHeader extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.end,
           children: [
-            FilledButton(onPressed: onRefresh, child: const Text('给玩家加开计时')),
-            OutlinedButton(onPressed: onRefresh, child: const Text('闭店统一结账')),
+            FilledButton(
+              onPressed: selected == null
+                  ? null
+                  : () => onStartSession(selected),
+              child: const Text('给玩家加开计时'),
+            ),
+            OutlinedButton(
+              onPressed: players.isEmpty ? null : onBulkCheckout,
+              child: const Text('闭店统一结账'),
+            ),
           ],
         ),
       ],

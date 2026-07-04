@@ -123,6 +123,22 @@ Map<String, dynamic> _$SessionPreviewToJson(_SessionPreview instance) =>
       'total': instance.total,
     };
 
+_PlayerIdentity _$PlayerIdentityFromJson(Map<String, dynamic> json) =>
+    _PlayerIdentity(
+      provider: json['provider'] as String,
+      subject: json['subject'] as String,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+    );
+
+Map<String, dynamic> _$PlayerIdentityToJson(_PlayerIdentity instance) =>
+    <String, dynamic>{
+      'provider': instance.provider,
+      'subject': instance.subject,
+      'createdAt': instance.createdAt?.toIso8601String(),
+    };
+
 _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   id: json['id'] as String,
   displayName: json['displayName'] as String,
@@ -133,6 +149,11 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
+  identities:
+      (json['identities'] as List<dynamic>?)
+          ?.map((e) => PlayerIdentity.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
@@ -143,6 +164,7 @@ Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
   'activeSessionId': instance.activeSessionId,
   'stayDurationMinutes': instance.stayDurationMinutes,
   'createdAt': instance.createdAt?.toIso8601String(),
+  'identities': instance.identities,
 };
 
 _AssetDefinition _$AssetDefinitionFromJson(Map<String, dynamic> json) =>
@@ -303,8 +325,8 @@ _PriorityTimeRule _$PriorityTimeRuleFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       specificDate: json['specificDate'] as String?,
-      startDateTime: json['startDateTime'] as String?,
-      endDateTime: json['endDateTime'] as String?,
+      startDateTime: readStartDateTime(json, 'startDateTime') as String?,
+      endDateTime: readEndDateTime(json, 'endDateTime') as String?,
       unitMinutes: (readUnitMinutes(json, 'unitMinutes') as num).toInt(),
       unitPrice: readUnitPrice(json, 'unitPrice') as num,
       graceMinutes: (readGraceMinutes(json, 'graceMinutes') as num).toInt(),

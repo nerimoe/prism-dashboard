@@ -16,6 +16,13 @@ void main() {
         'walletTotal': 150.5,
         'stayDurationMinutes': 45,
         'createdAt': '2026-07-04T12:00:00.000Z',
+        'identities': [
+          {
+            'provider': 'qq',
+            'subject': '826225045',
+            'createdAt': '2026-07-04T12:00:00.000Z',
+          },
+        ],
       };
       final model = Player.fromJson(json);
       expect(model.id, 'player-1');
@@ -24,6 +31,8 @@ void main() {
       expect(model.walletTotal, 150.5);
       expect(model.stayDurationMinutes, 45);
       expect(model.createdAt?.toUtc(), DateTime.utc(2026, 7, 4, 12, 0, 0));
+      expect(model.identities.single.provider, 'qq');
+      expect(model.identities.single.subject, '826225045');
     });
 
     test('CurrentStaff infers write permission from role', () {
@@ -185,6 +194,43 @@ void main() {
       expect(model.rules.single.unitMinutes, 30);
       expect(model.rules.single.unitPrice, 10);
       expect(model.rules.single.graceMinutes, 5);
+    });
+
+    test('PricingConfig parses migrated date-time range rules', () {
+      final json = {
+        'id': 'legacy:pricing-config:time-priority',
+        'name': '历史计费',
+        'kind': 'time.priority',
+        'enabled': false,
+        'status': 'active',
+        'provider': {
+          'id': 'legacy.time-priority',
+          'rules': [
+            {
+              'id': 'legacy.rule.12',
+              'label': '春节',
+              'priority': 3,
+              'pricing': {
+                'priceCap': 30,
+                'unitPrice': 3,
+                'unitMinutes': 30,
+                'roundGraceMinutes': 3,
+              },
+              'dateTimeRange': {
+                'start': '2026-02-17T00:00:21.735Z',
+                'end': '2026-03-03T20:00:21.735Z',
+              },
+            },
+          ],
+        },
+      };
+
+      final model = PricingConfig.fromJson(json);
+
+      expect(model.rules.single.startDateTime, '2026-02-17T00:00:21.735Z');
+      expect(model.rules.single.endDateTime, '2026-03-03T20:00:21.735Z');
+      expect(model.rules.single.startTime, '08:00');
+      expect(model.rules.single.endTime, '04:00');
     });
 
     test('PricingTimeline parses backend timeline segments', () {

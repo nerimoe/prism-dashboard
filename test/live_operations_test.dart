@@ -100,6 +100,128 @@ void main() {
     expect(find.text('停止'), findsNWidgets(2));
   });
 
+  testWidgets(
+    'manual adjustment submits checkout override for the player bill',
+    (tester) async {
+      final requests = <http.Request>[];
+      final api = PrismApiClient(
+        baseUrl: 'https://prism.example',
+        token: 'staff-token',
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          if (request.url.path == '/rpc/staff/live-players') {
+            return http.Response(
+              jsonEncode(_livePlayersJson),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            '{}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: buildPrismDashboardTheme(
+              ColorScheme.fromSeed(seedColor: prismSeedColor),
+            ),
+            home: OperationsScreen(api: api),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('现场改价'));
+      await tester.tap(find.text('现场改价'));
+      await tester.pumpAndSettle();
+      expect(find.text('临时金额'), findsOneWidget);
+      expect(find.text('处理原因'), findsOneWidget);
+
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '45');
+      await tester.enterText(fields.at(1), '店内临时处理');
+      await tester.tap(find.text('确认改价'));
+      await tester.pumpAndSettle();
+
+      final override = requests.singleWhere(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/players/player-1/checkout/override',
+      );
+      expect(jsonDecode(override.body), {'total': 45, 'reason': '店内临时处理'});
+    },
+  );
+
+  testWidgets('live header actions start an extra timer and bulk checkout', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        requests.add(request);
+        if (request.url.path == '/rpc/staff/live-players') {
+          return http.Response(
+            jsonEncode(_livePlayersJson),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          '{}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: OperationsScreen(api: api),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('给玩家加开计时'));
+    await tester.pumpAndSettle();
+    expect(find.text('计时名称'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '四口麻将');
+    await tester.tap(find.text('开始计时'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('闭店统一结账'));
+    await tester.pumpAndSettle();
+    expect(find.text('会结清所有仍在计时的玩家，请确认已经核对现场账单。'), findsOneWidget);
+    await tester.tap(find.text('统一结账'));
+    await tester.pumpAndSettle();
+
+    final start = requests.singleWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/players/player-1/session/start',
+    );
+    expect(jsonDecode(start.body), {'label': '四口麻将'});
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/sessions/active/checkout',
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets('live panels keep natural height when content fits', (
     tester,
   ) async {

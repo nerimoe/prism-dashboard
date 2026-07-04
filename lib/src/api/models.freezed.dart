@@ -1675,9 +1675,278 @@ as num,
 
 
 /// @nodoc
+mixin _$PlayerIdentity {
+
+ String get provider; String get subject; DateTime? get createdAt;
+/// Create a copy of PlayerIdentity
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PlayerIdentityCopyWith<PlayerIdentity> get copyWith => _$PlayerIdentityCopyWithImpl<PlayerIdentity>(this as PlayerIdentity, _$identity);
+
+  /// Serializes this PlayerIdentity to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerIdentity&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.subject, subject) || other.subject == subject)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,provider,subject,createdAt);
+
+@override
+String toString() {
+  return 'PlayerIdentity(provider: $provider, subject: $subject, createdAt: $createdAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PlayerIdentityCopyWith<$Res>  {
+  factory $PlayerIdentityCopyWith(PlayerIdentity value, $Res Function(PlayerIdentity) _then) = _$PlayerIdentityCopyWithImpl;
+@useResult
+$Res call({
+ String provider, String subject, DateTime? createdAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$PlayerIdentityCopyWithImpl<$Res>
+    implements $PlayerIdentityCopyWith<$Res> {
+  _$PlayerIdentityCopyWithImpl(this._self, this._then);
+
+  final PlayerIdentity _self;
+  final $Res Function(PlayerIdentity) _then;
+
+/// Create a copy of PlayerIdentity
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? provider = null,Object? subject = null,Object? createdAt = freezed,}) {
+  return _then(_self.copyWith(
+provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
+as String,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PlayerIdentity].
+extension PlayerIdentityPatterns on PlayerIdentity {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PlayerIdentity value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PlayerIdentity() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PlayerIdentity value)  $default,){
+final _that = this;
+switch (_that) {
+case _PlayerIdentity():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PlayerIdentity value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PlayerIdentity() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String provider,  String subject,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PlayerIdentity() when $default != null:
+return $default(_that.provider,_that.subject,_that.createdAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String provider,  String subject,  DateTime? createdAt)  $default,) {final _that = this;
+switch (_that) {
+case _PlayerIdentity():
+return $default(_that.provider,_that.subject,_that.createdAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String provider,  String subject,  DateTime? createdAt)?  $default,) {final _that = this;
+switch (_that) {
+case _PlayerIdentity() when $default != null:
+return $default(_that.provider,_that.subject,_that.createdAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _PlayerIdentity implements PlayerIdentity {
+  const _PlayerIdentity({required this.provider, required this.subject, this.createdAt});
+  factory _PlayerIdentity.fromJson(Map<String, dynamic> json) => _$PlayerIdentityFromJson(json);
+
+@override final  String provider;
+@override final  String subject;
+@override final  DateTime? createdAt;
+
+/// Create a copy of PlayerIdentity
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PlayerIdentityCopyWith<_PlayerIdentity> get copyWith => __$PlayerIdentityCopyWithImpl<_PlayerIdentity>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PlayerIdentityToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerIdentity&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.subject, subject) || other.subject == subject)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,provider,subject,createdAt);
+
+@override
+String toString() {
+  return 'PlayerIdentity(provider: $provider, subject: $subject, createdAt: $createdAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PlayerIdentityCopyWith<$Res> implements $PlayerIdentityCopyWith<$Res> {
+  factory _$PlayerIdentityCopyWith(_PlayerIdentity value, $Res Function(_PlayerIdentity) _then) = __$PlayerIdentityCopyWithImpl;
+@override @useResult
+$Res call({
+ String provider, String subject, DateTime? createdAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$PlayerIdentityCopyWithImpl<$Res>
+    implements _$PlayerIdentityCopyWith<$Res> {
+  __$PlayerIdentityCopyWithImpl(this._self, this._then);
+
+  final _PlayerIdentity _self;
+  final $Res Function(_PlayerIdentity) _then;
+
+/// Create a copy of PlayerIdentity
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? provider = null,Object? subject = null,Object? createdAt = freezed,}) {
+  return _then(_PlayerIdentity(
+provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
+as String,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$Player {
 
- String get id; String get displayName; String get status; num get walletTotal; String? get activeSessionId; int get stayDurationMinutes; DateTime? get createdAt;
+ String get id; String get displayName; String get status; num get walletTotal; String? get activeSessionId; int get stayDurationMinutes; DateTime? get createdAt; List<PlayerIdentity> get identities;
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1690,16 +1959,16 @@ $PlayerCopyWith<Player> get copyWith => _$PlayerCopyWithImpl<Player>(this as Pla
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.identities, identities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt,const DeepCollectionEquality().hash(identities));
 
 @override
 String toString() {
-  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
+  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt, identities: $identities)';
 }
 
 
@@ -1710,7 +1979,7 @@ abstract mixin class $PlayerCopyWith<$Res>  {
   factory $PlayerCopyWith(Player value, $Res Function(Player) _then) = _$PlayerCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt
+ String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt, List<PlayerIdentity> identities
 });
 
 
@@ -1727,7 +1996,7 @@ class _$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,Object? identities = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -1736,7 +2005,8 @@ as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // 
 as num,activeSessionId: freezed == activeSessionId ? _self.activeSessionId : activeSessionId // ignore: cast_nullable_to_non_nullable
 as String?,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,identities: null == identities ? _self.identities : identities // ignore: cast_nullable_to_non_nullable
+as List<PlayerIdentity>,
   ));
 }
 
@@ -1821,10 +2091,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt,  List<PlayerIdentity> identities)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt,_that.identities);case _:
   return orElse();
 
 }
@@ -1842,10 +2112,10 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt,  List<PlayerIdentity> identities)  $default,) {final _that = this;
 switch (_that) {
 case _Player():
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt,_that.identities);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1862,10 +2132,10 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String status,  num walletTotal,  String? activeSessionId,  int stayDurationMinutes,  DateTime? createdAt,  List<PlayerIdentity> identities)?  $default,) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.activeSessionId,_that.stayDurationMinutes,_that.createdAt,_that.identities);case _:
   return null;
 
 }
@@ -1877,7 +2147,7 @@ return $default(_that.id,_that.displayName,_that.status,_that.walletTotal,_that.
 @JsonSerializable()
 
 class _Player implements Player {
-  const _Player({required this.id, required this.displayName, required this.status, this.walletTotal = 0, this.activeSessionId, this.stayDurationMinutes = 0, this.createdAt});
+  const _Player({required this.id, required this.displayName, required this.status, this.walletTotal = 0, this.activeSessionId, this.stayDurationMinutes = 0, this.createdAt, final  List<PlayerIdentity> identities = const []}): _identities = identities;
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String id;
@@ -1887,6 +2157,13 @@ class _Player implements Player {
 @override final  String? activeSessionId;
 @override@JsonKey() final  int stayDurationMinutes;
 @override final  DateTime? createdAt;
+ final  List<PlayerIdentity> _identities;
+@override@JsonKey() List<PlayerIdentity> get identities {
+  if (_identities is EqualUnmodifiableListView) return _identities;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_identities);
+}
+
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
@@ -1901,16 +2178,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.activeSessionId, activeSessionId) || other.activeSessionId == activeSessionId)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._identities, _identities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,status,walletTotal,activeSessionId,stayDurationMinutes,createdAt,const DeepCollectionEquality().hash(_identities));
 
 @override
 String toString() {
-  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt)';
+  return 'Player(id: $id, displayName: $displayName, status: $status, walletTotal: $walletTotal, activeSessionId: $activeSessionId, stayDurationMinutes: $stayDurationMinutes, createdAt: $createdAt, identities: $identities)';
 }
 
 
@@ -1921,7 +2198,7 @@ abstract mixin class _$PlayerCopyWith<$Res> implements $PlayerCopyWith<$Res> {
   factory _$PlayerCopyWith(_Player value, $Res Function(_Player) _then) = __$PlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt
+ String id, String displayName, String status, num walletTotal, String? activeSessionId, int stayDurationMinutes, DateTime? createdAt, List<PlayerIdentity> identities
 });
 
 
@@ -1938,7 +2215,7 @@ class __$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? activeSessionId = freezed,Object? stayDurationMinutes = null,Object? createdAt = freezed,Object? identities = null,}) {
   return _then(_Player(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -1947,7 +2224,8 @@ as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // 
 as num,activeSessionId: freezed == activeSessionId ? _self.activeSessionId : activeSessionId // ignore: cast_nullable_to_non_nullable
 as String?,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,identities: null == identities ? _self._identities : identities // ignore: cast_nullable_to_non_nullable
+as List<PlayerIdentity>,
   ));
 }
 
@@ -3916,7 +4194,7 @@ as DateTime?,
 /// @nodoc
 mixin _$PriorityTimeRule {
 
- String get id; String get label; int get priority; String get status;@JsonKey(readValue: readStartTime) String get startTime;@JsonKey(readValue: readEndTime) String get endTime; List<int> get weekdays; String? get specificDate; String? get startDateTime; String? get endDateTime;@JsonKey(readValue: readUnitMinutes) int get unitMinutes;@JsonKey(readValue: readUnitPrice) num get unitPrice;@JsonKey(readValue: readGraceMinutes) int get graceMinutes;@JsonKey(readValue: readPriceCap) num? get priceCap;
+ String get id; String get label; int get priority; String get status;@JsonKey(readValue: readStartTime) String get startTime;@JsonKey(readValue: readEndTime) String get endTime; List<int> get weekdays; String? get specificDate;@JsonKey(readValue: readStartDateTime) String? get startDateTime;@JsonKey(readValue: readEndDateTime) String? get endDateTime;@JsonKey(readValue: readUnitMinutes) int get unitMinutes;@JsonKey(readValue: readUnitPrice) num get unitPrice;@JsonKey(readValue: readGraceMinutes) int get graceMinutes;@JsonKey(readValue: readPriceCap) num? get priceCap;
 /// Create a copy of PriorityTimeRule
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3949,7 +4227,7 @@ abstract mixin class $PriorityTimeRuleCopyWith<$Res>  {
   factory $PriorityTimeRuleCopyWith(PriorityTimeRule value, $Res Function(PriorityTimeRule) _then) = _$PriorityTimeRuleCopyWithImpl;
 @useResult
 $Res call({
- String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
+ String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate,@JsonKey(readValue: readStartDateTime) String? startDateTime,@JsonKey(readValue: readEndDateTime) String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
 });
 
 
@@ -4067,7 +4345,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate, @JsonKey(readValue: readStartDateTime)  String? startDateTime, @JsonKey(readValue: readEndDateTime)  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule() when $default != null:
 return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
@@ -4088,7 +4366,7 @@ return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate, @JsonKey(readValue: readStartDateTime)  String? startDateTime, @JsonKey(readValue: readEndDateTime)  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)  $default,) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule():
 return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
@@ -4108,7 +4386,7 @@ return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate,  String? startDateTime,  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  int priority,  String status, @JsonKey(readValue: readStartTime)  String startTime, @JsonKey(readValue: readEndTime)  String endTime,  List<int> weekdays,  String? specificDate, @JsonKey(readValue: readStartDateTime)  String? startDateTime, @JsonKey(readValue: readEndDateTime)  String? endDateTime, @JsonKey(readValue: readUnitMinutes)  int unitMinutes, @JsonKey(readValue: readUnitPrice)  num unitPrice, @JsonKey(readValue: readGraceMinutes)  int graceMinutes, @JsonKey(readValue: readPriceCap)  num? priceCap)?  $default,) {final _that = this;
 switch (_that) {
 case _PriorityTimeRule() when $default != null:
 return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime,_that.endTime,_that.weekdays,_that.specificDate,_that.startDateTime,_that.endDateTime,_that.unitMinutes,_that.unitPrice,_that.graceMinutes,_that.priceCap);case _:
@@ -4123,7 +4401,7 @@ return $default(_that.id,_that.label,_that.priority,_that.status,_that.startTime
 @JsonSerializable()
 
 class _PriorityTimeRule implements PriorityTimeRule {
-  const _PriorityTimeRule({this.id = '', required this.label, required this.priority, this.status = 'active', @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, final  List<int> weekdays = const [], this.specificDate, this.startDateTime, this.endDateTime, @JsonKey(readValue: readUnitMinutes) required this.unitMinutes, @JsonKey(readValue: readUnitPrice) required this.unitPrice, @JsonKey(readValue: readGraceMinutes) required this.graceMinutes, @JsonKey(readValue: readPriceCap) this.priceCap}): _weekdays = weekdays;
+  const _PriorityTimeRule({this.id = '', required this.label, required this.priority, this.status = 'active', @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, final  List<int> weekdays = const [], this.specificDate, @JsonKey(readValue: readStartDateTime) this.startDateTime, @JsonKey(readValue: readEndDateTime) this.endDateTime, @JsonKey(readValue: readUnitMinutes) required this.unitMinutes, @JsonKey(readValue: readUnitPrice) required this.unitPrice, @JsonKey(readValue: readGraceMinutes) required this.graceMinutes, @JsonKey(readValue: readPriceCap) this.priceCap}): _weekdays = weekdays;
   factory _PriorityTimeRule.fromJson(Map<String, dynamic> json) => _$PriorityTimeRuleFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -4140,8 +4418,8 @@ class _PriorityTimeRule implements PriorityTimeRule {
 }
 
 @override final  String? specificDate;
-@override final  String? startDateTime;
-@override final  String? endDateTime;
+@override@JsonKey(readValue: readStartDateTime) final  String? startDateTime;
+@override@JsonKey(readValue: readEndDateTime) final  String? endDateTime;
 @override@JsonKey(readValue: readUnitMinutes) final  int unitMinutes;
 @override@JsonKey(readValue: readUnitPrice) final  num unitPrice;
 @override@JsonKey(readValue: readGraceMinutes) final  int graceMinutes;
@@ -4180,7 +4458,7 @@ abstract mixin class _$PriorityTimeRuleCopyWith<$Res> implements $PriorityTimeRu
   factory _$PriorityTimeRuleCopyWith(_PriorityTimeRule value, $Res Function(_PriorityTimeRule) _then) = __$PriorityTimeRuleCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate, String? startDateTime, String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
+ String id, String label, int priority, String status,@JsonKey(readValue: readStartTime) String startTime,@JsonKey(readValue: readEndTime) String endTime, List<int> weekdays, String? specificDate,@JsonKey(readValue: readStartDateTime) String? startDateTime,@JsonKey(readValue: readEndDateTime) String? endDateTime,@JsonKey(readValue: readUnitMinutes) int unitMinutes,@JsonKey(readValue: readUnitPrice) num unitPrice,@JsonKey(readValue: readGraceMinutes) int graceMinutes,@JsonKey(readValue: readPriceCap) num? priceCap
 });
 
 

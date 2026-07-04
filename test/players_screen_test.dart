@@ -23,6 +23,10 @@ void main() {
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
     expect(find.text('实存余额'), findsOneWidget);
+    await tester.ensureVisible(find.text('资产流水'));
+    expect(find.textContaining('迁移记录'), findsOneWidget);
+    expect(find.textContaining('legacy.UPDATE'), findsNothing);
+    expect(find.text('QQ 826225045'), findsOneWidget);
     expect(find.text('计时记录'), findsOneWidget);
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
@@ -148,6 +152,13 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'status': 'active',
           'walletTotal': 120,
           'activeSessionId': 'session-1',
+          'identities': [
+            {
+              'provider': 'qq',
+              'subject': '826225045',
+              'createdAt': '2026-07-05T10:00:00.000Z',
+            },
+          ],
         },
         {
           'id': 'player-b',
@@ -189,7 +200,7 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'assetCode': 'paid',
           'assetName': '实存余额',
           'delta': 120,
-          'reason': '充值',
+          'reason': 'legacy.UPDATE',
           'refId': 'staff-1',
           'transactionId': 'tx-1',
           'createdAt': '2026-07-05T10:00:00.000Z',

@@ -27,6 +27,19 @@ void main() {
     expect(find.textContaining('metadata'), findsNothing);
   });
 
+  testWidgets('migrated pricing names are shown as staff-facing copy', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(
+      _buildPricingScreen(requests, configName: 'Legacy time priority pricing'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('迁移计时规则'), findsWidgets);
+    expect(find.textContaining('Legacy time priority pricing'), findsNothing);
+  });
+
   testWidgets('preview draft posts localDate and provider rules', (
     tester,
   ) async {
@@ -92,6 +105,7 @@ void main() {
 Widget _buildPricingScreen(
   List<http.Request> requests, {
   bool archived = false,
+  String configName = '基础计费',
 }) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
@@ -99,7 +113,9 @@ Widget _buildPricingScreen(
     httpClient: MockClient((request) async {
       requests.add(request);
       return http.Response(
-        jsonEncode(_responseFor(request, archived: archived)),
+        jsonEncode(
+          _responseFor(request, archived: archived, configName: configName),
+        ),
         200,
         headers: {'content-type': 'application/json'},
       );
@@ -120,11 +136,14 @@ Widget _buildPricingScreen(
 Map<String, dynamic> _responseFor(
   http.Request request, {
   required bool archived,
+  String configName = '基础计费',
 }) {
   final path = request.url.path;
   if (path == '/rpc/staff/pricing-configs') {
     return {
-      'pricingConfigs': [_pricingConfigJson(archived: archived)],
+      'pricingConfigs': [
+        _pricingConfigJson(archived: archived, name: configName),
+      ],
     };
   }
   if (path == '/rpc/staff/pricing-extensions') {
@@ -167,11 +186,14 @@ Map<String, dynamic> _responseFor(
   return {};
 }
 
-Map<String, dynamic> _pricingConfigJson({required bool archived}) {
+Map<String, dynamic> _pricingConfigJson({
+  required bool archived,
+  String name = '基础计费',
+}) {
   return {
     'id': 'pricing-1',
     'kind': 'time.priority',
-    'name': '基础计费',
+    'name': name,
     'enabled': !archived,
     'status': archived ? 'archived' : 'active',
     'provider': {

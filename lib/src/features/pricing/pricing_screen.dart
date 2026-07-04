@@ -286,7 +286,7 @@ class _PricingList extends StatelessWidget {
                 for (final config in configs)
                   ListTile(
                     selected: config.id == selectedId,
-                    title: Text(config.name),
+                    title: Text(_pricingConfigTitle(config)),
                     subtitle: Text('${config.rules.length} 条规则'),
                     onTap: () => onSelect(config),
                     trailing: Wrap(
@@ -351,7 +351,7 @@ class _PricingEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdminDetailPanel(
-      title: selected?.name ?? '新计费规则',
+      title: selected == null ? '新计费规则' : _pricingConfigTitle(selected!),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -443,6 +443,13 @@ class _PricingEditor extends StatelessWidget {
       ),
     );
   }
+}
+
+String _pricingConfigTitle(PricingConfig config) {
+  final name = config.name.trim();
+  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
+  if (name.isEmpty) return '未命名计费规则';
+  return name;
 }
 
 String _timeText(TimeOfDay value) {

@@ -393,7 +393,7 @@ class _AssetDefinitionsTab extends StatelessWidget {
         final item = definitions[index];
         return ListTile(
           title: Text(item.displayName),
-          subtitle: Text('${item.type}/${item.code}'),
+          subtitle: Text(_assetKindLabel(item)),
           trailing: Wrap(
             spacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -410,6 +410,14 @@ class _AssetDefinitionsTab extends StatelessWidget {
       },
     );
   }
+}
+
+String _assetKindLabel(AssetDefinition item) {
+  final type = item.type.toLowerCase();
+  if (type == 'currency') return '余额资产';
+  if (type == 'ticket') return '券';
+  if (type == 'pass') return '通行权益';
+  return '店内资产';
 }
 
 class _PresentsTab extends StatelessWidget {

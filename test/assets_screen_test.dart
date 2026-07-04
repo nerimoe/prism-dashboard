@@ -20,7 +20,8 @@ void main() {
 
     expect(find.text('资产与礼包'), findsOneWidget);
     expect(find.text('实存余额'), findsOneWidget);
-    expect(find.text('currency/paid'), findsOneWidget);
+    expect(find.text('余额资产'), findsOneWidget);
+    expect(find.text('currency/paid'), findsNothing);
 
     await tester.tap(find.text('礼包'));
     await tester.pumpAndSettle();
