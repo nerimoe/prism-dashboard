@@ -348,6 +348,8 @@ abstract class DeviceState with _$DeviceState {
     required String label,
     required String type,
     required String status,
+    String? state,
+    Map<String, dynamic>? metadata,
     required DateTime reportedAt,
     required String reportedBy,
   }) = _DeviceState;
@@ -363,9 +365,12 @@ abstract class DeviceCommand with _$DeviceCommand {
     @JsonKey(readValue: readCommandType) required String commandType,
     required String deviceId,
     @JsonKey(readValue: readRequester) required String requester,
+    String? playerId,
+    String? staffId,
     required String status,
     @JsonKey(readValue: readCreatedAt) required DateTime createdAt,
     DateTime? ackedAt,
+    DateTime? expiredAt,
   }) = _DeviceCommand;
 
   factory DeviceCommand.fromJson(Map<String, dynamic> json) =>

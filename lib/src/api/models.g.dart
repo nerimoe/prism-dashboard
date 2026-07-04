@@ -474,6 +474,8 @@ _DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => _DeviceState(
   label: json['label'] as String,
   type: json['type'] as String,
   status: json['status'] as String,
+  state: json['state'] as String?,
+  metadata: json['metadata'] as Map<String, dynamic>?,
   reportedAt: DateTime.parse(json['reportedAt'] as String),
   reportedBy: json['reportedBy'] as String,
 );
@@ -484,6 +486,8 @@ Map<String, dynamic> _$DeviceStateToJson(_DeviceState instance) =>
       'label': instance.label,
       'type': instance.type,
       'status': instance.status,
+      'state': instance.state,
+      'metadata': instance.metadata,
       'reportedAt': instance.reportedAt.toIso8601String(),
       'reportedBy': instance.reportedBy,
     };
@@ -494,11 +498,16 @@ _DeviceCommand _$DeviceCommandFromJson(Map<String, dynamic> json) =>
       commandType: readCommandType(json, 'commandType') as String,
       deviceId: json['deviceId'] as String,
       requester: readRequester(json, 'requester') as String,
+      playerId: json['playerId'] as String?,
+      staffId: json['staffId'] as String?,
       status: json['status'] as String,
       createdAt: DateTime.parse(readCreatedAt(json, 'createdAt') as String),
       ackedAt: json['ackedAt'] == null
           ? null
           : DateTime.parse(json['ackedAt'] as String),
+      expiredAt: json['expiredAt'] == null
+          ? null
+          : DateTime.parse(json['expiredAt'] as String),
     );
 
 Map<String, dynamic> _$DeviceCommandToJson(_DeviceCommand instance) =>
@@ -507,9 +516,12 @@ Map<String, dynamic> _$DeviceCommandToJson(_DeviceCommand instance) =>
       'commandType': instance.commandType,
       'deviceId': instance.deviceId,
       'requester': instance.requester,
+      'playerId': instance.playerId,
+      'staffId': instance.staffId,
       'status': instance.status,
       'createdAt': instance.createdAt.toIso8601String(),
       'ackedAt': instance.ackedAt?.toIso8601String(),
+      'expiredAt': instance.expiredAt?.toIso8601String(),
     };
 
 _ReportSummary _$ReportSummaryFromJson(Map<String, dynamic> json) =>

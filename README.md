@@ -44,6 +44,7 @@ Commonly used UI blocks live in `lib/src/shared/`:
 - Asset, present, and redeem code APIs follow the staff RPC contract: asset definitions use `name/status`, presents own their grant rows, and redeem codes reference `presentId` with `maxUseCount` instead of carrying grant rows directly.
 - Pricing APIs use the backend `time.priority` provider shape: rules are sent under `provider.rules`, time ranges live in `timeRange`, and price fields live in `pricing`. Timeline previews read backend `segments` and render them as staff-facing day segments.
 - Service item APIs use the staff business item contract: create requests include `kind`, `name`, `price`, optional issued content (`assetType`/`assetCode`), sale window dates, and `metadata: null` unless an advanced workflow provides metadata. Normal UI copy uses `下架`, `恢复售卖`, `待出品`, `核销`, and `取消订单` instead of raw backend state names.
+- Device APIs read `deviceStates` and `commands` from staff RPCs. The dashboard converts raw device/command statuses into staff-facing labels such as `在线`, `离线`, `故障`, `待执行`, `已确认`, and `已超时`, while keeping payload and metadata details out of the normal view.
 
 Useful commands:
 

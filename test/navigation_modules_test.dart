@@ -114,7 +114,7 @@ void main() {
     await tester.tap(find.text('设备管理'));
     await tester.pumpAndSettle();
     expect(find.text('设备看板'), findsWidgets);
-    expect(find.text('暂无在线设备'), findsOneWidget);
+    expect(find.text('暂无设备上报'), findsOneWidget);
 
     // 8. Navigate to 按时计费 (Wires to pricing destination)
     await tester.tap(find.text('按时计费'));

@@ -640,7 +640,10 @@ class PrismApiClient {
 
   Future<List<DeviceState>> listDeviceStates() async {
     final json = await get('/rpc/staff/device-states');
-    return listOf(json['devices'], DeviceState.fromJson);
+    return listOf(
+      json['deviceStates'] ?? json['devices'],
+      DeviceState.fromJson,
+    );
   }
 
   Future<List<DeviceCommand>> listDeviceCommands() async {

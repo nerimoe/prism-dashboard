@@ -284,12 +284,16 @@ void main() {
         'label': '前门闸机',
         'type': 'gate',
         'status': 'online',
+        'state': 'unlocked',
+        'metadata': {'battery': 92},
         'reportedAt': '2026-07-04T12:35:00.000Z',
         'reportedBy': 'gateway-1',
       };
       final model = DeviceState.fromJson(json);
       expect(model.deviceId, 'device-1');
       expect(model.status, 'online');
+      expect(model.state, 'unlocked');
+      expect(model.metadata?['battery'], 92);
     });
 
     test('DeviceCommand parses correctly', () {
@@ -298,13 +302,20 @@ void main() {
         'type': 'coin',
         'deviceId': 'coin-1',
         'staffId': 'staff-1',
+        'playerId': null,
         'status': 'acked',
         'requestedAt': '2026-07-04T12:30:00.000Z',
         'ackedAt': '2026-07-04T12:30:05.000Z',
+        'expiredAt': null,
       };
       final model = DeviceCommand.fromJson(json);
       expect(model.id, 'cmd-1');
+      expect(model.commandType, 'coin');
+      expect(model.requester, 'staff-1');
       expect(model.status, 'acked');
+      expect(model.playerId, null);
+      expect(model.staffId, 'staff-1');
+      expect(model.expiredAt, null);
     });
 
     test('StaffUser parses correctly', () {
