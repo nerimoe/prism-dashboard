@@ -26,6 +26,21 @@ void main() {
       expect(model.createdAt?.toUtc(), DateTime.utc(2026, 7, 4, 12, 0, 0));
     });
 
+    test('CurrentStaff infers write permission from role', () {
+      final owner = CurrentStaff.fromJson({
+        'id': 'staff-1',
+        'displayName': '店长',
+        'role': 'owner',
+      });
+      final viewer = CurrentStaff.fromJson({
+        'id': 'staff-2',
+        'displayName': '店员',
+        'role': 'viewer',
+      });
+      expect(owner.canWrite, true);
+      expect(viewer.canWrite, false);
+    });
+
     test('AssetDefinition parses correctly', () {
       final json = {
         'type': 'currency',
@@ -324,12 +339,13 @@ void main() {
         'username': 'admin',
         'displayName': '店长',
         'role': 'manager',
-        'status': 'active',
+        'status': 'disabled',
       };
       final model = StaffUser.fromJson(json);
       expect(model.id, 'staff-1');
       expect(model.displayName, '店长');
       expect(model.role, StaffRole.manager);
+      expect(model.isArchived, true);
     });
 
     test('ApiToken parses correctly', () {
@@ -347,6 +363,16 @@ void main() {
       expect(model.isRevoked, false);
       expect(model.toJson().containsKey('token'), false);
       expect(model.toString().contains('secret-xyz'), false);
+    });
+
+    test('SettingsData parses nested store settings', () {
+      final model = SettingsData.fromJson({
+        'store': {'name': 'PRiSM 店铺', 'timeZone': 'Asia/Shanghai'},
+        'operations': {'coinCooldownMs': 1500},
+      });
+      expect(model.storeName, 'PRiSM 店铺');
+      expect(model.timeZone, 'Asia/Shanghai');
+      expect(model.coinCooldownMs, 1500);
     });
   });
 

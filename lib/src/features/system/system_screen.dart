@@ -1,26 +1,667 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../api/api_client.dart';
+import '../../api/models.dart';
+import '../../app_state.dart';
+import '../../context_extensions.dart';
+import '../../shared/admin_forms.dart';
+import '../../shared/admin_layout.dart';
 import '../../shared/widgets.dart';
 
-class SystemScreen extends StatelessWidget {
-  const SystemScreen({super.key});
+class SystemScreen extends ConsumerStatefulWidget {
+  const SystemScreen({super.key, this.api, this.canWrite});
+
+  final PrismApiClient? api;
+  final bool? canWrite;
+
+  @override
+  ConsumerState<SystemScreen> createState() => _SystemScreenState();
+}
+
+class _SystemScreenState extends ConsumerState<SystemScreen> {
+  late Future<_SystemData> _future;
+  final _storeNameController = TextEditingController();
+  final _timeZoneController = TextEditingController();
+  int _coinCooldownMs = 1000;
+  bool _settingsAdopted = false;
+  String? _message;
+
+  PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
+
+  bool get _canWrite =>
+      widget.canWrite ??
+      ref.watch(appControllerProvider).value?.staff?.canWrite ??
+      true;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  @override
+  void dispose() {
+    _storeNameController.dispose();
+    _timeZoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const ScreenPadding(
+    return FutureBuilder<_SystemData>(
+      future: _future,
+      builder: (context, snapshot) {
+        final data = snapshot.data;
+        if (data != null && !_settingsAdopted) _adoptSettings(data.settings);
+        return AdminWorkspace(
+          title: '员工与系统',
+          subtitle: '管理店铺设置、员工账号和外部接入密钥。',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_message != null) ...[
+                _MessageBanner(
+                  message: _message!,
+                  onClose: () => setState(() => _message = null),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (!_canWrite) ...[
+                const _PermissionNotice(),
+                const SizedBox(height: 12),
+              ],
+              if (snapshot.connectionState != ConnectionState.done &&
+                  data == null)
+                const Center(child: CircularProgressIndicator())
+              else if (snapshot.hasError)
+                PrismPanel(
+                  title: '系统设置没有加载成功',
+                  subtitle: snapshot.error.toString(),
+                  trailing: IconButton(
+                    tooltip: '重试',
+                    onPressed: _refresh,
+                    icon: const Icon(Icons.refresh),
+                  ),
+                  child: const SizedBox.shrink(),
+                )
+              else if (data != null)
+                DefaultTabController(
+                  length: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const TabBar(
+                        tabs: [
+                          Tab(text: '店铺设置', icon: Icon(Icons.store)),
+                          Tab(text: '员工权限', icon: Icon(Icons.group)),
+                          Tab(text: '接入密钥', icon: Icon(Icons.key)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 620,
+                        child: TabBarView(
+                          children: [
+                            _SettingsTab(
+                              storeNameController: _storeNameController,
+                              timeZoneController: _timeZoneController,
+                              coinCooldownMs: _coinCooldownMs,
+                              canWrite: _canWrite,
+                              onCooldownChanged: (value) =>
+                                  setState(() => _coinCooldownMs = value),
+                              onSave: _saveSettings,
+                            ),
+                            _StaffTab(
+                              users: data.staffUsers,
+                              canWrite: _canWrite,
+                              onCreate: _showCreateStaffDialog,
+                              onEdit: _showEditStaffDialog,
+                              onResetPassword: _showResetPasswordDialog,
+                            ),
+                            _TokensTab(
+                              tokens: data.apiTokens,
+                              canWrite: _canWrite,
+                              onCreate: _showCreateTokenDialog,
+                              onRevoke: _revokeToken,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<_SystemData> _load() async {
+    final results = await Future.wait<Object>([
+      _api.getSettings(),
+      _api.listStaffUsers(),
+      _api.listApiTokens(),
+    ]);
+    return _SystemData(
+      settings: results[0] as SettingsData,
+      staffUsers: results[1] as List<StaffUser>,
+      apiTokens: results[2] as List<ApiToken>,
+    );
+  }
+
+  void _adoptSettings(SettingsData settings) {
+    _storeNameController.text = settings.storeName;
+    _timeZoneController.text = settings.timeZone;
+    _coinCooldownMs = settings.coinCooldownMs;
+    _settingsAdopted = true;
+  }
+
+  void _refresh() {
+    setState(() {
+      _settingsAdopted = false;
+      _future = _load();
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    await _api.updateSettings(
+      storeName: _storeNameController.text.trim(),
+      timeZone: _timeZoneController.text.trim(),
+      coinCooldownMs: _coinCooldownMs,
+    );
+    setState(() {
+      _message = '店铺设置已保存。';
+      _settingsAdopted = false;
+      _future = _load();
+    });
+  }
+
+  Future<void> _showCreateStaffDialog() async {
+    final username = TextEditingController();
+    final displayName = TextEditingController();
+    final password = TextEditingController(text: 'password123');
+    var role = StaffRole.viewer;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('添加员工'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: username,
+                decoration: const InputDecoration(labelText: '登录名'),
+              ),
+              TextField(
+                controller: displayName,
+                decoration: const InputDecoration(labelText: '员工姓名'),
+              ),
+              TextField(
+                controller: password,
+                decoration: const InputDecoration(labelText: '初始密码'),
+              ),
+              DropdownButtonFormField<StaffRole>(
+                initialValue: role,
+                decoration: const InputDecoration(labelText: '权限'),
+                items: StaffRole.values
+                    .map(
+                      (value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(_roleLabel(value)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => role = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _api.createStaffUser(
+                  username: username.text.trim(),
+                  displayName: displayName.text.trim(),
+                  role: role.name,
+                  password: password.text,
+                );
+                if (context.mounted) Navigator.pop(context);
+                setState(() {
+                  _message = '员工账号已添加。';
+                  _future = _load();
+                });
+              },
+              child: const Text('添加'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEditStaffDialog(StaffUser user) async {
+    final displayName = TextEditingController(text: user.displayName);
+    var role = user.role;
+    var isArchived = user.isArchived;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('编辑 ${user.displayName}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: displayName,
+                decoration: const InputDecoration(labelText: '员工姓名'),
+              ),
+              DropdownButtonFormField<StaffRole>(
+                initialValue: role,
+                decoration: const InputDecoration(labelText: '权限'),
+                items: StaffRole.values
+                    .map(
+                      (value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(_roleLabel(value)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => role = value);
+                },
+              ),
+              SwitchListTile(
+                value: !isArchived,
+                title: const Text('允许登录'),
+                onChanged: (value) => setDialogState(() => isArchived = !value),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _api.updateStaffUser(
+                  user.id,
+                  displayName: displayName.text.trim(),
+                  role: role.name,
+                  isArchived: isArchived,
+                );
+                if (context.mounted) Navigator.pop(context);
+                setState(() {
+                  _message = '员工信息已保存。';
+                  _future = _load();
+                });
+              },
+              child: const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showResetPasswordDialog(StaffUser user) async {
+    final password = TextEditingController(text: 'password123');
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('重置 ${user.displayName} 的密码'),
+        content: TextField(
+          controller: password,
+          decoration: const InputDecoration(labelText: '新密码'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await _api.resetStaffUserPassword(
+                user.id,
+                password: password.text,
+              );
+              if (context.mounted) Navigator.pop(context);
+              setState(() => _message = '登录密码已重置。');
+            },
+            child: const Text('重置密码'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCreateTokenDialog() async {
+    final label = TextEditingController();
+    var role = 'agent';
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('新建接入密钥'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: label,
+                decoration: const InputDecoration(labelText: '用途名称'),
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: role,
+                decoration: const InputDecoration(labelText: '用途'),
+                items: const [
+                  DropdownMenuItem(value: 'agent', child: Text('设备接入')),
+                  DropdownMenuItem(value: 'player', child: Text('玩家接口')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => role = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final token = await _api.createApiToken(
+                  label: label.text.trim(),
+                  role: role,
+                );
+                if (context.mounted) Navigator.pop(context);
+                setState(() {
+                  _message = '接入密钥已创建。';
+                  _future = _load();
+                });
+                if (mounted) await _showTokenSecret(token);
+              },
+              child: const Text('创建'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showTokenSecret(ApiToken token) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('请保存这串密钥'),
+        content: SelectableText(token.token ?? '密钥只会在创建后显示一次。'),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('我已保存'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _revokeToken(ApiToken token) async {
+    await _api.revokeApiToken(token.id);
+    setState(() {
+      _message = '接入密钥已撤销。';
+      _future = _load();
+    });
+  }
+}
+
+class _SettingsTab extends StatelessWidget {
+  const _SettingsTab({
+    required this.storeNameController,
+    required this.timeZoneController,
+    required this.coinCooldownMs,
+    required this.canWrite,
+    required this.onCooldownChanged,
+    required this.onSave,
+  });
+
+  final TextEditingController storeNameController;
+  final TextEditingController timeZoneController;
+  final int coinCooldownMs;
+  final bool canWrite;
+  final ValueChanged<int> onCooldownChanged;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return PrismPanel(
+      title: '店铺设置',
+      subtitle: '这些设置会影响员工后台和设备指令节奏。',
+      trailing: FilledButton.icon(
+        onPressed: canWrite ? onSave : null,
+        icon: const Icon(Icons.save),
+        label: const Text('保存设置'),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PrismPanel(
-            title: '员工与系统',
-            subtitle: '管理店铺基本配置、店员操作权限与 API 接入令牌。',
-            child: EmptyState(
-              icon: Icons.admin_panel_settings,
-              title: '设置项加载中',
-              message: '从系统安全网关获取权限列表中…',
-            ),
+          TextField(
+            controller: storeNameController,
+            enabled: canWrite,
+            decoration: const InputDecoration(labelText: '店铺名称'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: timeZoneController,
+            enabled: canWrite,
+            decoration: const InputDecoration(labelText: '营业时区'),
+          ),
+          const SizedBox(height: 16),
+          StepperNumberField(
+            label: '投币间隔',
+            value: coinCooldownMs,
+            min: 0,
+            max: 60000,
+            step: 500,
+            onChanged: canWrite ? onCooldownChanged : (_) {},
           ),
         ],
       ),
     );
   }
 }
+
+class _StaffTab extends StatelessWidget {
+  const _StaffTab({
+    required this.users,
+    required this.canWrite,
+    required this.onCreate,
+    required this.onEdit,
+    required this.onResetPassword,
+  });
+
+  final List<StaffUser> users;
+  final bool canWrite;
+  final VoidCallback onCreate;
+  final ValueChanged<StaffUser> onEdit;
+  final ValueChanged<StaffUser> onResetPassword;
+
+  @override
+  Widget build(BuildContext context) {
+    return PrismPanel(
+      title: '员工权限',
+      subtitle: '维护店主、店长和店员账号。',
+      trailing: FilledButton.icon(
+        onPressed: canWrite ? onCreate : null,
+        icon: const Icon(Icons.person_add),
+        label: const Text('添加员工'),
+      ),
+      child: users.isEmpty
+          ? const EmptyState(
+              icon: Icons.group,
+              title: '还没有员工账号',
+              message: '添加员工后，就可以分配后台权限。',
+            )
+          : Column(
+              children: [
+                for (final user in users)
+                  ListTile(
+                    leading: const Icon(Icons.account_circle),
+                    title: Text(user.displayName),
+                    subtitle: Text(
+                      '${user.username} · ${_roleLabel(user.role)}',
+                    ),
+                    trailing: Wrap(
+                      spacing: 8,
+                      children: [
+                        StaffUserStatusPill(isArchived: user.isArchived),
+                        IconButton(
+                          tooltip: '编辑',
+                          onPressed: canWrite ? () => onEdit(user) : null,
+                          icon: const Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          tooltip: '重置密码',
+                          onPressed: canWrite
+                              ? () => onResetPassword(user)
+                              : null,
+                          icon: const Icon(Icons.lock_reset),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+}
+
+class _TokensTab extends StatelessWidget {
+  const _TokensTab({
+    required this.tokens,
+    required this.canWrite,
+    required this.onCreate,
+    required this.onRevoke,
+  });
+
+  final List<ApiToken> tokens;
+  final bool canWrite;
+  final VoidCallback onCreate;
+  final ValueChanged<ApiToken> onRevoke;
+
+  @override
+  Widget build(BuildContext context) {
+    return PrismPanel(
+      title: '接入密钥',
+      subtitle: '给设备网关或外部服务使用，创建后密钥只显示一次。',
+      trailing: FilledButton.icon(
+        onPressed: canWrite ? onCreate : null,
+        icon: const Icon(Icons.add),
+        label: const Text('新建密钥'),
+      ),
+      child: tokens.isEmpty
+          ? const EmptyState(
+              icon: Icons.key,
+              title: '还没有接入密钥',
+              message: '新建设备或外部系统接入时再创建。',
+            )
+          : Column(
+              children: [
+                for (final token in tokens)
+                  ListTile(
+                    leading: const Icon(Icons.vpn_key),
+                    title: Text(token.label),
+                    subtitle: Text(
+                      '${_tokenRoleLabel(token.role)} · 前缀 ${token.tokenPrefix}',
+                    ),
+                    trailing: Wrap(
+                      spacing: 8,
+                      children: [
+                        ApiTokenStatusPill(isRevoked: token.isRevoked),
+                        TextButton(
+                          onPressed: canWrite && !token.isRevoked
+                              ? () => onRevoke(token)
+                              : null,
+                          child: const Text('撤销'),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+}
+
+class _PermissionNotice extends StatelessWidget {
+  const _PermissionNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: context.colors.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          '当前账号只能查看设置，需要店主权限才能修改。',
+          style: context.text.bodyMedium?.copyWith(
+            color: context.colors.onSecondaryContainer,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageBanner extends StatelessWidget {
+  const _MessageBanner({required this.message, required this.onClose});
+
+  final String message;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: context.colors.primaryContainer,
+      child: ListTile(
+        title: Text(message),
+        trailing: IconButton(
+          tooltip: '关闭',
+          onPressed: onClose,
+          icon: const Icon(Icons.close),
+        ),
+      ),
+    );
+  }
+}
+
+class _SystemData {
+  const _SystemData({
+    required this.settings,
+    required this.staffUsers,
+    required this.apiTokens,
+  });
+
+  final SettingsData settings;
+  final List<StaffUser> staffUsers;
+  final List<ApiToken> apiTokens;
+}
+
+String _roleLabel(StaffRole role) => switch (role) {
+  StaffRole.owner => '店主',
+  StaffRole.manager => '店长',
+  StaffRole.viewer => '店员',
+};
+
+String _tokenRoleLabel(String role) => switch (role) {
+  'agent' => '设备接入',
+  'player' => '玩家接口',
+  _ => '外部接入',
+};

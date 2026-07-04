@@ -100,7 +100,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       DashboardDestination.services => const ServicesScreen(),
       DashboardDestination.devices => const DevicesScreen(),
       DashboardDestination.reports => const ReportsScreen(),
-      DashboardDestination.system => const SystemScreen(),
+      DashboardDestination.system => SystemScreen(
+        canWrite: widget.appState.staff?.canWrite,
+      ),
     };
   }
 }

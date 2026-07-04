@@ -195,7 +195,7 @@ class PrismApiClient {
       body: {
         if (displayName != null) 'displayName': displayName,
         if (role != null) 'role': role,
-        if (isArchived != null) 'isArchived': isArchived,
+        if (isArchived != null) 'status': isArchived ? 'disabled' : 'active',
       },
     );
     return StaffUser.fromJson(

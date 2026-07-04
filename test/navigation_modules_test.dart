@@ -78,6 +78,27 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/settings') {
+          return http.Response(
+            '{"settings":{"store":{"name":"PRiSM 店铺","timeZone":"Asia/Shanghai"},"operations":{"coinCooldownMs":1000}}}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/users') {
+          return http.Response(
+            '{"staffUsers": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path == '/rpc/staff/api-tokens') {
+          return http.Response(
+            '{"apiTokens": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -160,6 +181,7 @@ void main() {
     await tester.tap(find.text('员工权限'));
     await tester.pumpAndSettle();
     expect(find.text('员工与系统'), findsWidgets);
-    expect(find.text('设置项加载中'), findsOneWidget);
+    expect(find.text('店铺设置'), findsWidgets);
+    expect(find.text('PRiSM 店铺'), findsOneWidget);
   });
 }

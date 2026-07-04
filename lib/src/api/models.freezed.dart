@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CurrentStaff {
 
- String get id; String get displayName;@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole get role; bool get canWrite;
+ String get id; String get displayName;@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole get role;@JsonKey(readValue: readCanWrite) bool get canWrite;
 /// Create a copy of CurrentStaff
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $CurrentStaffCopyWith<$Res>  {
   factory $CurrentStaffCopyWith(CurrentStaff value, $Res Function(CurrentStaff) _then) = _$CurrentStaffCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role, bool canWrite
+ String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role,@JsonKey(readValue: readCanWrite) bool canWrite
 });
 
 
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readCanWrite)  bool canWrite)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CurrentStaff() when $default != null:
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -177,7 +177,7 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readCanWrite)  bool canWrite)  $default,) {final _that = this;
 switch (_that) {
 case _CurrentStaff():
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role,  bool canWrite)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName, @JsonKey(unknownEnumValue: StaffRole.viewer)  StaffRole role, @JsonKey(readValue: readCanWrite)  bool canWrite)?  $default,) {final _that = this;
 switch (_that) {
 case _CurrentStaff() when $default != null:
 return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
@@ -212,13 +212,13 @@ return $default(_that.id,_that.displayName,_that.role,_that.canWrite);case _:
 @JsonSerializable()
 
 class _CurrentStaff implements CurrentStaff {
-  const _CurrentStaff({required this.id, required this.displayName, @JsonKey(unknownEnumValue: StaffRole.viewer) required this.role, this.canWrite = false});
+  const _CurrentStaff({required this.id, required this.displayName, @JsonKey(unknownEnumValue: StaffRole.viewer) required this.role, @JsonKey(readValue: readCanWrite) this.canWrite = false});
   factory _CurrentStaff.fromJson(Map<String, dynamic> json) => _$CurrentStaffFromJson(json);
 
 @override final  String id;
 @override final  String displayName;
 @override@JsonKey(unknownEnumValue: StaffRole.viewer) final  StaffRole role;
-@override@JsonKey() final  bool canWrite;
+@override@JsonKey(readValue: readCanWrite) final  bool canWrite;
 
 /// Create a copy of CurrentStaff
 /// with the given fields replaced by the non-null parameter values.
@@ -253,7 +253,7 @@ abstract mixin class _$CurrentStaffCopyWith<$Res> implements $CurrentStaffCopyWi
   factory _$CurrentStaffCopyWith(_CurrentStaff value, $Res Function(_CurrentStaff) _then) = __$CurrentStaffCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role, bool canWrite
+ String id, String displayName,@JsonKey(unknownEnumValue: StaffRole.viewer) StaffRole role,@JsonKey(readValue: readCanWrite) bool canWrite
 });
 
 

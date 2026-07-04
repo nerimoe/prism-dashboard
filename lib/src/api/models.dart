@@ -18,7 +18,7 @@ abstract class CurrentStaff with _$CurrentStaff {
     required String id,
     required String displayName,
     @JsonKey(unknownEnumValue: StaffRole.viewer) required StaffRole role,
-    @Default(false) bool canWrite,
+    @JsonKey(readValue: readCanWrite) @Default(false) bool canWrite,
   }) = _CurrentStaff;
 
   factory CurrentStaff.fromJson(Map<String, dynamic> json) =>
@@ -492,7 +492,7 @@ Object? readElapsedMinutes(Map json, String key) =>
     json[key] ?? json['durationMinutes'];
 Object? readCurrentImpact(Map json, String key) => json[key] ?? json['total'];
 Object? readIsArchived(Map json, String key) =>
-    json[key] ?? (json['status'] == 'archived');
+    json[key] ?? (json['status'] == 'archived' || json['status'] == 'disabled');
 Object? readIsActive(Map json, String key) =>
     json[key] ?? json['enabled'] ?? (json['status'] == 'active');
 Object? readAmount(Map json, String key) =>
@@ -568,6 +568,11 @@ Object? readCoinCooldownMs(Map json, String key) =>
     json[key] ?? nestedValue(json, ['operations', 'coinCooldownMs']);
 Object? readIsRevoked(Map json, String key) =>
     json[key] ?? (json['status'] == 'revoked');
+Object? readCanWrite(Map json, String key) {
+  final explicit = json[key];
+  if (explicit != null) return explicit;
+  return json['role'] == 'owner' || json['role'] == 'manager';
+}
 
 String formatDurationMinutes(int minutes) {
   final hours = minutes ~/ 60;

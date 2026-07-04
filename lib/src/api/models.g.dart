@@ -15,7 +15,7 @@ _CurrentStaff _$CurrentStaffFromJson(Map<String, dynamic> json) =>
         json['role'],
         unknownValue: StaffRole.viewer,
       ),
-      canWrite: json['canWrite'] as bool? ?? false,
+      canWrite: readCanWrite(json, 'canWrite') as bool? ?? false,
     );
 
 Map<String, dynamic> _$CurrentStaffToJson(_CurrentStaff instance) =>

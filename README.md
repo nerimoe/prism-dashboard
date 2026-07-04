@@ -46,6 +46,7 @@ Commonly used UI blocks live in `lib/src/shared/`:
 - Service item APIs use the staff business item contract: create requests include `kind`, `name`, `price`, optional issued content (`assetType`/`assetCode`), sale window dates, and `metadata: null` unless an advanced workflow provides metadata. Normal UI copy uses `下架`, `恢复售卖`, `待出品`, `核销`, and `取消订单` instead of raw backend state names.
 - Device APIs read `deviceStates` and `commands` from staff RPCs. The dashboard converts raw device/command statuses into staff-facing labels such as `在线`, `离线`, `故障`, `待执行`, `已确认`, and `已超时`, while keeping payload and metadata details out of the normal view.
 - Report APIs use the staff `reports/summary`, `reports/settlements`, and `reports/players` RPCs with ISO query parameters generated from picker-based date ranges. The UI shows store-facing metrics, settlement rows, and player rankings without exposing raw report IDs or ISO input fields.
+- System APIs use staff settings, staff users, and API token RPCs directly. Staff enable/disable actions send backend `status` values, and newly created API token secrets are shown once in a dedicated dialog.
 
 Useful commands:
 
