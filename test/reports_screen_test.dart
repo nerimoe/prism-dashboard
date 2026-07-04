@@ -21,7 +21,7 @@ void main() {
     expect(find.text('营业报表'), findsOneWidget);
     expect(find.text('营业收入'), findsOneWidget);
     expect(find.text('¥248'), findsOneWidget);
-    expect(find.text('已结 session'), findsOneWidget);
+    expect(find.text('已结账单'), findsOneWidget);
     expect(find.text('资产发放'), findsOneWidget);
     expect(find.text('投币指令'), findsOneWidget);
     expect(find.text('结算明细'), findsOneWidget);

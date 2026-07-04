@@ -187,7 +187,7 @@ class _SummaryGrid extends StatelessWidget {
         icon: Icons.payments,
       ),
       MetricTile(
-        label: '已结 session',
+        label: '已结账单',
         value: summary.settledSessionsCount.toString(),
         icon: Icons.receipt_long,
       ),

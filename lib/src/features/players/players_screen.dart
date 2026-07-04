@@ -647,7 +647,8 @@ class _SessionHistoryList extends StatelessWidget {
           for (final session in sessions.take(6))
             _InfoRow(
               label: session.title,
-              value: '${formatClock(session.startedAt)} · ${session.status}',
+              value:
+                  '${formatClock(session.startedAt)} · ${_sessionStatusLabel(session.status)}',
             ),
       ],
     );
@@ -718,6 +719,13 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
+
+String _sessionStatusLabel(String status) => switch (status) {
+  'active' => '进行中',
+  'closed' => '待结算',
+  'settled' => '已结清',
+  _ => '已结束',
+};
 
 class _MessageBanner extends StatelessWidget {
   const _MessageBanner({required this.message, required this.onClose});
