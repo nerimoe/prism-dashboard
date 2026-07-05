@@ -20,6 +20,8 @@ void main() {
 
     expect(find.text('计费配置'), findsOneWidget);
     expect(find.text('基础计费'), findsWidgets);
+    expect(find.text('当天生效圆环'), findsOneWidget);
+    expect(find.textContaining('10:00-22:00'), findsOneWidget);
     expect(find.byIcon(Icons.schedule), findsWidgets);
     expect(find.byType(Stepper), findsNothing);
     expect(find.byType(TextField), findsNothing);
@@ -81,7 +83,9 @@ void main() {
     final body = jsonDecode(request.body) as Map<String, dynamic>;
     expect(body['name'], '基础计费');
     expect(body['enabled'], true);
+    expect(body['provider']['rules'], hasLength(2));
     expect(body['provider']['rules'].first['pricing']['unitPrice'], 10);
+    expect(body['provider']['rules'][1]['id'], 'night');
   });
 
   testWidgets('archive and restore call pricing endpoints', (tester) async {
@@ -209,6 +213,18 @@ Map<String, dynamic> _pricingConfigJson({
             'unitPrice': 10,
             'roundGraceMinutes': 5,
             'priceCap': 80,
+          },
+        },
+        {
+          'id': 'night',
+          'label': '夜间',
+          'priority': 10,
+          'timeRange': {'start': '22:00', 'end': '00:00'},
+          'pricing': {
+            'unitMinutes': 30,
+            'unitPrice': 8,
+            'roundGraceMinutes': 5,
+            'priceCap': 40,
           },
         },
       ],

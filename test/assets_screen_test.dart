@@ -43,9 +43,11 @@ void main() {
 
     await tester.tap(find.text('添加资产'));
     await tester.pumpAndSettle();
+    expect(find.text('资产类别'), findsOneWidget);
+    expect(find.text('资产类型'), findsNothing);
     final fields = find.byType(TextField);
-    await tester.enterText(fields.at(1), 'coupon');
-    await tester.enterText(fields.at(2), '优惠券');
+    await tester.enterText(fields.at(0), 'coupon');
+    await tester.enterText(fields.at(1), '优惠券');
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
 
@@ -76,9 +78,12 @@ void main() {
 
     await tester.tap(find.text('添加礼包'));
     await tester.pumpAndSettle();
+    expect(find.text('选择发放资产'), findsOneWidget);
+    expect(find.text('发放资产类型'), findsNothing);
+    expect(find.text('发放资产代码'), findsNothing);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), '周末礼包');
-    await tester.enterText(fields.at(3), '20');
+    await tester.enterText(fields.at(1), '20');
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
 
@@ -102,10 +107,11 @@ void main() {
 
     await tester.tap(find.text('生成兑换码'));
     await tester.pumpAndSettle();
+    expect(find.text('选择礼包'), findsOneWidget);
+    expect(find.text('礼包 ID'), findsNothing);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'WEEKEND001');
-    await tester.enterText(fields.at(1), 'present-1');
-    await tester.enterText(fields.at(2), '2');
+    await tester.enterText(fields.at(1), '2');
     await tester.tap(find.text('生成'));
     await tester.pumpAndSettle();
 

@@ -28,6 +28,9 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) setState(() {});
+    });
     _future = _load();
   }
 
@@ -98,27 +101,14 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
               }
 
               final data = snapshot.data ?? _AssetsData.empty();
-              return SizedBox(
-                height: 520,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _AssetDefinitionsTab(
-                      definitions: data.definitions,
-                      onArchive: _archiveAssetDefinition,
-                      onRestore: _restoreAssetDefinition,
-                    ),
-                    _PresentsTab(
-                      presents: data.presents,
-                      onArchive: _archivePresent,
-                      onRestore: _restorePresent,
-                    ),
-                    _RedeemCodesTab(
-                      codes: data.redeemCodes,
-                      onRevoke: _revokeRedeemCode,
-                    ),
-                  ],
-                ),
+              return _AssetsTabContent(
+                tabIndex: _tabController.index,
+                data: data,
+                onArchiveAsset: _archiveAssetDefinition,
+                onRestoreAsset: _restoreAssetDefinition,
+                onArchivePresent: _archivePresent,
+                onRestorePresent: _restorePresent,
+                onRevokeCode: _revokeRedeemCode,
               );
             },
           ),
@@ -145,9 +135,9 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   }
 
   Future<void> _showCreateAssetDialog() async {
-    final type = TextEditingController(text: 'currency');
     final code = TextEditingController();
     final name = TextEditingController();
+    var selectedType = 'currency';
     var stackable = true;
     await showDialog<void>(
       context: context,
@@ -157,14 +147,27 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: type,
-                decoration: const InputDecoration(labelText: '资产类型'),
+              DropdownButtonFormField<String>(
+                initialValue: selectedType,
+                decoration: const InputDecoration(labelText: '资产类别'),
+                items: const [
+                  DropdownMenuItem(value: 'currency', child: Text('余额资产')),
+                  DropdownMenuItem(value: 'ticket', child: Text('券')),
+                  DropdownMenuItem(value: 'pass', child: Text('通行权益')),
+                  DropdownMenuItem(value: 'benefit', child: Text('店内权益')),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() => selectedType = value);
+                },
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: code,
-                decoration: const InputDecoration(labelText: '资产代码'),
+                decoration: const InputDecoration(
+                  labelText: '店内编号',
+                  hintText: '例如 coupon、weekend-pass',
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -188,7 +191,7 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
               onPressed: () async {
                 Navigator.pop(context);
                 await _api.saveAssetDefinition(
-                  type.text.trim(),
+                  selectedType,
                   code.text.trim(),
                   displayName: name.text.trim(),
                   stackable: stackable,
@@ -204,115 +207,155 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   }
 
   Future<void> _showCreatePresentDialog() async {
+    final data = await _future;
+    final definitions = data.definitions
+        .where((definition) => !definition.isArchived)
+        .toList();
+    if (!mounted) return;
+    if (definitions.isEmpty) {
+      _done('请先添加一个可用资产，再配置礼包。');
+      return;
+    }
     final name = TextEditingController();
-    final assetType = TextEditingController(text: 'currency');
-    final assetCode = TextEditingController(text: 'free');
     final amount = TextEditingController(text: '10');
+    var selected = definitions.first;
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('添加礼包'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: name,
-              decoration: const InputDecoration(labelText: '礼包名称'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('添加礼包'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                decoration: const InputDecoration(labelText: '礼包名称'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<AssetDefinition>(
+                initialValue: selected,
+                decoration: const InputDecoration(labelText: '选择发放资产'),
+                items: [
+                  for (final definition in definitions)
+                    DropdownMenuItem(
+                      value: definition,
+                      child: Text(
+                        '${definition.displayName} · ${_assetKindLabel(definition)}',
+                      ),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() => selected = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amount,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: '发放数量'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: assetType,
-              decoration: const InputDecoration(labelText: '发放资产类型'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: assetCode,
-              decoration: const InputDecoration(labelText: '发放资产代码'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: amount,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '发放数量'),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _api.createPresent(
+                  name: name.text.trim(),
+                  grants: [
+                    {
+                      'assetType': selected.type,
+                      'assetCode': selected.code,
+                      'amount': num.tryParse(amount.text.trim()) ?? 0,
+                      'mergeStrategy': 'stack',
+                      'activeAt': null,
+                      'expiresAt': null,
+                    },
+                  ],
+                );
+                _done('礼包已保存。');
+              },
+              child: const Text('保存'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _api.createPresent(
-                name: name.text.trim(),
-                grants: [
-                  {
-                    'assetType': assetType.text.trim(),
-                    'assetCode': assetCode.text.trim(),
-                    'amount': num.tryParse(amount.text.trim()) ?? 0,
-                    'mergeStrategy': 'stack',
-                    'activeAt': null,
-                    'expiresAt': null,
-                  },
-                ],
-              );
-              _done('礼包已保存。');
-            },
-            child: const Text('保存'),
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _showCreateRedeemCodeDialog() async {
+    final data = await _future;
+    final presents = data.presents
+        .where((present) => !present.isArchived)
+        .toList();
+    if (!mounted) return;
+    if (presents.isEmpty) {
+      _done('请先添加一个可用礼包，再生成兑换码。');
+      return;
+    }
     final code = TextEditingController();
-    final presentId = TextEditingController();
     final maxUseCount = TextEditingController(text: '1');
+    var selected = presents.first;
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('生成兑换码'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: code,
-              decoration: const InputDecoration(labelText: '兑换码'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('生成兑换码'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: code,
+                decoration: const InputDecoration(labelText: '兑换码'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<Present>(
+                initialValue: selected,
+                decoration: const InputDecoration(labelText: '选择礼包'),
+                items: [
+                  for (final present in presents)
+                    DropdownMenuItem(
+                      value: present,
+                      child: Text(_presentSummary(present)),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() => selected = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: maxUseCount,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: '可使用次数'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: presentId,
-              decoration: const InputDecoration(labelText: '选择礼包'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: maxUseCount,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '可使用次数'),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _api.createRedeemCode(
+                  code: code.text.trim(),
+                  presentId: selected.id,
+                  maxUseCount: int.tryParse(maxUseCount.text.trim()) ?? 1,
+                );
+                _done('兑换码已生成。');
+              },
+              child: const Text('生成'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _api.createRedeemCode(
-                code: code.text.trim(),
-                presentId: presentId.text.trim(),
-                maxUseCount: int.tryParse(maxUseCount.text.trim()) ?? 1,
-              );
-              _done('兑换码已生成。');
-            },
-            child: const Text('生成'),
-          ),
-        ],
       ),
     );
   }
@@ -347,6 +390,43 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
       _message = message;
       _future = _load();
     });
+  }
+}
+
+class _AssetsTabContent extends StatelessWidget {
+  const _AssetsTabContent({
+    required this.tabIndex,
+    required this.data,
+    required this.onArchiveAsset,
+    required this.onRestoreAsset,
+    required this.onArchivePresent,
+    required this.onRestorePresent,
+    required this.onRevokeCode,
+  });
+
+  final int tabIndex;
+  final _AssetsData data;
+  final ValueChanged<AssetDefinition> onArchiveAsset;
+  final ValueChanged<AssetDefinition> onRestoreAsset;
+  final ValueChanged<Present> onArchivePresent;
+  final ValueChanged<Present> onRestorePresent;
+  final ValueChanged<RedeemCode> onRevokeCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (tabIndex) {
+      0 => _AssetDefinitionsTab(
+        definitions: data.definitions,
+        onArchive: onArchiveAsset,
+        onRestore: onRestoreAsset,
+      ),
+      1 => _PresentsTab(
+        presents: data.presents,
+        onArchive: onArchivePresent,
+        onRestore: onRestorePresent,
+      ),
+      _ => _RedeemCodesTab(codes: data.redeemCodes, onRevoke: onRevokeCode),
+    };
   }
 }
 
@@ -386,28 +466,48 @@ class _AssetDefinitionsTab extends StatelessWidget {
         message: '添加余额、券或其他店内资产后，会显示在这里。',
       );
     }
-    return ListView.separated(
-      itemCount: definitions.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final item = definitions[index];
-        return ListTile(
-          title: Text(item.displayName),
-          subtitle: Text(_assetKindLabel(item)),
-          trailing: Wrap(
-            spacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ArchiveStatusPill(isArchived: item.isArchived),
-              TextButton(
-                onPressed: () =>
-                    item.isArchived ? onRestore(item) : onArchive(item),
-                child: Text(item.isArchived ? '恢复' : '归档'),
-              ),
-            ],
+    return Column(
+      children: [
+        for (var index = 0; index < definitions.length; index++) ...[
+          _AssetDefinitionTile(
+            definition: definitions[index],
+            onArchive: () => onArchive(definitions[index]),
+            onRestore: () => onRestore(definitions[index]),
           ),
-        );
-      },
+          if (index != definitions.length - 1) const Divider(height: 1),
+        ],
+      ],
+    );
+  }
+}
+
+class _AssetDefinitionTile extends StatelessWidget {
+  const _AssetDefinitionTile({
+    required this.definition,
+    required this.onArchive,
+    required this.onRestore,
+  });
+
+  final AssetDefinition definition;
+  final VoidCallback onArchive;
+  final VoidCallback onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(definition.displayName),
+      subtitle: Text(_assetKindLabel(definition)),
+      trailing: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ArchiveStatusPill(isArchived: definition.isArchived),
+          TextButton(
+            onPressed: definition.isArchived ? onRestore : onArchive,
+            child: Text(definition.isArchived ? '恢复' : '归档'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -418,6 +518,12 @@ String _assetKindLabel(AssetDefinition item) {
   if (type == 'ticket') return '券';
   if (type == 'pass') return '通行权益';
   return '店内资产';
+}
+
+String _presentSummary(Present present) {
+  if (present.grants.isEmpty) return present.name;
+  final first = present.grants.first;
+  return '${present.name} · ${present.grants.length} 项内容 · ${first.amount}';
 }
 
 class _PresentsTab extends StatelessWidget {
@@ -440,28 +546,48 @@ class _PresentsTab extends StatelessWidget {
         message: '礼包用于统一配置兑换码发放内容。',
       );
     }
-    return ListView.separated(
-      itemCount: presents.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final item = presents[index];
-        return ListTile(
-          title: Text(item.name),
-          subtitle: Text('${item.grants.length} 项发放内容'),
-          trailing: Wrap(
-            spacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ArchiveStatusPill(isArchived: item.isArchived),
-              TextButton(
-                onPressed: () =>
-                    item.isArchived ? onRestore(item) : onArchive(item),
-                child: Text(item.isArchived ? '恢复' : '归档'),
-              ),
-            ],
+    return Column(
+      children: [
+        for (var index = 0; index < presents.length; index++) ...[
+          _PresentTile(
+            present: presents[index],
+            onArchive: () => onArchive(presents[index]),
+            onRestore: () => onRestore(presents[index]),
           ),
-        );
-      },
+          if (index != presents.length - 1) const Divider(height: 1),
+        ],
+      ],
+    );
+  }
+}
+
+class _PresentTile extends StatelessWidget {
+  const _PresentTile({
+    required this.present,
+    required this.onArchive,
+    required this.onRestore,
+  });
+
+  final Present present;
+  final VoidCallback onArchive;
+  final VoidCallback onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(present.name),
+      subtitle: Text('${present.grants.length} 项发放内容'),
+      trailing: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ArchiveStatusPill(isArchived: present.isArchived),
+          TextButton(
+            onPressed: present.isArchived ? onRestore : onArchive,
+            child: Text(present.isArchived ? '恢复' : '归档'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -481,22 +607,35 @@ class _RedeemCodesTab extends StatelessWidget {
         message: '生成单个或批量兑换码后，会显示在这里。',
       );
     }
-    return ListView.separated(
-      itemCount: codes.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final item = codes[index];
-        return ListTile(
-          title: Text(item.code),
-          subtitle: Text(
-            '礼包 ${item.presentId ?? '--'} · 可用 ${item.usageLimit} 次',
+    return Column(
+      children: [
+        for (var index = 0; index < codes.length; index++) ...[
+          _RedeemCodeTile(
+            code: codes[index],
+            onRevoke: () => onRevoke(codes[index]),
           ),
-          trailing: TextButton(
-            onPressed: item.isRevoked ? null : () => onRevoke(item),
-            child: Text(item.isRevoked ? '已撤销' : '撤销'),
-          ),
-        );
-      },
+          if (index != codes.length - 1) const Divider(height: 1),
+        ],
+      ],
+    );
+  }
+}
+
+class _RedeemCodeTile extends StatelessWidget {
+  const _RedeemCodeTile({required this.code, required this.onRevoke});
+
+  final RedeemCode code;
+  final VoidCallback onRevoke;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(code.code),
+      subtitle: Text('礼包 ${code.presentId ?? '--'} · 可用 ${code.usageLimit} 次'),
+      trailing: TextButton(
+        onPressed: code.isRevoked ? null : onRevoke,
+        child: Text(code.isRevoked ? '已撤销' : '撤销'),
+      ),
     );
   }
 }

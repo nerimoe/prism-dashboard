@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
+import '../../context_extensions.dart';
 import '../../shared/admin_forms.dart';
 import '../../shared/admin_layout.dart';
 import '../../shared/widgets.dart';
@@ -97,6 +100,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                   ),
                   detail: _PricingEditor(
                     selected: selected,
+                    timelineFuture: _timelineFuture(selected),
                     start: _start,
                     end: _end,
                     specificDate: _specificDate,
@@ -188,6 +192,21 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
     }
   }
 
+  Future<PricingTimeline>? _timelineFuture(PricingConfig? selected) {
+    if (selected == null) {
+      return _api.previewPricingTimeline(
+        name: '草稿',
+        kind: 'time.priority',
+        localDate: _dateText(_specificDate),
+        rules: [_ruleBody()],
+      );
+    }
+    return _api.getPricingTimeline(
+      selected.id,
+      localDate: _dateText(_specificDate),
+    );
+  }
+
   Future<void> _saveConfig(PricingConfig? selected) async {
     try {
       if (selected == null) {
@@ -201,7 +220,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
         await _api.updatePricingConfig(
           selected.id,
           name: selected.name,
-          rules: [_ruleBody()],
+          rules: _mergeDraftRule(selected),
           isActive: true,
         );
       }
@@ -245,6 +264,35 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
       'priceCap': _priceCap,
     };
   }
+
+  List<Map<String, dynamic>> _mergeDraftRule(PricingConfig selected) {
+    final draft = _ruleBody();
+    return [
+      draft,
+      for (final rule in selected.rules)
+        if (rule.id != draft['id']) _ruleBodyFromModel(rule),
+    ];
+  }
+}
+
+Map<String, dynamic> _ruleBodyFromModel(PriorityTimeRule rule) {
+  return {
+    'id': rule.id,
+    'label': rule.label,
+    'priority': rule.priority,
+    'status': rule.status,
+    'timeRange': {'start': rule.startTime, 'end': rule.endTime},
+    if (rule.weekdays.isNotEmpty) 'weekdays': rule.weekdays,
+    if (rule.specificDate != null) 'specificDates': [rule.specificDate],
+    if (rule.startDateTime != null && rule.endDateTime != null)
+      'dateTimeRange': {'start': rule.startDateTime, 'end': rule.endDateTime},
+    'pricing': {
+      'unitMinutes': rule.unitMinutes,
+      'unitPrice': rule.unitPrice,
+      'roundGraceMinutes': rule.graceMinutes,
+      'priceCap': rule.priceCap,
+    },
+  };
 }
 
 class _PricingData {
@@ -312,6 +360,7 @@ class _PricingList extends StatelessWidget {
 class _PricingEditor extends StatelessWidget {
   const _PricingEditor({
     required this.selected,
+    required this.timelineFuture,
     required this.start,
     required this.end,
     required this.specificDate,
@@ -331,6 +380,7 @@ class _PricingEditor extends StatelessWidget {
   });
 
   final PricingConfig? selected;
+  final Future<PricingTimeline>? timelineFuture;
   final TimeOfDay start;
   final TimeOfDay end;
   final DateTime specificDate;
@@ -355,6 +405,8 @@ class _PricingEditor extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _TimelinePanel(timelineFuture: timelineFuture),
+          const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -445,6 +497,261 @@ class _PricingEditor extends StatelessWidget {
   }
 }
 
+class _TimelinePanel extends StatelessWidget {
+  const _TimelinePanel({required this.timelineFuture});
+
+  final Future<PricingTimeline>? timelineFuture;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InlinePanel(
+      icon: Icons.donut_large,
+      title: '当天生效圆环',
+      subtitle: '灰色为空档；彩色时段表示当天可以入场并按对应规则计费。',
+      child: FutureBuilder<PricingTimeline>(
+        future: timelineFuture,
+        builder: (context, snapshot) {
+          final timeline = snapshot.data;
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+              height: 280,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return const EmptyState(
+              icon: Icons.timeline,
+              title: '暂时无法生成预览',
+              message: '请检查规则时间是否完整，或稍后重试。',
+            );
+          }
+          final segments = timeline?.timeline ?? const <UnitPricing>[];
+          if (segments.isEmpty) {
+            return const EmptyState(
+              icon: Icons.timeline,
+              title: '暂无可预览时段',
+              message: '保存或预览一条按时计费规则后，会显示当天时间轴。',
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RingTimeline(segments: segments),
+              const SizedBox(height: 12),
+              _TimelineLegend(segments: segments),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RingTimeline extends StatelessWidget {
+  const RingTimeline({super.key, required this.segments});
+
+  final List<UnitPricing> segments;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = math.min(constraints.maxWidth, 320.0);
+        return Center(
+          child: Semantics(
+            label: '按时计费圆环时间轴',
+            child: SizedBox.square(
+              dimension: size,
+              child: CustomPaint(
+                painter: RingTimelinePainter(
+                  segments: segments,
+                  scheme: context.colors,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('24h', style: context.text.headlineSmall),
+                      Text(
+                        '当天预览',
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class RingTimelinePainter extends CustomPainter {
+  const RingTimelinePainter({required this.segments, required this.scheme});
+
+  final List<UnitPricing> segments;
+  final ColorScheme scheme;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2 - 28;
+    final stroke = math.max(24.0, size.width * 0.08);
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final basePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt
+      ..color = scheme.surfaceContainerHighest;
+    canvas.drawCircle(center, radius, basePaint);
+
+    for (var index = 0; index < segments.length; index++) {
+      final segment = segments[index];
+      final startMinute = _minuteOfClock(segment.startTime);
+      final endMinute = _endMinuteOfSegment(segment);
+      final duration = endMinute - startMinute;
+      if (duration <= 0) continue;
+      final start = -math.pi / 2 + (startMinute / 1440) * math.pi * 2;
+      final sweep = (duration / 1440) * math.pi * 2;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.butt
+        ..color = _segmentColor(index);
+      canvas.drawArc(rect, start, sweep, false, paint);
+    }
+
+    final tickPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = scheme.outlineVariant;
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    for (final tick in [0, 360, 720, 1080]) {
+      final angle = -math.pi / 2 + (tick / 1440) * math.pi * 2;
+      final direction = Offset(math.cos(angle), math.sin(angle));
+      final outer = center + direction * (radius + stroke / 2 + 6);
+      final inner = center + direction * (radius + stroke / 2 - 8);
+      canvas.drawLine(inner, outer, tickPaint);
+      textPainter.text = TextSpan(
+        text: _minuteLabel(tick),
+        style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11),
+      );
+      textPainter.layout();
+      final labelPoint = center + direction * (radius + stroke / 2 + 22);
+      textPainter.paint(
+        canvas,
+        labelPoint - Offset(textPainter.width / 2, textPainter.height / 2),
+      );
+    }
+  }
+
+  Color _segmentColor(int index) {
+    final colors = [
+      scheme.primary,
+      scheme.tertiary,
+      scheme.secondary,
+      scheme.error,
+      scheme.primaryContainer,
+    ];
+    return colors[index % colors.length];
+  }
+
+  @override
+  bool shouldRepaint(covariant RingTimelinePainter oldDelegate) {
+    return oldDelegate.segments != segments || oldDelegate.scheme != scheme;
+  }
+}
+
+class _TimelineLegend extends StatelessWidget {
+  const _TimelineLegend({required this.segments});
+
+  final List<UnitPricing> segments;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final segment in segments.take(8))
+          Chip(
+            avatar: const Icon(Icons.schedule, size: 16),
+            label: Text(
+              '${segment.startTime}-${segment.endTime} ${segment.label ?? '按时计费'}',
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _InlinePanel extends StatelessWidget {
+  const _InlinePanel({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLowest,
+        border: Border.all(color: context.colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: context.colors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: context.text.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 String _pricingConfigTitle(PricingConfig config) {
   final name = config.name.trim();
   if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
@@ -458,6 +765,26 @@ String _timeText(TimeOfDay value) {
 
 String _dateText(DateTime value) {
   return '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+}
+
+int _minuteOfClock(String value) {
+  final parts = value.split(':');
+  final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '') ?? 0;
+  final minute = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0;
+  return (hour * 60 + minute).clamp(0, 1440);
+}
+
+int _endMinuteOfSegment(UnitPricing segment) {
+  final start = _minuteOfClock(segment.startTime);
+  final end = _minuteOfClock(segment.endTime);
+  if (end == start) return 1440;
+  if (end < start) return 1440;
+  return end;
+}
+
+String _minuteLabel(int minute) {
+  final hour = (minute ~/ 60).toString().padLeft(2, '0');
+  return '$hour:00';
 }
 
 class _MessageBanner extends StatelessWidget {
