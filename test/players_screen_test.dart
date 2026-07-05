@@ -24,7 +24,7 @@ void main() {
     expect(find.text('在场'), findsWidgets);
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
-    expect(find.text('实存余额'), findsOneWidget);
+    expect(find.text('实存余额'), findsWidgets);
     await tester.ensureVisible(find.text('资产流水'));
     expect(find.textContaining('迁移记录'), findsOneWidget);
     expect(find.textContaining('legacy.UPDATE'), findsNothing);
@@ -72,7 +72,7 @@ void main() {
     expect(jsonDecode(request.body)['displayName'], '新玩家');
   });
 
-  testWidgets('bind identity uses staff-facing copy and calls endpoint', (
+  testWidgets('bind and delete identity use staff-facing copy and endpoints', (
     tester,
   ) async {
     final requests = <http.Request>[];
@@ -101,42 +101,70 @@ void main() {
           request.url.path == '/rpc/staff/players/player-a/identities',
     );
     expect(jsonDecode(request.body), {'provider': 'qq', 'subject': '10001'});
-  });
 
-  testWidgets('grant and adjust assets call correct endpoints', (tester) async {
-    final requests = <http.Request>[];
-    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.ensureVisible(find.byTooltip('删除绑定'));
+    await tester.tap(find.byTooltip('删除绑定'));
+    await tester.pumpAndSettle();
+    expect(find.text('删除身份绑定'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '删除绑定'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('发放资产'));
-    await tester.tap(find.text('发放资产'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('发放资产').last);
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.text('调整资产'));
-    await tester.tap(find.text('调整资产'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('调整资产').last);
-    await tester.pumpAndSettle();
-
-    final grant = requests.singleWhere(
-      (request) =>
-          request.method == 'POST' &&
-          request.url.path == '/rpc/staff/players/player-a/assets/grants',
-    );
-    expect(jsonDecode(grant.body)['grants'].first['amount'], 10);
-
-    final adjustment = requests.singleWhere(
-      (request) =>
-          request.method == 'POST' &&
-          request.url.path == '/rpc/staff/players/player-a/assets/adjustments',
-    );
     expect(
-      jsonDecode(adjustment.body)['adjustments'].first['quantityDelta'],
-      -10,
+      requests.any(
+        (request) =>
+            request.method == 'DELETE' &&
+            request.url.path ==
+                '/rpc/staff/players/player-a/identities/qq/826225045',
+      ),
+      isTrue,
     );
   });
+
+  testWidgets(
+    'grant selects a defined asset and each holding can be adjusted',
+    (tester) async {
+      final requests = <http.Request>[];
+      await tester.pumpWidget(_buildPlayersScreen(requests));
+      await tester.pumpAndSettle();
+
+      final grantButton = find.widgetWithText(FilledButton, '发放资产');
+      await tester.ensureVisible(grantButton);
+      await tester.tap(grantButton);
+      await tester.pumpAndSettle();
+      expect(find.text('选择资产'), findsOneWidget);
+      expect(find.text('实存余额 · 余额资产'), findsOneWidget);
+      expect(find.textContaining('资产类型'), findsNothing);
+      expect(find.textContaining('资产代码'), findsNothing);
+      await tester.tap(find.widgetWithText(FilledButton, '发放资产').last);
+      await tester.pumpAndSettle();
+
+      final adjustButton = find.widgetWithText(OutlinedButton, '调整');
+      await tester.ensureVisible(adjustButton);
+      await tester.tap(adjustButton);
+      await tester.pumpAndSettle();
+      expect(find.text('当前数量 120'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, '调整资产'));
+      await tester.pumpAndSettle();
+
+      final grant = requests.singleWhere(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/players/player-a/assets/grants',
+      );
+      expect(jsonDecode(grant.body)['grants'].first['amount'], 10);
+
+      final adjustment = requests.singleWhere(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path ==
+                '/rpc/staff/players/player-a/assets/adjustments',
+      );
+      expect(
+        jsonDecode(adjustment.body)['adjustments'].first['quantityDelta'],
+        -1,
+      );
+    },
+  );
 }
 
 Widget _buildPlayersScreen(List<http.Request> requests) {
@@ -200,6 +228,19 @@ Map<String, dynamic> _responseFor(http.Request request) {
         'status': 'active',
         'createdAt': '2026-07-05T10:00:00.000Z',
       },
+    };
+  }
+  if (path == '/rpc/staff/asset-definitions') {
+    return {
+      'assetDefinitions': [
+        {
+          'type': 'currency',
+          'code': 'paid',
+          'name': '实存余额',
+          'stackable': true,
+          'status': 'active',
+        },
+      ],
     };
   }
   if (path == '/rpc/staff/players/player-a/assets') {

@@ -22,6 +22,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
   String? _selectedPlayerId;
   String? _message;
   String _searchQuery = '';
+  int _detailRefreshToken = 0;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -89,15 +90,18 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                         key: ValueKey(selected.id),
                         player: selected,
                         api: _api,
+                        refreshToken: _detailRefreshToken,
                         onStatusChange: _changePlayerStatus,
                         onBindIdentity: _showBindIdentityDialog,
+                        onDeleteIdentity: _deletePlayerIdentity,
                         onGrantAsset: () => _showAssetDialog(
                           selected,
                           mode: _AssetChangeMode.grant,
                         ),
-                        onAdjustAsset: () => _showAssetDialog(
+                        onAdjustAsset: (holding) => _showAssetDialog(
                           selected,
                           mode: _AssetChangeMode.adjust,
+                          holding: holding,
                         ),
                       ),
               ),
@@ -148,6 +152,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
       await _api.updatePlayerStatus(player.id, status: status);
       setState(() {
         _message = '${player.displayName} 的状态已更新。';
+        _detailRefreshToken++;
         _playersFuture = _loadPlayers();
       });
     } catch (error) {
@@ -245,7 +250,11 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
                   provider: source,
                   subject: externalId,
                 );
-                setState(() => _message = '${player.displayName} 的身份已绑定。');
+                setState(() {
+                  _message = '${player.displayName} 的身份已绑定。';
+                  _detailRefreshToken++;
+                  _playersFuture = _loadPlayers();
+                });
               } catch (error) {
                 setState(() => _message = error.toString());
               }
@@ -257,87 +266,178 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
     );
   }
 
+  Future<void> _deletePlayerIdentity(
+    Player player,
+    PlayerIdentity identity,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除身份绑定'),
+        content: Text(
+          '删除 ${_identityProviderLabel(identity.provider)} ${identity.subject} 后，这个号码或卡号将不再指向 ${player.displayName}。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('删除绑定'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _api.deletePlayerIdentity(
+        player.id,
+        provider: identity.provider,
+        subject: identity.subject,
+      );
+      setState(() {
+        _message = '${player.displayName} 的身份绑定已删除。';
+        _detailRefreshToken++;
+        _playersFuture = _loadPlayers();
+      });
+    } catch (error) {
+      setState(() => _message = error.toString());
+    }
+  }
+
   Future<void> _showAssetDialog(
     Player player, {
     required _AssetChangeMode mode,
+    AssetHolding? holding,
   }) async {
-    final typeController = TextEditingController(text: 'currency');
-    final codeController = TextEditingController(text: 'paid');
-    final amountController = TextEditingController(
-      text: mode == _AssetChangeMode.grant ? '10' : '-10',
-    );
+    final definitions = await _api.listAssetDefinitions();
+    final availableDefinitions = definitions
+        .where((definition) => !definition.isArchived)
+        .toList();
+    if (!mounted) return;
+    if (availableDefinitions.isEmpty) {
+      setState(() => _message = '还没有可用资产，请先在资产与礼包里添加资产。');
+      return;
+    }
+
+    final amountSeed = mode == _AssetChangeMode.grant ? '10' : '-1';
+    final amountController = TextEditingController(text: amountSeed);
     final reasonController = TextEditingController(
       text: mode == _AssetChangeMode.grant ? '店员补发' : '店员调整',
     );
     final title = mode == _AssetChangeMode.grant ? '发放资产' : '调整资产';
+    final forcedKey = holding == null
+        ? null
+        : _assetDefinitionKey(holding.assetType, holding.assetCode);
+    var selectedKey =
+        forcedKey ??
+        _assetDefinitionKey(
+          availableDefinitions.first.type,
+          availableDefinitions.first.code,
+        );
+    final selectedHoldingName =
+        holding?.assetName ??
+        _definitionNameForKey(availableDefinitions, forcedKey);
 
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$title：${player.displayName}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: typeController,
-                decoration: const InputDecoration(labelText: '资产类型'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: codeController,
-                decoration: const InputDecoration(labelText: '资产代码'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: '数量'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: reasonController,
-                decoration: const InputDecoration(labelText: '处理原因'),
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('$title：${player.displayName}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (mode == _AssetChangeMode.adjust && holding != null)
+                  _SelectedAssetPreview(
+                    name: selectedHoldingName ?? '店内资产',
+                    amount: holding.amount,
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedKey,
+                    decoration: const InputDecoration(labelText: '选择资产'),
+                    items: [
+                      for (final definition in availableDefinitions)
+                        DropdownMenuItem(
+                          value: _assetDefinitionKey(
+                            definition.type,
+                            definition.code,
+                          ),
+                          child: Text(_assetDefinitionLabel(definition)),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setDialogState(() => selectedKey = value);
+                    },
+                  ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    signed: true,
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: mode == _AssetChangeMode.grant ? '发放数量' : '调整数量',
+                    helperText: mode == _AssetChangeMode.adjust
+                        ? '扣减请填写负数，例如 -1'
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: reasonController,
+                  decoration: const InputDecoration(labelText: '处理原因'),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final amount = num.tryParse(amountController.text.trim());
-              if (amount == null) return;
-              Navigator.pop(context);
-              try {
-                if (mode == _AssetChangeMode.grant) {
-                  await _api.grantAssets(
-                    player.id,
-                    assetType: typeController.text.trim(),
-                    assetCode: codeController.text.trim(),
-                    amount: amount,
-                    reason: reasonController.text.trim(),
-                  );
-                } else {
-                  await _api.adjustAssets(
-                    player.id,
-                    assetType: typeController.text.trim(),
-                    assetCode: codeController.text.trim(),
-                    amount: amount,
-                    reason: reasonController.text.trim(),
-                  );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final amount = num.tryParse(amountController.text.trim());
+                final reason = reasonController.text.trim();
+                if (amount == null || reason.isEmpty) return;
+                final parts = _splitAssetDefinitionKey(selectedKey);
+                Navigator.pop(context);
+                try {
+                  if (mode == _AssetChangeMode.grant) {
+                    await _api.grantAssets(
+                      player.id,
+                      assetType: parts.$1,
+                      assetCode: parts.$2,
+                      amount: amount,
+                      reason: reason,
+                    );
+                  } else {
+                    await _api.adjustAssets(
+                      player.id,
+                      assetType: parts.$1,
+                      assetCode: parts.$2,
+                      amount: amount,
+                      reason: reason,
+                    );
+                  }
+                  setState(() {
+                    _message = '${player.displayName} 的资产已处理。';
+                    _detailRefreshToken++;
+                    _playersFuture = _loadPlayers();
+                  });
+                } catch (error) {
+                  setState(() => _message = error.toString());
                 }
-                setState(() => _message = '${player.displayName} 的资产已处理。');
-              } catch (error) {
-                setState(() => _message = error.toString());
-              }
-            },
-            child: Text(title),
-          ),
-        ],
+              },
+              child: Text(title),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -593,18 +693,22 @@ class _PlayerDetail extends StatefulWidget {
     super.key,
     required this.player,
     required this.api,
+    required this.refreshToken,
     required this.onStatusChange,
     required this.onBindIdentity,
+    required this.onDeleteIdentity,
     required this.onGrantAsset,
     required this.onAdjustAsset,
   });
 
   final Player player;
   final PrismApiClient api;
+  final int refreshToken;
   final Future<void> Function(Player, String) onStatusChange;
   final Future<void> Function(Player) onBindIdentity;
+  final Future<void> Function(Player, PlayerIdentity) onDeleteIdentity;
   final VoidCallback onGrantAsset;
-  final VoidCallback onAdjustAsset;
+  final ValueChanged<AssetHolding> onAdjustAsset;
 
   @override
   State<_PlayerDetail> createState() => _PlayerDetailState();
@@ -622,7 +726,8 @@ class _PlayerDetailState extends State<_PlayerDetail> {
   @override
   void didUpdateWidget(covariant _PlayerDetail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.player.id != widget.player.id) {
+    if (oldWidget.player.id != widget.player.id ||
+        oldWidget.refreshToken != widget.refreshToken) {
       _future = _load();
     }
   }
@@ -680,7 +785,11 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                   icon: const Icon(Icons.add_link),
                   label: const Text('绑定身份'),
                 ),
-                child: _IdentityList(identities: player.identities),
+                child: _IdentityList(
+                  identities: player.identities,
+                  onDelete: (identity) =>
+                      widget.onDeleteIdentity(player, identity),
+                ),
               ),
               const SizedBox(height: 12),
               _DetailSection(
@@ -695,11 +804,6 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                       icon: const Icon(Icons.add_card),
                       label: const Text('发放资产'),
                     ),
-                    OutlinedButton.icon(
-                      onPressed: widget.onAdjustAsset,
-                      icon: const Icon(Icons.tune),
-                      label: const Text('调整资产'),
-                    ),
                   ],
                 ),
                 child: snapshot.connectionState != ConnectionState.done
@@ -708,8 +812,15 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                         child: Center(child: CircularProgressIndicator()),
                       )
                     : snapshot.hasError
-                    ? Text('资产和记录没有加载成功：${snapshot.error}')
-                    : _AssetList(assets: data?.assets),
+                    ? const EmptyState(
+                        icon: Icons.cloud_off,
+                        title: '资产和记录暂时没有加载成功',
+                        message: '请稍后刷新，或检查后台服务是否正在运行。',
+                      )
+                    : _AssetList(
+                        assets: data?.assets,
+                        onAdjust: widget.onAdjustAsset,
+                      ),
               ),
               if (snapshot.connectionState == ConnectionState.done &&
                   !snapshot.hasError) ...[
@@ -960,48 +1071,61 @@ class _DetailSection extends StatelessWidget {
 }
 
 class _AssetList extends StatelessWidget {
-  const _AssetList({required this.assets});
+  const _AssetList({required this.assets, required this.onAdjust});
 
   final PlayerAssets? assets;
+  final ValueChanged<AssetHolding> onAdjust;
 
   @override
   Widget build(BuildContext context) {
     final holdings = assets?.holdings ?? const <AssetHolding>[];
-    if (holdings.isEmpty) return const Text('暂时没有可用资产。');
+    if (holdings.isEmpty) {
+      return const EmptyState(
+        icon: Icons.account_balance_wallet,
+        title: '暂无可用资产',
+        message: '发放余额、券或通行权益后，会显示在这里。',
+      );
+    }
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final holding in holdings)
-          _InfoRow(
-            label:
-                holding.assetName ??
-                '${holding.assetType}/${holding.assetCode}',
-            value: holding.amount.toString(),
+        for (var index = 0; index < holdings.length; index++) ...[
+          _AssetHoldingTile(
+            holding: holdings[index],
+            onAdjust: () => onAdjust(holdings[index]),
           ),
+          if (index != holdings.length - 1) const SizedBox(height: 8),
+        ],
       ],
     );
   }
 }
 
 class _IdentityList extends StatelessWidget {
-  const _IdentityList({required this.identities});
+  const _IdentityList({required this.identities, required this.onDelete});
 
   final List<PlayerIdentity> identities;
+  final ValueChanged<PlayerIdentity> onDelete;
 
   @override
   Widget build(BuildContext context) {
     if (identities.isEmpty) {
-      return const Text('还没有绑定 QQ、扫码或卡号。');
+      return const EmptyState(
+        icon: Icons.link_off,
+        title: '暂无身份绑定',
+        message: '绑定 QQ、扫码或卡号后，店员和机器人都能识别这名玩家。',
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final identity in identities)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              '${_identityProviderLabel(identity.provider)} ${identity.subject}',
-            ),
+        for (var index = 0; index < identities.length; index++) ...[
+          _IdentityTile(
+            identity: identities[index],
+            onDelete: () => onDelete(identities[index]),
           ),
+          if (index != identities.length - 1) const SizedBox(height: 8),
+        ],
       ],
     );
   }
@@ -1015,19 +1139,25 @@ class _LedgerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ledger = assets?.ledger ?? const <AssetLedgerEntry>[];
-    if (ledger.isEmpty) return const Text('暂无资产流水。');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const _SectionTitle(icon: Icons.receipt_long, title: '资产流水'),
-        for (final entry in ledger.take(5))
-          _InfoRow(
-            label: entry.assetName == null
-                ? _ledgerReasonLabel(entry.reason)
-                : '${entry.assetName} · ${_ledgerReasonLabel(entry.reason)}',
-            value: '${entry.direction == 'out' ? '-' : '+'}${entry.amount}',
-          ),
-      ],
+    return _DetailSection(
+      icon: Icons.receipt_long,
+      title: '资产流水',
+      child: ledger.isEmpty
+          ? const EmptyState(
+              icon: Icons.receipt_long,
+              title: '暂无资产流水',
+              message: '充值、发券或调整资产后，会显示在这里。',
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var index = 0; index < ledger.take(6).length; index++) ...[
+                  _LedgerEntryTile(entry: ledger[index]),
+                  if (index != ledger.take(6).length - 1)
+                    const SizedBox(height: 8),
+                ],
+              ],
+            ),
     );
   }
 }
@@ -1039,33 +1169,227 @@ class _SessionHistoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const _SectionTitle(icon: Icons.history, title: '计时记录'),
-        if (sessions.isEmpty)
-          const Text('还没有历史计时记录。')
-        else if (sessions.any((session) => session.status == 'active')) ...[
-          const Text('正在进行的计时项'),
-          const SizedBox(height: 4),
-          for (final session in sessions.where(
-            (session) => session.status == 'active',
-          ))
-            _InfoRow(
-              label: session.title,
-              value: '${formatDurationMinutes(session.elapsedMinutes)} · 进行中',
+    return _DetailSection(
+      icon: Icons.history,
+      title: '计时记录',
+      child: sessions.isEmpty
+          ? const EmptyState(
+              icon: Icons.history,
+              title: '暂无计时记录',
+              message: '玩家入场或店员代开后，会显示计时历史。',
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (
+                  var index = 0;
+                  index < sessions.take(6).length;
+                  index++
+                ) ...[
+                  _SessionTile(session: sessions[index]),
+                  if (index != sessions.take(6).length - 1)
+                    const SizedBox(height: 8),
+                ],
+              ],
             ),
-          const SizedBox(height: 10),
-          const Text('最近计时记录'),
+    );
+  }
+}
+
+class _IdentityTile extends StatelessWidget {
+  const _IdentityTile({required this.identity, required this.onDelete});
+
+  final PlayerIdentity identity;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoTile(
+      icon: Icons.link,
+      title: _identityProviderLabel(identity.provider),
+      subtitle: identity.subject,
+      trailing: IconButton(
+        tooltip: '删除绑定',
+        onPressed: onDelete,
+        icon: const Icon(Icons.delete_outline),
+      ),
+    );
+  }
+}
+
+class _AssetHoldingTile extends StatelessWidget {
+  const _AssetHoldingTile({required this.holding, required this.onAdjust});
+
+  final AssetHolding holding;
+  final VoidCallback onAdjust;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoTile(
+      icon: _assetIcon(holding.assetType),
+      title: holding.assetName ?? _assetTypeLabel(holding.assetType),
+      subtitle: _assetTypeLabel(holding.assetType),
+      trailing: Wrap(
+        spacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            holding.amount.toString(),
+            style: context.text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: onAdjust,
+            icon: const Icon(Icons.tune),
+            label: const Text('调整'),
+          ),
         ],
-        if (sessions.isNotEmpty)
-          for (final session in sessions.take(6))
-            _InfoRow(
-              label: session.title,
-              value:
-                  '${formatClock(session.startedAt)} · ${_sessionStatusLabel(session.status)}',
+      ),
+    );
+  }
+}
+
+class _LedgerEntryTile extends StatelessWidget {
+  const _LedgerEntryTile({required this.entry});
+
+  final AssetLedgerEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final direction = entry.direction == 'out' ? '-' : '+';
+    return _InfoTile(
+      icon: entry.direction == 'out'
+          ? Icons.remove_circle_outline
+          : Icons.add_circle_outline,
+      title: entry.assetName ?? _assetTypeLabel(entry.assetType),
+      subtitle:
+          '${_ledgerReasonLabel(entry.reason)} · ${formatClock(entry.createdAt)}',
+      trailing: Text(
+        '$direction${entry.amount}',
+        style: context.text.titleSmall?.copyWith(
+          color: entry.direction == 'out'
+              ? context.colors.error
+              : context.colors.primary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionTile extends StatelessWidget {
+  const _SessionTile({required this.session});
+
+  final LiveSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoTile(
+      icon: Icons.timer,
+      title: session.title,
+      subtitle:
+          '${formatClock(session.startedAt)} · ${formatDurationMinutes(session.elapsedMinutes)}',
+      trailing: _SmallStatusPill(label: _sessionStatusLabel(session.status)),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainer,
+        border: Border.all(color: context.colors.outlineVariant),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: context.colors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-      ],
+          ),
+          const SizedBox(width: 10),
+          trailing,
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallStatusPill extends StatelessWidget {
+  const _SmallStatusPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: context.colors.secondaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: context.text.labelSmall?.copyWith(
+          color: context.colors.onSecondaryContainer,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectedAssetPreview extends StatelessWidget {
+  const _SelectedAssetPreview({required this.name, required this.amount});
+
+  final String name;
+  final num amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoTile(
+      icon: Icons.account_balance_wallet,
+      title: name,
+      subtitle: '当前数量 $amount',
+      trailing: const SizedBox.shrink(),
     );
   }
 }
@@ -1108,33 +1432,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(child: Text(label)),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 String _sessionStatusLabel(String status) => switch (status) {
   'active' => '进行中',
   'closed' => '待结算',
@@ -1149,6 +1446,41 @@ String _identityProviderLabel(String provider) =>
       'aime' => 'Aime',
       _ => provider,
     };
+
+String _assetDefinitionKey(String type, String code) => '$type\n$code';
+
+(String, String) _splitAssetDefinitionKey(String key) {
+  final parts = key.split('\n');
+  return (parts.first, parts.length > 1 ? parts[1] : '');
+}
+
+String _assetDefinitionLabel(AssetDefinition definition) {
+  return '${definition.displayName} · ${_assetTypeLabel(definition.type)}';
+}
+
+String? _definitionNameForKey(List<AssetDefinition> definitions, String? key) {
+  if (key == null) return null;
+  for (final definition in definitions) {
+    if (_assetDefinitionKey(definition.type, definition.code) == key) {
+      return definition.displayName;
+    }
+  }
+  return null;
+}
+
+String _assetTypeLabel(String type) => switch (type.toLowerCase()) {
+  'currency' => '余额资产',
+  'ticket' => '券',
+  'pass' => '通行权益',
+  _ => '店内资产',
+};
+
+IconData _assetIcon(String type) => switch (type.toLowerCase()) {
+  'currency' => Icons.account_balance_wallet,
+  'ticket' => Icons.confirmation_number_outlined,
+  'pass' => Icons.workspace_premium_outlined,
+  _ => Icons.inventory_2_outlined,
+};
 
 String? _primaryIdentityLabel(List<PlayerIdentity> identities) {
   if (identities.isEmpty) return null;

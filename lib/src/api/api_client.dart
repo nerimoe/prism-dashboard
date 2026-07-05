@@ -309,6 +309,16 @@ class PrismApiClient {
     );
   }
 
+  Future<void> deletePlayerIdentity(
+    String playerId, {
+    required String provider,
+    required String subject,
+  }) async {
+    await delete(
+      '/rpc/staff/players/$playerId/identities/${Uri.encodeComponent(provider)}/${Uri.encodeComponent(subject)}',
+    );
+  }
+
   Future<void> grantAssets(
     String playerId, {
     required String assetType,
@@ -714,6 +724,14 @@ class PrismApiClient {
     return _request('PATCH', path, auth: auth, body: body);
   }
 
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    bool auth = true,
+    Object? body,
+  }) {
+    return _request('DELETE', path, auth: auth, body: body);
+  }
+
   Future<Map<String, dynamic>> _request(
     String method,
     String path, {
@@ -749,6 +767,11 @@ class PrismApiClient {
         body: body == null ? null : jsonEncode(body),
       ),
       'PATCH' => await _http.patch(
+        uri,
+        headers: headers,
+        body: body == null ? null : jsonEncode(body),
+      ),
+      'DELETE' => await _http.delete(
         uri,
         headers: headers,
         body: body == null ? null : jsonEncode(body),
