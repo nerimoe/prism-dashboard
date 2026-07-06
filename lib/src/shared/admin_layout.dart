@@ -110,13 +110,17 @@ class AdminSplitPane extends StatelessWidget {
         final crossAxisAlignment = constraints.maxHeight.isFinite
             ? CrossAxisAlignment.stretch
             : CrossAxisAlignment.start;
+        final listWidth = constraints.maxWidth >= 1180 ? 420.0 : 360.0;
         return Row(
           crossAxisAlignment: crossAxisAlignment,
           children: [
-            Expanded(flex: 3, child: list),
+            SizedBox(
+              width: detail == null ? constraints.maxWidth : listWidth,
+              child: list,
+            ),
             if (detail != null) ...[
               const SizedBox(width: 16),
-              Expanded(flex: 2, child: detail!),
+              Expanded(child: detail!),
             ],
           ],
         );

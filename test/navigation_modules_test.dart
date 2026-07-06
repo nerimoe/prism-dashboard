@@ -43,6 +43,13 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/pricing-effects') {
+          return http.Response(
+            '{"pricingEffects": []}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         if (request.url.path == '/rpc/staff/presents') {
           return http.Response(
             '{"presents": []}',
@@ -147,10 +154,10 @@ void main() {
 
     _expectSingleSidebarSelection();
 
-    // 6. Navigate to 资产与礼包
-    await tester.tap(find.text('资产与礼包'));
+    // 6. Navigate to 资产与礼物
+    await tester.tap(find.text('资产与礼物'));
     await tester.pumpAndSettle();
-    expect(find.text('资产与礼包'), findsWidgets);
+    expect(find.text('资产与礼物'), findsWidgets);
     expect(find.text('资产定义'), findsOneWidget);
     expect(find.text('暂无资产定义'), findsOneWidget);
     _expectSingleSidebarSelection();
@@ -166,7 +173,7 @@ void main() {
     await tester.tap(find.text('计费配置'));
     await tester.pumpAndSettle();
     expect(find.text('计费配置'), findsWidgets);
-    expect(find.text('暂无计费配置'), findsOneWidget);
+    expect(find.text('先新建一条按时计费或固定收费方案。'), findsOneWidget);
     _expectSingleSidebarSelection();
 
     // 9. Navigate to 服务项目与订单

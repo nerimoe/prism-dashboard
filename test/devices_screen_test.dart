@@ -28,6 +28,10 @@ void main() {
     expect(find.text('在线'), findsOneWidget);
     expect(find.text('离线'), findsOneWidget);
     expect(find.text('故障'), findsOneWidget);
+    expect(
+      find.text(_expectedDateTime('2026-07-04T12:35:00.000Z')),
+      findsOneWidget,
+    );
     expect(find.textContaining('metadata'), findsNothing);
     expect(find.textContaining('locked'), findsNothing);
   });
@@ -48,6 +52,16 @@ void main() {
     expect(find.text('已超时'), findsOneWidget);
     expect(find.text('玩家 player-1'), findsWidgets);
     expect(find.text('员工 staff-1'), findsOneWidget);
+    expect(
+      find.text('确认：${_expectedDateTime('2026-07-04T12:31:03.000Z')}'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('超时：${_expectedDateTime('2026-07-04T12:33:00.000Z')}'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('确认：7/'), findsNothing);
+    expect(find.textContaining('超时：7/'), findsNothing);
     expect(find.textContaining('payload'), findsNothing);
 
     expect(
@@ -172,4 +186,10 @@ Map<String, dynamic> _responseFor(http.Request request) {
     };
   }
   return {};
+}
+
+String _expectedDateTime(String iso) {
+  final local = DateTime.parse(iso).toLocal();
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
 }

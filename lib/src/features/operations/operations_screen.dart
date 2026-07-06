@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../context_extensions.dart';
+import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 import '../../theme.dart';
 
@@ -189,29 +190,86 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
       setState(() => _message = '请先选择一名在场玩家。');
       return;
     }
+    final pricingConfigs = (await _api.listPricingConfigs())
+        .where((config) => !config.isArchived)
+        .toList();
+    if (!mounted) return;
     final labelController = TextEditingController(text: '现场加开');
+    final selectedPricingConfigIds = <String>{
+      for (final config
+          in pricingConfigs
+              .where((config) => config.kind == 'time.priority')
+              .take(1))
+        config.id,
+    };
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('给 ${value.displayName} 加开计时'),
-        content: TextField(
-          controller: labelController,
-          decoration: const InputDecoration(
-            labelText: '计时名称',
-            hintText: '例如 四口麻将、八口麻将',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('给 ${value.displayName} 加开计时'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: labelController,
+                  decoration: const InputDecoration(
+                    labelText: '计时名称',
+                    hintText: '例如 四口麻将、八口麻将',
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '使用的计费方案',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (pricingConfigs.isEmpty)
+                  const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.info_outline),
+                    title: Text('还没有可用的计费方案'),
+                    subtitle: Text('保存计费配置后，就可以在这里选择。'),
+                  )
+                else
+                  for (final config in pricingConfigs)
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(_pricingConfigTitle(config)),
+                      subtitle: Text(
+                        '${config.rules.length} 个计费时段 · ${config.isActive ? '正在使用' : '暂未启用'}',
+                      ),
+                      value: selectedPricingConfigIds.contains(config.id),
+                      onChanged: (selected) {
+                        setDialogState(() {
+                          if (selected == true) {
+                            selectedPricingConfigIds.add(config.id);
+                          } else {
+                            selectedPricingConfigIds.remove(config.id);
+                          }
+                        });
+                      },
+                    ),
+              ],
+            ),
           ),
-          autofocus: true,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: selectedPricingConfigIds.isEmpty
+                  ? null
+                  : () => Navigator.pop(context, true),
+              child: const Text('开始计时'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('开始计时'),
-          ),
-        ],
       ),
     );
     if (confirmed != true) return;
@@ -219,6 +277,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
       await _api.startPlayerSession(
         value.playerId,
         label: labelController.text.trim(),
+        pricingConfigIds: selectedPricingConfigIds.toList(),
       );
       setState(() {
         _message = '${value.displayName} 已加开计时。';
@@ -443,7 +502,7 @@ class _OperationsHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${players.length} 名玩家在场 · $sessions 项计时中 · ${loadedAt == null ? '刚刚' : formatClock(loadedAt!)} 已刷新',
+                '${players.length} 名玩家在场 · $sessions 项计时中 · ${loadedAt == null ? '刚刚' : formatAdminDateTime(loadedAt)} 已刷新',
                 style: context.text.bodySmall?.copyWith(
                   color: context.colors.onSurfaceVariant,
                 ),
@@ -788,7 +847,7 @@ class _PlayerName extends StatelessWidget {
         if (first != null) ...[
           const SizedBox(height: 3),
           Text(
-            first.entrySourceLine,
+            '${entrySource(first.title)} · ${formatAdminDateTime(first.startedAt)}',
             style: context.text.bodySmall?.copyWith(
               color: context.colors.onSurfaceVariant,
             ),
@@ -1238,7 +1297,7 @@ class _SessionName extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          session.startedLine,
+          '${formatAdminDateTime(session.startedAt)} 开始',
           style: context.text.bodySmall?.copyWith(
             color: context.colors.onSurfaceVariant,
           ),
@@ -1412,6 +1471,13 @@ String _formatSessionImpact(LiveSession session, num impact) {
     return '+${formatMoney(impact)}';
   }
   return formatMoney(impact);
+}
+
+String _pricingConfigTitle(PricingConfig config) {
+  final name = config.name.trim();
+  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
+  if (name.isEmpty) return '未命名计费规则';
+  return name;
 }
 
 class _MessageBanner extends StatelessWidget {

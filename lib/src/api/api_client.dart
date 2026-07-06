@@ -369,6 +369,13 @@ class PrismApiClient {
     return listOf(json['sessions'], LiveSession.fromJson);
   }
 
+  Future<List<PlayerRedeemRecord>> getPlayerRedeemRecords(
+    String playerId,
+  ) async {
+    final json = await get('/rpc/staff/players/$playerId/redeem-records');
+    return listOf(json['redeemRecords'], PlayerRedeemRecord.fromJson);
+  }
+
   Future<List<LiveSession>> listActiveSessions() async {
     final json = await get('/rpc/staff/sessions/active');
     return listOf(json['sessions'], LiveSession.fromJson);
@@ -442,10 +449,18 @@ class PrismApiClient {
     required String name,
     required List<Map<String, dynamic>> grants,
     bool oncePerPlayer = false,
+    String? activeAt,
+    String? expiresAt,
   }) async {
     final json = await post(
       '/rpc/staff/presents',
-      body: {'name': name, 'grants': grants, 'oncePerPlayer': oncePerPlayer},
+      body: {
+        'name': name,
+        'grants': grants,
+        'oncePerPlayer': oncePerPlayer,
+        'activeAt': activeAt,
+        'expiresAt': expiresAt,
+      },
     );
     return Present.fromJson((json['present'] as Map).cast<String, dynamic>());
   }
@@ -471,11 +486,47 @@ class PrismApiClient {
     );
   }
 
+  Future<List<PricingEffect>> listPricingEffects() async {
+    final json = await get('/rpc/staff/pricing-effects');
+    return listOf(json['pricingEffects'], PricingEffect.fromJson);
+  }
+
+  Future<void> savePricingEffect(
+    String effectId, {
+    required String name,
+    required String type,
+    required String scope,
+    num? value,
+    bool consumable = false,
+    int? limitPerDay,
+    String? activeAt,
+    String? expiresAt,
+    Map<String, dynamic>? config,
+  }) async {
+    await put(
+      '/rpc/staff/pricing-effects/$effectId',
+      body: {
+        'name': name,
+        'type': type,
+        'scope': scope,
+        'value': value,
+        'consumable': consumable,
+        'limitPerDay': limitPerDay,
+        'activeAt': activeAt,
+        'expiresAt': expiresAt,
+        'config': config,
+      },
+    );
+  }
+
   Future<void> saveAssetDefinition(
     String assetType,
     String assetCode, {
     required String displayName,
     bool stackable = true,
+    String? pricingEffectId,
+    String? activeAt,
+    String? expiresAt,
     Map<String, dynamic>? metadata,
   }) async {
     await put(
@@ -483,6 +534,9 @@ class PrismApiClient {
       body: {
         'name': displayName,
         'stackable': stackable,
+        'pricingEffectId': pricingEffectId,
+        'activeAt': activeAt,
+        'expiresAt': expiresAt,
         if (metadata != null) 'metadata': metadata,
       },
     );
@@ -593,12 +647,13 @@ class PrismApiClient {
     required String kind,
     required List<Map<String, dynamic>> rules,
     required String localDate,
+    String? providerId,
   }) async {
     final json = await post(
       '/rpc/staff/pricing-timeline/preview',
       body: {
         'localDate': localDate,
-        'provider': _pricingProvider(kind: kind, rules: rules),
+        'provider': _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
     return PricingTimeline.fromJson(json);
@@ -608,14 +663,16 @@ class PrismApiClient {
     required String name,
     required String kind,
     required List<Map<String, dynamic>> rules,
+    bool enabled = true,
+    String? providerId,
   }) async {
     final json = await post(
       '/rpc/staff/pricing-configs',
       body: {
         'name': name,
         'kind': kind,
-        'enabled': true,
-        'provider': _pricingProvider(kind: kind, rules: rules),
+        'enabled': enabled,
+        'provider': _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
     final config = (json['pricingConfig'] ?? json['config']) as Map;
@@ -627,13 +684,62 @@ class PrismApiClient {
     required String name,
     required List<Map<String, dynamic>> rules,
     required bool isActive,
+    String? providerId,
   }) async {
     final json = await patch(
       '/rpc/staff/pricing-configs/$pricingConfigId',
       body: {
         'name': name,
         'enabled': isActive,
-        'provider': _pricingProvider(kind: 'time.priority', rules: rules),
+        'provider': _timePricingProvider(rules: rules, providerId: providerId),
+      },
+    );
+    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    return PricingConfig.fromJson(config.cast<String, dynamic>());
+  }
+
+  Future<PricingConfig> createFixedChargePricingConfig({
+    required String name,
+    required String label,
+    required num amount,
+    bool enabled = true,
+    String? providerId,
+  }) async {
+    final json = await post(
+      '/rpc/staff/pricing-configs',
+      body: {
+        'name': name,
+        'kind': 'charge.fixed',
+        'enabled': enabled,
+        'provider': {
+          'id': providerId ?? 'fixed.${DateTime.now().millisecondsSinceEpoch}',
+          'label': label,
+          'amount': amount,
+        },
+      },
+    );
+    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    return PricingConfig.fromJson(config.cast<String, dynamic>());
+  }
+
+  Future<PricingConfig> updateFixedChargePricingConfig(
+    String pricingConfigId, {
+    required String name,
+    required String label,
+    required num amount,
+    required bool isActive,
+    String? providerId,
+  }) async {
+    final json = await patch(
+      '/rpc/staff/pricing-configs/$pricingConfigId',
+      body: {
+        'name': name,
+        'enabled': isActive,
+        'provider': {
+          'id': providerId ?? 'fixed.$pricingConfigId',
+          'label': label,
+          'amount': amount,
+        },
       },
     );
     final config = (json['pricingConfig'] ?? json['config']) as Map;
@@ -814,39 +920,43 @@ class PrismApiClient {
     return json;
   }
 
-  Map<String, dynamic> _pricingProvider({
-    required String kind,
+  Map<String, dynamic> _timePricingProvider({
     required List<Map<String, dynamic>> rules,
+    String? providerId,
   }) {
     return {
-      'id': kind == 'time.priority' ? 'time.default' : kind,
+      'id': providerId ?? 'time.default',
       'rules': rules.map(_pricingRuleBody).toList(),
     };
   }
 
   Map<String, dynamic> _pricingRuleBody(Map<String, dynamic> rule) {
-    if (rule.containsKey('timeRange') && rule.containsKey('pricing')) {
+    if ((rule.containsKey('timeRange') || rule.containsKey('dateTimeRange')) &&
+        rule.containsKey('pricing')) {
       return rule;
     }
+    final pricing = (rule['pricing'] as Map?)?.cast<String, dynamic>();
     return {
       'id': rule['id'] ?? rule['label'] ?? 'rule',
       'label': rule['label'] ?? '计费规则',
       'priority': rule['priority'] ?? 0,
       'status': rule['status'] ?? 'active',
-      'timeRange': {
-        'start': rule['startTime'] ?? '00:00',
-        'end': rule['endTime'] ?? '00:00',
-      },
+      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
+      if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
+        'timeRange': {
+          'start': rule['startTime'] ?? '00:00',
+          'end': rule['endTime'] ?? '00:00',
+        },
       if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
       if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
       if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
-      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
       'pricing': {
-        'unitMinutes': rule['unitMinutes'] ?? 30,
-        'unitPrice': rule['unitPrice'] ?? 0,
+        'unitMinutes': rule['unitMinutes'] ?? pricing?['unitMinutes'] ?? 30,
+        'unitPrice': rule['unitPrice'] ?? pricing?['unitPrice'] ?? 0,
         'roundGraceMinutes':
-            rule['graceMinutes'] ?? rule['roundGraceMinutes'] ?? 0,
-        if (rule['priceCap'] != null) 'priceCap': rule['priceCap'],
+            rule['graceMinutes'] ?? pricing?['roundGraceMinutes'] ?? 0,
+        if (rule['priceCap'] != null || pricing?['priceCap'] != null)
+          'priceCap': rule['priceCap'] ?? pricing?['priceCap'],
       },
     };
   }

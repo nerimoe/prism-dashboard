@@ -25,6 +25,8 @@ void main() {
     expect(find.text('活动报名'), findsOneWidget);
     expect(find.text('购买后发放：ticket/event.weekend'), findsOneWidget);
     expect(find.text('售卖中'), findsOneWidget);
+    expect(find.text('归档服务（1）'), findsOneWidget);
+    expect(find.text('冰可乐'), findsNothing);
     expect(find.textContaining('metadata'), findsNothing);
     expect(find.textContaining('sessionId'), findsNothing);
 
@@ -89,6 +91,9 @@ void main() {
       true,
     );
 
+    await tester.ensureVisible(find.text('归档服务（1）'));
+    await tester.tap(find.text('归档服务（1）'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('恢复售卖').first);
     await tester.pumpAndSettle();
     expect(

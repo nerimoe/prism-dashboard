@@ -141,6 +141,26 @@ abstract class Player with _$Player {
 }
 
 @freezed
+abstract class PricingEffect with _$PricingEffect {
+  const factory PricingEffect({
+    required String id,
+    required String name,
+    required String type,
+    required String scope,
+    num? value,
+    @Default(false) bool consumable,
+    int? limitPerDay,
+    DateTime? activeAt,
+    DateTime? expiresAt,
+    @JsonKey(readValue: readMap) Map<String, dynamic>? config,
+    @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
+  }) = _PricingEffect;
+
+  factory PricingEffect.fromJson(Map<String, dynamic> json) =>
+      _$PricingEffectFromJson(json);
+}
+
+@freezed
 abstract class AssetDefinition with _$AssetDefinition {
   const factory AssetDefinition({
     required String type,
@@ -148,6 +168,10 @@ abstract class AssetDefinition with _$AssetDefinition {
     @JsonKey(readValue: readDisplayName) required String displayName,
     @Default(true) bool stackable,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
+    String? pricingEffectId,
+    PricingEffect? pricingEffect,
+    DateTime? activeAt,
+    DateTime? expiresAt,
   }) = _AssetDefinition;
 
   factory AssetDefinition.fromJson(Map<String, dynamic> json) =>
@@ -161,6 +185,8 @@ abstract class AssetHolding with _$AssetHolding {
     required String assetCode,
     String? assetName,
     @JsonKey(readValue: readAmount) required num amount,
+    DateTime? activeAt,
+    DateTime? expiresAt,
   }) = _AssetHolding;
 
   factory AssetHolding.fromJson(Map<String, dynamic> json) =>
@@ -178,6 +204,8 @@ abstract class AssetLedgerEntry with _$AssetLedgerEntry {
     @JsonKey(readValue: readDirection)
     required String direction, // 'in' | 'out'
     required String reason,
+    String? refId,
+    String? transactionId,
     required DateTime createdAt,
   }) = _AssetLedgerEntry;
 
@@ -203,6 +231,10 @@ abstract class AssetGrant with _$AssetGrant {
     required String assetType,
     required String assetCode,
     required num amount,
+    @Default('stack') String mergeStrategy,
+    DateTime? activeAt,
+    DateTime? expiresAt,
+    int? durationMs,
   }) = _AssetGrant;
 
   factory AssetGrant.fromJson(Map<String, dynamic> json) =>
@@ -216,6 +248,8 @@ abstract class Present with _$Present {
     required String name,
     required List<AssetGrant> grants,
     @Default(false) bool oncePerPlayer,
+    DateTime? activeAt,
+    DateTime? expiresAt,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
   }) = _Present;
 
@@ -233,6 +267,7 @@ abstract class RedeemCode with _$RedeemCode {
     @Default([]) List<AssetGrant> grants,
     @JsonKey(readValue: readUsageLimit) @Default(1) int usageLimit,
     @Default(0) int usageCount,
+    @Default([]) List<RedeemCodeRedemption> redemptions,
     DateTime? expiresAt,
     @Default(false) bool isRevoked,
     DateTime? createdAt,
@@ -243,15 +278,45 @@ abstract class RedeemCode with _$RedeemCode {
 }
 
 @freezed
+abstract class RedeemCodeRedemption with _$RedeemCodeRedemption {
+  const factory RedeemCodeRedemption({
+    required String playerId,
+    required String playerDisplayName,
+    required DateTime redeemedAt,
+  }) = _RedeemCodeRedemption;
+
+  factory RedeemCodeRedemption.fromJson(Map<String, dynamic> json) =>
+      _$RedeemCodeRedemptionFromJson(json);
+}
+
+@freezed
+abstract class PlayerRedeemRecord with _$PlayerRedeemRecord {
+  const factory PlayerRedeemRecord({
+    required String codeId,
+    required String code,
+    required String presentId,
+    required String presentName,
+    required DateTime redeemedAt,
+  }) = _PlayerRedeemRecord;
+
+  factory PlayerRedeemRecord.fromJson(Map<String, dynamic> json) =>
+      _$PlayerRedeemRecordFromJson(json);
+}
+
+@freezed
 abstract class PriorityTimeRule with _$PriorityTimeRule {
   const factory PriorityTimeRule({
     @Default('') String id,
     required String label,
     required int priority,
     @Default('active') String status,
+    @JsonKey(readValue: readHasTimeRange) @Default(false) bool hasTimeRange,
     @JsonKey(readValue: readStartTime) required String startTime,
     @JsonKey(readValue: readEndTime) required String endTime,
     @Default([]) List<int> weekdays,
+    @JsonKey(readValue: readSpecificDates)
+    @Default([])
+    List<String> specificDates,
     String? specificDate,
     @JsonKey(readValue: readStartDateTime) String? startDateTime,
     @JsonKey(readValue: readEndDateTime) String? endDateTime,
@@ -272,6 +337,9 @@ abstract class PricingConfig with _$PricingConfig {
     required String name,
     required String kind,
     @JsonKey(readValue: readPricingRules) required List<PriorityTimeRule> rules,
+    @JsonKey(readValue: readProviderId) String? providerId,
+    @JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,
+    @JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
     @JsonKey(readValue: readIsActive) @Default(true) bool isActive,
   }) = _PricingConfig;
@@ -283,9 +351,13 @@ abstract class PricingConfig with _$PricingConfig {
 @freezed
 abstract class UnitPricing with _$UnitPricing {
   const factory UnitPricing({
+    @Default('') String ruleId,
+    @Default(0) int startMinute,
+    @Default(0) int endMinute,
     @JsonKey(readValue: readStartTime) required String startTime,
     @JsonKey(readValue: readEndTime) required String endTime,
     @JsonKey(readValue: readTimelinePrice) required num price,
+    @Default(false) bool isClosed,
     String? label,
   }) = _UnitPricing;
 
@@ -521,8 +593,26 @@ Object? readDirection(Map json, String key) {
 Object? readLedger(Map json, String key) => json[key] ?? json['ledgerEntries'];
 Object? readUsageLimit(Map json, String key) =>
     json[key] ?? json['maxUseCount'];
+Object? readMap(Map json, String key) {
+  final value = json[key];
+  return value is Map ? value.cast<String, dynamic>() : null;
+}
+
 Object? readPricingRules(Map json, String key) =>
-    json[key] ?? nestedValue(json, ['provider', 'rules']);
+    json[key] ?? nestedValue(json, ['provider', 'rules']) ?? const [];
+Object? readProviderId(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['provider', 'id']);
+Object? readFixedChargeLabel(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['provider', 'label']);
+Object? readFixedChargeAmount(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['provider', 'amount']);
+Object? readHasTimeRange(Map json, String key) {
+  final value = json[key];
+  if (value != null) return value;
+  return nestedValue(json, ['timeRange', 'start']) != null ||
+      nestedValue(json, ['timeRange', 'end']) != null;
+}
+
 Object? readStartTime(Map json, String key) =>
     json[key] ??
     json['startLabel'] ??
@@ -537,6 +627,14 @@ Object? readStartDateTime(Map json, String key) =>
     json[key] ?? nestedValue(json, ['dateTimeRange', 'start']);
 Object? readEndDateTime(Map json, String key) =>
     json[key] ?? nestedValue(json, ['dateTimeRange', 'end']);
+Object? readSpecificDates(Map json, String key) {
+  final value = json[key];
+  if (value is List) return value;
+  final singular = json['specificDate'];
+  if (singular is String && singular.isNotEmpty) return [singular];
+  return const [];
+}
+
 Object? readUnitMinutes(Map json, String key) =>
     json[key] ?? nestedValue(json, ['pricing', 'unitMinutes']);
 Object? readUnitPrice(Map json, String key) =>

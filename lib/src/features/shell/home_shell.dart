@@ -16,7 +16,7 @@ import '../system/system_screen.dart';
 enum DashboardDestination {
   operations(Icons.sensors, '现场工作台', '现场'),
   players(Icons.group, '玩家档案', '玩家'),
-  assets(Icons.inventory_2, '资产与礼包', '资产'),
+  assets(Icons.inventory_2, '资产与礼物', '资产'),
   pricing(Icons.tune, '计费配置', '计费'),
   services(Icons.room_service, '服务项目与订单', '服务'),
   devices(Icons.devices, '设备看板', '设备'),
@@ -40,6 +40,7 @@ class HomeShell extends ConsumerStatefulWidget {
 
 class _HomeShellState extends ConsumerState<HomeShell> {
   DashboardDestination _destination = DashboardDestination.operations;
+  String? _targetPlayerId;
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +95,15 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Widget _contentFor(DashboardDestination destination) {
     return switch (destination) {
       DashboardDestination.operations => const OperationsScreen(),
-      DashboardDestination.players => const PlayersScreen(),
-      DashboardDestination.assets => const AssetsScreen(),
+      DashboardDestination.players => PlayersScreen(
+        initialPlayerId: _targetPlayerId,
+      ),
+      DashboardDestination.assets => AssetsScreen(
+        onOpenPlayer: (playerId) => setState(() {
+          _targetPlayerId = playerId;
+          _destination = DashboardDestination.players;
+        }),
+      ),
       DashboardDestination.pricing => const PricingScreen(),
       DashboardDestination.services => const ServicesScreen(),
       DashboardDestination.devices => const DevicesScreen(),
@@ -188,7 +196,7 @@ class _GroupedSidebar extends StatelessWidget {
                     selected: selected,
                     items: const [
                       _SidebarEntry('玩家档案', DashboardDestination.players),
-                      _SidebarEntry('资产与礼包', DashboardDestination.assets),
+                      _SidebarEntry('资产与礼物', DashboardDestination.assets),
                     ],
                     onSelected: onSelected,
                   ),

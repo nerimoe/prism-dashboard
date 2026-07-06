@@ -6,6 +6,7 @@ import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../shared/admin_forms.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 class ServicesScreen extends ConsumerStatefulWidget {
@@ -328,6 +329,12 @@ class _ServiceItemsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeItems = items
+        .where((item) => !item.isArchived)
+        .toList(growable: false);
+    final archivedItems = items
+        .where((item) => item.isArchived)
+        .toList(growable: false);
     if (items.isEmpty) {
       return const PrismPanel(
         title: '服务项目',
@@ -341,20 +348,60 @@ class _ServiceItemsTab extends StatelessWidget {
 
     return PrismPanel(
       title: '服务项目',
-      subtitle: '${items.length} 个项目',
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const ClampingScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const Divider(height: 24),
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _ServiceItemRow(
-            item: item,
-            onArchive: () => onArchive(item),
-            onRestore: () => onRestore(item),
-          );
-        },
+      subtitle: '${activeItems.length} 个在售项目',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (activeItems.isEmpty)
+            const EmptyState(
+              icon: Icons.room_service,
+              title: '暂无在售服务',
+              message: '恢复下架项目或添加新服务后，会显示在这里。',
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: activeItems.length,
+              separatorBuilder: (_, _) => const Divider(height: 24),
+              itemBuilder: (context, index) {
+                final item = activeItems[index];
+                return _ServiceItemRow(
+                  item: item,
+                  onArchive: () => onArchive(item),
+                  onRestore: () => onRestore(item),
+                );
+              },
+            ),
+          if (archivedItems.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Material(
+              color: Colors.transparent,
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(top: 8),
+                leading: const Icon(Icons.inventory_2_outlined),
+                title: Text('归档服务（${archivedItems.length}）'),
+                subtitle: const Text('这些服务不会继续售卖，可从这里恢复。'),
+                children: [
+                  for (
+                    var index = 0;
+                    index < archivedItems.length;
+                    index++
+                  ) ...[
+                    _ServiceItemRow(
+                      item: archivedItems[index],
+                      onArchive: () => onArchive(archivedItems[index]),
+                      onRestore: () => onRestore(archivedItems[index]),
+                    ),
+                    if (index != archivedItems.length - 1)
+                      const Divider(height: 24),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -639,38 +686,24 @@ String assetLabel(BusinessItem item) {
 
 String activeWindowLabel(BusinessItem item) {
   if (item.activeAt == null && item.expiresAt == null) return '长期售卖';
-  final start = _shortDate(item.activeAt);
-  final end = _shortDate(item.expiresAt);
+  final start = item.activeAt == null ? '不限' : formatAdminDate(item.activeAt);
+  final end = item.expiresAt == null ? '不限' : formatAdminDate(item.expiresAt);
   return '$start 至 $end';
 }
 
 String completionTimeLabel(BusinessItemOrder order) {
   if (order.fulfilledAt != null) {
-    return '完成：${_shortDateTime(order.fulfilledAt)}';
+    return '完成：${formatAdminDateTime(order.fulfilledAt)}';
   }
   if (order.cancelledAt != null) {
-    return '取消：${_shortDateTime(order.cancelledAt)}';
+    return '取消：${formatAdminDateTime(order.cancelledAt)}';
   }
   return '等待处理';
 }
 
 String _dateButtonText(String label, DateTime? value) {
   if (value == null) return label;
-  return '$label ${_shortDate(value)}';
-}
-
-String _shortDate(DateTime? value) {
-  if (value == null) return '不限';
-  final local = value.toLocal();
-  return '${local.month}/${local.day}';
-}
-
-String _shortDateTime(DateTime? value) {
-  if (value == null) return '--';
-  final local = value.toLocal();
-  final hour = local.hour.toString().padLeft(2, '0');
-  final minute = local.minute.toString().padLeft(2, '0');
-  return '${local.month}/${local.day} $hour:$minute';
+  return '$label ${formatAdminDate(value)}';
 }
 
 String? _blankToNull(String value) {

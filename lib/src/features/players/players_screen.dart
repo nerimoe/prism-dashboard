@@ -6,12 +6,14 @@ import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../context_extensions.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 class PlayersScreen extends ConsumerStatefulWidget {
-  const PlayersScreen({super.key, this.api});
+  const PlayersScreen({super.key, this.api, this.initialPlayerId});
 
   final PrismApiClient? api;
+  final String? initialPlayerId;
 
   @override
   ConsumerState<PlayersScreen> createState() => _PlayersScreenState();
@@ -29,7 +31,20 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedPlayerId = widget.initialPlayerId;
     _playersFuture = _loadPlayers();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlayersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialPlayerId != widget.initialPlayerId &&
+        widget.initialPlayerId != null) {
+      setState(() {
+        _selectedPlayerId = widget.initialPlayerId;
+        _playersFuture = _loadPlayers();
+      });
+    }
   }
 
   @override
@@ -317,7 +332,7 @@ class _PlayersScreenState extends ConsumerState<PlayersScreen> {
         .toList();
     if (!mounted) return;
     if (availableDefinitions.isEmpty) {
-      setState(() => _message = '还没有可用资产，请先在资产与礼包里添加资产。');
+      setState(() => _message = '还没有可用资产，请先在资产与礼物里添加资产。');
       return;
     }
 
@@ -715,7 +730,14 @@ class _PlayerDetail extends StatefulWidget {
 }
 
 class _PlayerDetailState extends State<_PlayerDetail> {
-  late Future<({PlayerAssets assets, List<LiveSession> sessions})> _future;
+  late Future<
+    ({
+      PlayerAssets assets,
+      List<LiveSession> sessions,
+      List<PlayerRedeemRecord> redeemRecords,
+    })
+  >
+  _future;
 
   @override
   void initState() {
@@ -735,7 +757,13 @@ class _PlayerDetailState extends State<_PlayerDetail> {
   @override
   Widget build(BuildContext context) {
     final player = widget.player;
-    return FutureBuilder<({PlayerAssets assets, List<LiveSession> sessions})>(
+    return FutureBuilder<
+      ({
+        PlayerAssets assets,
+        List<LiveSession> sessions,
+        List<PlayerRedeemRecord> redeemRecords,
+      })
+    >(
       future: _future,
       builder: (context, snapshot) {
         final data = snapshot.data;
@@ -827,6 +855,8 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                 const SizedBox(height: 12),
                 _LedgerList(assets: data?.assets),
                 const SizedBox(height: 12),
+                _RedeemRecordList(records: data?.redeemRecords ?? const []),
+                const SizedBox(height: 12),
                 _SessionHistoryList(sessions: data?.sessions ?? const []),
               ],
             ],
@@ -836,10 +866,24 @@ class _PlayerDetailState extends State<_PlayerDetail> {
     );
   }
 
-  Future<({PlayerAssets assets, List<LiveSession> sessions})> _load() async {
-    final assets = await widget.api.getPlayerAssets(widget.player.id);
-    final sessions = await widget.api.getPlayerSessionHistory(widget.player.id);
-    return (assets: assets, sessions: sessions);
+  Future<
+    ({
+      PlayerAssets assets,
+      List<LiveSession> sessions,
+      List<PlayerRedeemRecord> redeemRecords,
+    })
+  >
+  _load() async {
+    final results = await Future.wait([
+      widget.api.getPlayerAssets(widget.player.id),
+      widget.api.getPlayerSessionHistory(widget.player.id),
+      widget.api.getPlayerRedeemRecords(widget.player.id),
+    ]);
+    return (
+      assets: results[0] as PlayerAssets,
+      sessions: results[1] as List<LiveSession>,
+      redeemRecords: results[2] as List<PlayerRedeemRecord>,
+    );
   }
 
   String _presenceLabel(List<LiveSession>? sessions) {
@@ -1142,6 +1186,13 @@ class _LedgerList extends StatelessWidget {
     return _DetailSection(
       icon: Icons.receipt_long,
       title: '资产流水',
+      action: ledger.isEmpty
+          ? null
+          : TextButton.icon(
+              onPressed: () => _showLedgerSheet(context, ledger),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('查看全部'),
+            ),
       child: ledger.isEmpty
           ? const EmptyState(
               icon: Icons.receipt_long,
@@ -1152,12 +1203,174 @@ class _LedgerList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var index = 0; index < ledger.take(6).length; index++) ...[
-                  _LedgerEntryTile(entry: ledger[index]),
+                  _LedgerEntryTile(
+                    entry: ledger[index],
+                    onTap: () => _showLedgerDetail(context, ledger[index]),
+                  ),
                   if (index != ledger.take(6).length - 1)
                     const SizedBox(height: 8),
                 ],
               ],
             ),
+    );
+  }
+
+  void _showLedgerSheet(BuildContext context, List<AssetLedgerEntry> ledger) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720, maxHeight: 720),
+          child: _RecordDetailScaffold(
+            title: '资产流水',
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: ledger.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) => _LedgerEntryTile(
+                entry: ledger[index],
+                onTap: () => _showLedgerDetail(context, ledger[index]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLedgerDetail(BuildContext context, AssetLedgerEntry entry) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: _RecordDetailScaffold(
+            title: '流水详情',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DetailLine(
+                    '资产',
+                    entry.assetName ?? _assetTypeLabel(entry.assetType),
+                  ),
+                  _DetailLine('类型', _assetTypeLabel(entry.assetType)),
+                  _DetailLine(
+                    '数量变化',
+                    '${entry.direction == 'out' ? '-' : '+'}${entry.amount}',
+                  ),
+                  _DetailLine('来源', _ledgerReasonLabel(entry.reason)),
+                  _DetailLine('发生时间', formatAdminDateTime(entry.createdAt)),
+                  if ((entry.refId ?? '').isNotEmpty)
+                    _DetailLine('关联业务', entry.refId!),
+                  if ((entry.transactionId ?? '').isNotEmpty)
+                    _DetailLine('流水批次', entry.transactionId!),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RedeemRecordList extends StatelessWidget {
+  const _RedeemRecordList({required this.records});
+
+  final List<PlayerRedeemRecord> records;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DetailSection(
+      icon: Icons.card_giftcard,
+      title: '兑换记录',
+      action: records.isEmpty
+          ? null
+          : TextButton.icon(
+              onPressed: () => _showRedeemRecordSheet(context, records),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('查看全部'),
+            ),
+      child: records.isEmpty
+          ? const EmptyState(
+              icon: Icons.card_giftcard,
+              title: '暂无兑换记录',
+              message: '玩家使用兑换码后，会显示在这里。',
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (
+                  var index = 0;
+                  index < records.take(6).length;
+                  index++
+                ) ...[
+                  _RedeemRecordTile(
+                    record: records[index],
+                    onTap: () =>
+                        _showRedeemRecordDetail(context, records[index]),
+                  ),
+                  if (index != records.take(6).length - 1)
+                    const SizedBox(height: 8),
+                ],
+              ],
+            ),
+    );
+  }
+
+  void _showRedeemRecordSheet(
+    BuildContext context,
+    List<PlayerRedeemRecord> records,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720, maxHeight: 720),
+          child: _RecordDetailScaffold(
+            title: '兑换记录',
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: records.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) => _RedeemRecordTile(
+                record: records[index],
+                onTap: () => _showRedeemRecordDetail(context, records[index]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRedeemRecordDetail(
+    BuildContext context,
+    PlayerRedeemRecord record,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: _RecordDetailScaffold(
+            title: '兑换详情',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DetailLine('礼物', record.presentName),
+                  _DetailLine('兑换码', record.code),
+                  _DetailLine('兑换时间', formatAdminDateTime(record.redeemedAt)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1172,6 +1385,13 @@ class _SessionHistoryList extends StatelessWidget {
     return _DetailSection(
       icon: Icons.history,
       title: '计时记录',
+      action: sessions.isEmpty
+          ? null
+          : TextButton.icon(
+              onPressed: () => _showSessionSheet(context, sessions),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('查看全部'),
+            ),
       child: sessions.isEmpty
           ? const EmptyState(
               icon: Icons.history,
@@ -1186,12 +1406,69 @@ class _SessionHistoryList extends StatelessWidget {
                   index < sessions.take(6).length;
                   index++
                 ) ...[
-                  _SessionTile(session: sessions[index]),
+                  _SessionTile(
+                    session: sessions[index],
+                    onTap: () => _showSessionDetail(context, sessions[index]),
+                  ),
                   if (index != sessions.take(6).length - 1)
                     const SizedBox(height: 8),
                 ],
               ],
             ),
+    );
+  }
+
+  void _showSessionSheet(BuildContext context, List<LiveSession> sessions) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720, maxHeight: 720),
+          child: _RecordDetailScaffold(
+            title: '计时记录',
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: sessions.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) => _SessionTile(
+                session: sessions[index],
+                onTap: () => _showSessionDetail(context, sessions[index]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSessionDetail(BuildContext context, LiveSession session) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: _RecordDetailScaffold(
+            title: '计时详情',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DetailLine('计时名称', session.title),
+                  _DetailLine('状态', _sessionStatusLabel(session.status)),
+                  _DetailLine('开始时间', formatAdminDateTime(session.startedAt)),
+                  _DetailLine(
+                    '计时时长',
+                    formatDurationMinutes(session.elapsedMinutes),
+                  ),
+                  if (session.currentImpact != null)
+                    _DetailLine('当前影响', formatMoney(session.currentImpact)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1225,10 +1502,14 @@ class _AssetHoldingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = [
+      _assetTypeLabel(holding.assetType),
+      _assetHoldingWindowLabel(holding),
+    ].join(' · ');
     return _InfoTile(
       icon: _assetIcon(holding.assetType),
       title: holding.assetName ?? _assetTypeLabel(holding.assetType),
-      subtitle: _assetTypeLabel(holding.assetType),
+      subtitle: subtitle,
       trailing: Wrap(
         spacing: 10,
         crossAxisAlignment: WrapCrossAlignment.center,
@@ -1251,9 +1532,10 @@ class _AssetHoldingTile extends StatelessWidget {
 }
 
 class _LedgerEntryTile extends StatelessWidget {
-  const _LedgerEntryTile({required this.entry});
+  const _LedgerEntryTile({required this.entry, required this.onTap});
 
   final AssetLedgerEntry entry;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1264,7 +1546,7 @@ class _LedgerEntryTile extends StatelessWidget {
           : Icons.add_circle_outline,
       title: entry.assetName ?? _assetTypeLabel(entry.assetType),
       subtitle:
-          '${_ledgerReasonLabel(entry.reason)} · ${formatClock(entry.createdAt)}',
+          '${_ledgerReasonLabel(entry.reason)} · ${formatAdminDateTime(entry.createdAt)}',
       trailing: Text(
         '$direction${entry.amount}',
         style: context.text.titleSmall?.copyWith(
@@ -1274,14 +1556,34 @@ class _LedgerEntryTile extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _RedeemRecordTile extends StatelessWidget {
+  const _RedeemRecordTile({required this.record, required this.onTap});
+
+  final PlayerRedeemRecord record;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoTile(
+      icon: Icons.card_giftcard,
+      title: record.presentName,
+      subtitle: '${record.code} · ${formatAdminDateTime(record.redeemedAt)}',
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
 
 class _SessionTile extends StatelessWidget {
-  const _SessionTile({required this.session});
+  const _SessionTile({required this.session, required this.onTap});
 
   final LiveSession session;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1289,8 +1591,9 @@ class _SessionTile extends StatelessWidget {
       icon: Icons.timer,
       title: session.title,
       subtitle:
-          '${formatClock(session.startedAt)} · ${formatDurationMinutes(session.elapsedMinutes)}',
+          '${formatAdminDateTime(session.startedAt)} · ${formatDurationMinutes(session.elapsedMinutes)}',
       trailing: _SmallStatusPill(label: _sessionStatusLabel(session.status)),
+      onTap: onTap,
     );
   }
 }
@@ -1301,52 +1604,131 @@ class _InfoTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.trailing,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final Widget trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainer,
-        border: Border.all(color: context.colors.outlineVariant),
+    return Material(
+      color: context.colors.surfaceContainer,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.outlineVariant),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: context.colors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              trailing,
+            ],
+          ),
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: context.colors.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+    );
+  }
+}
+
+class _RecordDetailScaffold extends StatelessWidget {
+  const _RecordDetailScaffold({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
                   title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.titleSmall?.copyWith(
+                  style: context.text.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
+              IconButton(
+                tooltip: '关闭',
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Flexible(child: child),
+      ],
+    );
+  }
+}
+
+class _DetailLine extends StatelessWidget {
+  const _DetailLine(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 88,
+            child: Text(
+              label,
+              style: context.text.bodySmall?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
             ),
           ),
-          const SizedBox(width: 10),
-          trailing,
+          Expanded(
+            child: SelectableText(value, style: context.text.bodyMedium),
+          ),
         ],
       ),
     );
@@ -1494,6 +1876,24 @@ String? _primaryIdentityLabel(List<PlayerIdentity> identities) {
 String _ledgerReasonLabel(String reason) {
   if (reason.startsWith('legacy.')) return '迁移记录';
   return reason;
+}
+
+String _assetHoldingWindowLabel(AssetHolding holding) {
+  final now = DateTime.now();
+  final activeAt = holding.activeAt;
+  final expiresAt = holding.expiresAt;
+  final status = activeAt != null && now.isBefore(activeAt)
+      ? '未生效'
+      : expiresAt != null && !now.isBefore(expiresAt)
+      ? '已过期'
+      : '可使用';
+  final start = activeAt == null
+      ? '立即生效'
+      : '${formatAdminDateTime(activeAt)} 生效';
+  final end = expiresAt == null
+      ? '长期有效'
+      : '${formatAdminDateTime(expiresAt)} 过期';
+  return '$status · $start · $end';
 }
 
 class _MessageBanner extends StatelessWidget {

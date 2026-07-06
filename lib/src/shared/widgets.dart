@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/models.dart';
 import '../context_extensions.dart';
+import 'time_format.dart';
 
 class ScreenPadding extends StatelessWidget {
   const ScreenPadding({super.key, required this.child});
@@ -220,13 +221,7 @@ class DateTimeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (value == null) return Text('--', style: style);
-    final local = value!.toLocal();
-    final year = local.year;
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    final text = '$year-$month-$day $hour:$minute';
+    final text = formatAdminDateTime(value);
     return Text(text, style: style ?? context.text.bodyMedium);
   }
 }

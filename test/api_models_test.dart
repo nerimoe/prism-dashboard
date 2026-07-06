@@ -90,7 +90,7 @@ void main() {
     test('Present parses correctly', () {
       final json = {
         'id': 'present-1',
-        'name': '新手大礼包',
+        'name': '新手大礼物',
         'grants': [
           {'assetType': 'currency', 'assetCode': 'free', 'amount': 20.0},
         ],
@@ -98,7 +98,7 @@ void main() {
       };
       final model = Present.fromJson(json);
       expect(model.id, 'present-1');
-      expect(model.name, '新手大礼包');
+      expect(model.name, '新手大礼物');
       expect(model.grants.first.amount, 20.0);
     });
 
@@ -111,6 +111,13 @@ void main() {
         ],
         'maxUseCount': 1,
         'usageCount': 0,
+        'redemptions': [
+          {
+            'playerId': 'player-a',
+            'playerDisplayName': 'A',
+            'redeemedAt': '2026-07-05T12:34:00.000+08:00',
+          },
+        ],
         'expiresAt': '2026-08-04T12:00:00.000Z',
         'isRevoked': false,
         'createdAt': '2026-07-04T12:00:00.000Z',
@@ -120,7 +127,20 @@ void main() {
       expect(model.code, 'CDK12345');
       expect(model.usageLimit, 1);
       expect(model.usageCount, 0);
+      expect(model.redemptions.single.playerDisplayName, 'A');
       expect(model.isRevoked, false);
+    });
+
+    test('PlayerRedeemRecord parses correctly', () {
+      final model = PlayerRedeemRecord.fromJson({
+        'codeId': 'code-1',
+        'code': 'CDK12345',
+        'presentId': 'present-1',
+        'presentName': '月饼礼物',
+        'redeemedAt': '2026-07-05T12:34:00.000+08:00',
+      });
+      expect(model.presentName, '月饼礼物');
+      expect(model.code, 'CDK12345');
     });
 
     test('PricingConfig parses correctly', () {

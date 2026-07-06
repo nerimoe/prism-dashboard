@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 class DevicesScreen extends ConsumerStatefulWidget {
@@ -398,17 +399,11 @@ String requesterLabel(DeviceCommand command) {
 }
 
 String commandFinishedLabel(DeviceCommand command) {
-  if (command.ackedAt != null) return '确认：${_shortDateTime(command.ackedAt)}';
+  if (command.ackedAt != null) {
+    return '确认：${formatAdminDateTime(command.ackedAt)}';
+  }
   if (command.expiredAt != null) {
-    return '超时：${_shortDateTime(command.expiredAt)}';
+    return '超时：${formatAdminDateTime(command.expiredAt)}';
   }
   return '等待设备响应';
-}
-
-String _shortDateTime(DateTime? value) {
-  if (value == null) return '--';
-  final local = value.toLocal();
-  final hour = local.hour.toString().padLeft(2, '0');
-  final minute = local.minute.toString().padLeft(2, '0');
-  return '${local.month}/${local.day} $hour:$minute';
 }

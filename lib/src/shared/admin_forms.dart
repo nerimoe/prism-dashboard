@@ -19,7 +19,7 @@ class AdminToolbar extends StatelessWidget {
   }
 }
 
-/// 支持限制数值范围、带“+”和“-”微调按钮的步进数字输入控件
+/// 支持直接输入数字，也保留“+”和“-”微调按钮的数值控件
 class StepperNumberField extends StatefulWidget {
   const StepperNumberField({
     super.key,
@@ -43,6 +43,32 @@ class StepperNumberField extends StatefulWidget {
 }
 
 class _StepperNumberFieldState extends State<StepperNumberField> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value.toString());
+    _focusNode = FocusNode()..addListener(_commitIfBlurred);
+  }
+
+  @override
+  void didUpdateWidget(StepperNumberField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_focusNode.hasFocus && widget.value.toString() != _controller.text) {
+      _controller.text = widget.value.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_commitIfBlurred);
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -73,22 +99,26 @@ class _StepperNumberFieldState extends State<StepperNumberField> {
                 icon: const Icon(Icons.remove, size: 18),
                 onPressed: widget.value <= widget.min
                     ? null
-                    : () {
-                        widget.onChanged(
-                          (widget.value - widget.step)
-                              .clamp(widget.min, widget.max)
-                              .toInt(),
-                        );
-                      },
+                    : () => _changeByStep(-widget.step),
               ),
               Container(
-                width: 50,
+                width: 72,
                 alignment: Alignment.center,
-                child: Text(
-                  widget.value.toString(),
-                  style: context.text.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                child: TextFormField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 8),
                   ),
+                  style: context.text.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  onFieldSubmitted: (_) => _commitText(),
+                  onEditingComplete: _commitText,
                 ),
               ),
               IconButton(
@@ -97,18 +127,36 @@ class _StepperNumberFieldState extends State<StepperNumberField> {
                 icon: const Icon(Icons.add, size: 18),
                 onPressed: widget.value >= widget.max
                     ? null
-                    : () {
-                        widget.onChanged(
-                          (widget.value + widget.step)
-                              .clamp(widget.min, widget.max)
-                              .toInt(),
-                        );
-                      },
+                    : () => _changeByStep(widget.step),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _commitIfBlurred() {
+    if (!_focusNode.hasFocus) _commitText();
+  }
+
+  void _commitText() {
+    final parsed = int.tryParse(_controller.text.trim());
+    final next = (parsed ?? widget.value).clamp(widget.min, widget.max).toInt();
+    _setControllerValue(next);
+    if (next != widget.value) widget.onChanged(next);
+  }
+
+  void _changeByStep(int delta) {
+    final next = (widget.value + delta).clamp(widget.min, widget.max).toInt();
+    _setControllerValue(next);
+    if (next != widget.value) widget.onChanged(next);
+  }
+
+  void _setControllerValue(int value) {
+    _controller.text = value.toString();
+    _controller.selection = TextSelection.collapsed(
+      offset: _controller.text.length,
     );
   }
 }

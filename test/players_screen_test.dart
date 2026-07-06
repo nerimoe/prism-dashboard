@@ -25,14 +25,43 @@ void main() {
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
     expect(find.text('实存余额'), findsWidgets);
+    expect(find.textContaining('已过期'), findsOneWidget);
+    expect(find.textContaining('2026-07-05'), findsWidgets);
     await tester.ensureVisible(find.text('资产流水'));
     expect(find.textContaining('迁移记录'), findsOneWidget);
+    expect(find.textContaining('2026-07-05'), findsWidgets);
     expect(find.textContaining('legacy.UPDATE'), findsNothing);
     expect(find.text('QQ 826225045'), findsWidgets);
+    expect(find.text('兑换记录'), findsOneWidget);
+    expect(find.text('月饼礼物'), findsOneWidget);
+    expect(find.textContaining('WELCOME-USED'), findsOneWidget);
+    expect(find.textContaining('2026-07-05 12:34'), findsWidgets);
     expect(find.text('计时记录'), findsOneWidget);
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
     expect(find.text('2 项'), findsOneWidget);
+  });
+
+  testWidgets('opens ledger and session record detail pages', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.textContaining('迁移记录'));
+    await tester.tap(find.textContaining('迁移记录'));
+    await tester.pumpAndSettle();
+    expect(find.text('流水详情'), findsOneWidget);
+    expect(find.text('关联业务'), findsOneWidget);
+    expect(find.text('staff-1'), findsOneWidget);
+    await tester.tap(find.byTooltip('关闭').last);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('音游区间').last);
+    await tester.tap(find.text('音游区间').last);
+    await tester.pumpAndSettle();
+    expect(find.text('计时详情'), findsOneWidget);
+    expect(find.text('计时时长'), findsOneWidget);
+    expect(find.text('45 分钟'), findsOneWidget);
   });
 
   testWidgets('filters player list by migrated QQ binding', (tester) async {
@@ -252,8 +281,8 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'assetCode': 'paid',
           'assetName': '实存余额',
           'quantity': 120,
-          'activeAt': null,
-          'expiresAt': null,
+          'activeAt': '2026-07-01T00:00:00.000Z',
+          'expiresAt': '2026-07-04T23:59:00.000Z',
           'metadata': null,
         },
       ],
@@ -300,11 +329,27 @@ Map<String, dynamic> _responseFor(http.Request request) {
       ],
     };
   }
+  if (path == '/rpc/staff/players/player-a/redeem-records') {
+    return {
+      'redeemRecords': [
+        {
+          'codeId': 'used-1',
+          'code': 'WELCOME-USED',
+          'presentId': 'present-1',
+          'presentName': '月饼礼物',
+          'redeemedAt': '2026-07-05T12:34:00.000+08:00',
+        },
+      ],
+    };
+  }
   if (path == '/rpc/staff/players/player-b/assets') {
     return {'holdings': [], 'ledgerEntries': []};
   }
   if (path == '/rpc/staff/players/player-b/sessions/history') {
     return {'sessions': []};
+  }
+  if (path == '/rpc/staff/players/player-b/redeem-records') {
+    return {'redeemRecords': []};
   }
   return {};
 }

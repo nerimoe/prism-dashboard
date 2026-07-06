@@ -92,6 +92,11 @@ void main() {
     expect(find.text('2 小时 08 分'), findsWidgets);
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
+    expect(
+      find.textContaining(_expectedDateTime('2026-07-04T10:35:00.000Z')),
+      findsWidgets,
+    );
+    expect(find.textContaining('10:35 开始'), findsNothing);
     expect(find.textContaining('最早入场'), findsNothing);
     expect(find.textContaining('一名玩家只占一行'), findsNothing);
     expect(find.textContaining('平级展示'), findsNothing);
@@ -112,6 +117,13 @@ void main() {
           if (request.url.path == '/rpc/staff/live-players') {
             return http.Response(
               jsonEncode(_livePlayersJson),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path == '/rpc/staff/pricing-configs') {
+            return http.Response(
+              jsonEncode(_pricingConfigsJson),
               200,
               headers: {'content-type': 'application/json'},
             );
@@ -173,6 +185,13 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/pricing-configs') {
+          return http.Response(
+            jsonEncode(_pricingConfigsJson),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -196,6 +215,8 @@ void main() {
     await tester.tap(find.text('给玩家加开计时'));
     await tester.pumpAndSettle();
     expect(find.text('计时名称'), findsOneWidget);
+    expect(find.text('使用的计费方案'), findsOneWidget);
+    expect(find.text('音游标准计费'), findsOneWidget);
     await tester.enterText(find.byType(TextField), '四口麻将');
     await tester.tap(find.text('开始计时'));
     await tester.pumpAndSettle();
@@ -211,7 +232,10 @@ void main() {
           request.method == 'POST' &&
           request.url.path == '/rpc/staff/players/player-1/session/start',
     );
-    expect(jsonDecode(start.body), {'label': '四口麻将'});
+    expect(jsonDecode(start.body), {
+      'label': '四口麻将',
+      'pricingConfigIds': ['pricing-music'],
+    });
     expect(
       requests.any(
         (request) =>
@@ -312,6 +336,41 @@ const Map<String, dynamic> _livePlayersJson = {
           'status': 'active',
         },
       ],
+    },
+  ],
+};
+
+String _expectedDateTime(String iso) {
+  final local = DateTime.parse(iso).toLocal();
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
+}
+
+const Map<String, dynamic> _pricingConfigsJson = {
+  'pricingConfigs': [
+    {
+      'id': 'pricing-music',
+      'kind': 'time.priority',
+      'name': '音游标准计费',
+      'enabled': true,
+      'status': 'active',
+      'provider': {
+        'id': 'time.music',
+        'rules': [
+          {
+            'id': 'rule-day',
+            'label': '日间',
+            'priority': 0,
+            'timeRange': {'start': '10:00', 'end': '22:00'},
+            'pricing': {
+              'unitMinutes': 30,
+              'unitPrice': 10,
+              'roundGraceMinutes': 5,
+              'priceCap': 80,
+            },
+          },
+        ],
+      },
     },
   ],
 };

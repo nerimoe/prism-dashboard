@@ -99,12 +99,26 @@ void main() {
         ),
       );
 
-      expect(find.text('5'), findsOneWidget);
+      expect(_numberInputValue(tester), '5');
 
-      // Tap subtract (5 - 2 = 3)
+      await tester.enterText(find.byType(TextFormField), '6');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(_numberInputValue(tester), '6');
+
+      await tester.enterText(find.byType(TextFormField), '20');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(_numberInputValue(tester), '7');
+
+      // Tap subtract after clamping direct input to the maximum.
       await tester.tap(find.byIcon(Icons.remove));
       await tester.pumpAndSettle();
-      expect(find.text('3'), findsOneWidget);
+      expect(_numberInputValue(tester), '5');
+
+      await tester.tap(find.byIcon(Icons.remove));
+      await tester.pumpAndSettle();
+      expect(_numberInputValue(tester), '3');
 
       // Subtract is now at minimum 3, verify subtract button is disabled
       final subtractBtn = tester.widget<IconButton>(
@@ -118,12 +132,12 @@ void main() {
       // Tap add (3 + 2 = 5)
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
-      expect(find.text('5'), findsOneWidget);
+      expect(_numberInputValue(tester), '5');
 
       // Tap add again (5 + 2 = 7)
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
-      expect(find.text('7'), findsOneWidget);
+      expect(_numberInputValue(tester), '7');
 
       // Add is now at maximum 7, verify add button is disabled
       final addBtn = tester.widget<IconButton>(
@@ -243,4 +257,9 @@ void main() {
       },
     );
   });
+}
+
+String _numberInputValue(WidgetTester tester) {
+  final field = tester.widget<TextFormField>(find.byType(TextFormField));
+  return field.controller?.text ?? '';
 }
