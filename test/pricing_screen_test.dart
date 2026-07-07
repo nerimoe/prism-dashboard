@@ -203,6 +203,41 @@ void main() {
     expect(body['provider']['rules'][1]['id'], 'night');
   });
 
+  testWidgets('new pricing plan button opens an empty draft and posts create', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('新建方案'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('新建计费方案'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('保存方案'));
+    await tester.tap(find.text('保存方案'));
+    await tester.pumpAndSettle();
+
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/pricing-configs',
+      ),
+      true,
+    );
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'PATCH' &&
+            request.url.path == '/rpc/staff/pricing-configs/pricing-1',
+      ),
+      false,
+    );
+  });
+
   testWidgets('saved pricing rules are archived instead of removed', (
     tester,
   ) async {

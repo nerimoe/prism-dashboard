@@ -23,6 +23,7 @@ class PricingScreen extends ConsumerStatefulWidget {
 class _PricingScreenState extends ConsumerState<PricingScreen> {
   late Future<_PricingData> _future;
   String? _selectedId;
+  bool _creatingDraft = false;
   String? _message;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
@@ -40,13 +41,16 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
       builder: (context, snapshot) {
         final data =
             snapshot.data ?? const _PricingData(configs: [], extensions: []);
-        final selected = _selectedConfig(data.configs);
+        final selected = _creatingDraft ? null : _selectedConfig(data.configs);
         return AdminWorkspace(
           title: '计费配置',
           subtitle: '管理入场计时、店内附加收费和每天的营业计费时段。',
           actions: [
             OutlinedButton.icon(
-              onPressed: () => setState(() => _selectedId = null),
+              onPressed: () => setState(() {
+                _creatingDraft = true;
+                _selectedId = null;
+              }),
               icon: const Icon(Icons.add),
               label: const Text('新建方案'),
             ),
@@ -89,8 +93,10 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                           configs: data.configs,
                           selectedId: selected?.id,
                           extensionCount: data.extensions.length,
-                          onSelect: (config) =>
-                              setState(() => _selectedId = config.id),
+                          onSelect: (config) => setState(() {
+                            _creatingDraft = false;
+                            _selectedId = config.id;
+                          }),
                           onArchive: _archiveConfig,
                           onRestore: _restoreConfig,
                         ),
@@ -102,6 +108,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                           onSaved: (message, savedId) {
                             setState(() {
                               _message = message;
+                              _creatingDraft = false;
                               _selectedId = savedId ?? _selectedId;
                               _future = _load();
                             });
@@ -153,6 +160,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
   Future<void> _archiveConfig(PricingConfig config) async {
     await _api.archivePricingConfig(config.id);
     setState(() {
+      _creatingDraft = false;
       _message = '计费方案已归档。';
       _future = _load();
     });
@@ -161,6 +169,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
   Future<void> _restoreConfig(PricingConfig config) async {
     await _api.restorePricingConfig(config.id);
     setState(() {
+      _creatingDraft = false;
       _message = '计费方案已恢复。';
       _future = _load();
     });
