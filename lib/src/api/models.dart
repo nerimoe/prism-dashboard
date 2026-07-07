@@ -432,6 +432,8 @@ abstract class DeviceState with _$DeviceState {
     required String deviceId,
     required String label,
     required String type,
+    @JsonKey(readValue: readTargetKind) @Default('facility') String targetKind,
+    String? executorKind,
     required String status,
     String? state,
     Map<String, dynamic>? metadata,
@@ -444,15 +446,33 @@ abstract class DeviceState with _$DeviceState {
 }
 
 @freezed
+abstract class MachineConnection with _$MachineConnection {
+  const factory MachineConnection({
+    required String machineId,
+    required String status,
+    @Default([]) List<String> capabilities,
+    required DateTime connectedAt,
+    required DateTime lastSeenAt,
+    DateTime? disconnectedAt,
+  }) = _MachineConnection;
+
+  factory MachineConnection.fromJson(Map<String, dynamic> json) =>
+      _$MachineConnectionFromJson(json);
+}
+
+@freezed
 abstract class DeviceCommand with _$DeviceCommand {
   const factory DeviceCommand({
     required String id,
     @JsonKey(readValue: readCommandType) required String commandType,
     required String deviceId,
+    @JsonKey(readValue: readTargetKind) @Default('facility') String targetKind,
+    String? executorKind,
     @JsonKey(readValue: readRequester) required String requester,
     String? playerId,
     String? staffId,
     required String status,
+    Map<String, dynamic>? payload,
     @JsonKey(readValue: readCreatedAt) required DateTime createdAt,
     DateTime? ackedAt,
     DateTime? expiredAt,
@@ -660,6 +680,8 @@ Object? readItemId(Map json, String key) => json[key] ?? json['businessItemId'];
 Object? readItemName(Map json, String key) =>
     json[key] ?? json['businessItemName'];
 Object? readCommandType(Map json, String key) => json[key] ?? json['type'];
+Object? readTargetKind(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['target', 'kind']);
 Object? readRequester(Map json, String key) =>
     json[key] ?? json['requester'] ?? json['staffId'] ?? json['playerId'];
 Object? readCreatedAt(Map json, String key) => json[key] ?? json['requestedAt'];

@@ -32,7 +32,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   Widget build(BuildContext context) {
     return AdminWorkspace(
       title: '设备看板',
-      subtitle: '查看门禁、投币控制器、读卡器和网关的在线状态与指令处理记录。',
+      subtitle: '查看设施设备、游戏机器、机器软件在线状态与最近执行记录。',
       actions: [
         IconButton.filledTonal(
           tooltip: '刷新',
@@ -60,9 +60,56 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             children: [
               _DeviceSummary(data: data),
               const SizedBox(height: 16),
-              _DeviceStatePanel(devices: data.devices),
-              const SizedBox(height: 16),
-              _CommandAuditPanel(commands: data.commands),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 1080;
+                  final deviceGroups = Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _DeviceGroupPanel(
+                        title: '设施设备',
+                        subtitle: '门禁、电源、空调和灯光由 Home Assistant 或设施网关处理。',
+                        icon: Icons.home_repair_service_outlined,
+                        devices: data.facilityDevices,
+                        emptyTitle: '暂无设施上报',
+                        emptyMessage: '配置 Home Assistant 后，门禁、电源和空调状态会显示在这里。',
+                      ),
+                      const SizedBox(height: 16),
+                      _DeviceGroupPanel(
+                        title: '游戏机器',
+                        subtitle: '投币、Aime 和机器软件连接状态。',
+                        icon: Icons.sports_esports_outlined,
+                        machines: data.gameMachines,
+                        emptyTitle: '暂无机器连接',
+                        emptyMessage: '机器软件连接 WebSocket 后，会在这里显示在线状态和最近心跳。',
+                      ),
+                    ],
+                  );
+                  final commandPanel = _CommandAuditPanel(
+                    commands: data.commands,
+                  );
+
+                  if (compact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        deviceGroups,
+                        const SizedBox(height: 16),
+                        commandPanel,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 3, child: deviceGroups),
+                      const SizedBox(width: 16),
+                      Expanded(flex: 2, child: commandPanel),
+                    ],
+                  );
+                },
+              ),
             ],
           );
         },
@@ -73,11 +120,13 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   Future<_DevicesData> _load() async {
     final results = await Future.wait<Object>([
       _api.listDeviceStates(),
+      _api.listMachineConnections(),
       _api.listDeviceCommands(),
     ]);
     return _DevicesData(
       devices: results[0] as List<DeviceState>,
-      commands: results[1] as List<DeviceCommand>,
+      machines: results[1] as List<MachineConnection>,
+      commands: results[2] as List<DeviceCommand>,
     );
   }
 
@@ -98,20 +147,20 @@ class _DeviceSummary extends StatelessWidget {
         final compact = constraints.maxWidth < 900;
         final children = [
           MetricTile(
-            label: '在线设备',
-            value: data.onlineCount.toString(),
+            label: '在线机器',
+            value: data.onlineMachineCount.toString(),
             icon: Icons.check_circle_outline,
             tone: Colors.green,
           ),
           MetricTile(
-            label: '离线设备',
-            value: data.offlineCount.toString(),
+            label: '离线机器',
+            value: data.offlineMachineCount.toString(),
             icon: Icons.power_settings_new,
             tone: Colors.red,
           ),
           MetricTile(
-            label: '需要关注',
-            value: data.attentionCount.toString(),
+            label: '设施异常',
+            value: data.facilityAttentionCount.toString(),
             icon: Icons.warning_amber,
             tone: Colors.orange,
           ),
@@ -148,32 +197,48 @@ class _DeviceSummary extends StatelessWidget {
   }
 }
 
-class _DeviceStatePanel extends StatelessWidget {
-  const _DeviceStatePanel({required this.devices});
+class _DeviceGroupPanel extends StatelessWidget {
+  const _DeviceGroupPanel({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.emptyTitle,
+    required this.emptyMessage,
+    this.devices = const [],
+    this.machines = const [],
+  });
 
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String emptyTitle;
+  final String emptyMessage;
   final List<DeviceState> devices;
+  final List<MachineConnection> machines;
 
   @override
   Widget build(BuildContext context) {
-    if (devices.isEmpty) {
-      return const PrismPanel(
-        title: '设备状态',
-        child: EmptyState(
-          icon: Icons.devices,
-          title: '暂无设备上报',
-          message: '网关连接后会在这里显示最新状态。',
-        ),
+    if (devices.isEmpty && machines.isEmpty) {
+      return PrismPanel(
+        title: title,
+        subtitle: subtitle,
+        child: EmptyState(icon: icon, title: emptyTitle, message: emptyMessage),
       );
     }
 
     return PrismPanel(
-      title: '设备状态',
-      subtitle: '${devices.length} 台设备',
+      title: title,
+      subtitle: subtitle,
       child: Column(
         children: [
           for (final device in devices) ...[
-            _DeviceRow(device: device),
-            if (device != devices.last) const Divider(height: 24),
+            _DeviceCard(device: device),
+            if (device != devices.last || machines.isNotEmpty)
+              const SizedBox(height: 12),
+          ],
+          for (final machine in machines) ...[
+            _MachineCard(machine: machine),
+            if (machine != machines.last) const SizedBox(height: 12),
           ],
         ],
       ),
@@ -181,48 +246,159 @@ class _DeviceStatePanel extends StatelessWidget {
   }
 }
 
-class _DeviceRow extends StatelessWidget {
-  const _DeviceRow({required this.device});
+class _MachineCard extends StatelessWidget {
+  const _MachineCard({required this.machine});
+
+  final MachineConnection machine;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.sports_esports_outlined,
+                  color: colors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      machine.machineId,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '机器软件 · ${machine.capabilities.isEmpty ? '暂无可执行能力' : '可执行 ${machine.capabilities.length} 项'}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _DeviceStatePill(status: machine.status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _InfoChip(
+                icon: Icons.schedule,
+                label: '最后心跳 ${formatAdminDateTime(machine.lastSeenAt)}',
+              ),
+              for (final capability in machine.capabilities)
+                _InfoChip(
+                  icon: Icons.bolt_outlined,
+                  label: capabilityLabel(capability),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeviceCard extends StatelessWidget {
+  const _DeviceCard({required this.device});
 
   final DeviceState device;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        SizedBox(
-          width: 240,
-          child: Column(
+    final colors = Theme.of(context).colorScheme;
+    final isMachine = isGameMachine(device);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                device.label,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  isMachine
+                      ? Icons.sports_esports_outlined
+                      : Icons.home_repair_service_outlined,
+                  color: colors.primary,
+                ),
               ),
-              const SizedBox(height: 4),
-              Text(deviceTypeLabel(device.type)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      device.label,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${deviceTypeLabel(device.type)} · ${executorLabel(device)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _DeviceStatePill(status: device.status),
             ],
           ),
-        ),
-        SizedBox(width: 120, child: _DeviceStatePill(status: device.status)),
-        SizedBox(width: 160, child: Text(currentStateLabel(device.state))),
-        SizedBox(
-          width: 190,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Text('上报时间'),
-              DateTimeText(value: device.reportedAt),
+              _InfoChip(icon: Icons.memory_outlined, label: device.deviceId),
+              _InfoChip(
+                icon: Icons.info_outline,
+                label: currentStateLabel(device.state),
+              ),
+              _InfoChip(
+                icon: Icons.schedule,
+                label: '上次心跳 ${formatAdminDateTime(device.reportedAt)}',
+              ),
             ],
           ),
-        ),
-        SizedBox(width: 180, child: Text('来源 ${device.reportedBy}')),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -236,7 +412,7 @@ class _CommandAuditPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     if (commands.isEmpty) {
       return const PrismPanel(
-        title: '设备指令',
+        title: '指令记录',
         child: EmptyState(
           icon: Icons.receipt_long,
           title: '暂无指令记录',
@@ -246,13 +422,13 @@ class _CommandAuditPanel extends StatelessWidget {
     }
 
     return PrismPanel(
-      title: '设备指令',
-      subtitle: '${commands.length} 条记录',
+      title: '指令记录',
+      subtitle: '${commands.length} 条最近记录',
       child: Column(
         children: [
-          for (final command in commands) ...[
+          for (final command in commands.take(12)) ...[
             _CommandRow(command: command),
-            if (command != commands.last) const Divider(height: 24),
+            if (command != commands.take(12).last) const Divider(height: 20),
           ],
         ],
       ),
@@ -267,41 +443,100 @@ class _CommandRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
+    final colors = Theme.of(context).colorScheme;
+    final failure = commandFailureLabel(command);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: 160,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                commandTypeLabel(command.commandType),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    commandTypeLabel(command.commandType),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${targetLabel(command)} · ${command.deviceId}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(command.deviceId),
-            ],
-          ),
+            ),
+            _CommandStatusPill(status: command.status),
+          ],
         ),
-        SizedBox(width: 160, child: Text(requesterLabel(command))),
-        SizedBox(width: 110, child: _CommandStatusPill(status: command.status)),
-        SizedBox(
-          width: 190,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('发起时间'),
-              DateTimeText(value: command.createdAt),
-            ],
-          ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _InfoChip(
+              icon: Icons.person_outline,
+              label: requesterLabel(command),
+            ),
+            _InfoChip(
+              icon: Icons.schedule,
+              label: '发起 ${formatAdminDateTime(command.createdAt)}',
+            ),
+            _InfoChip(
+              icon: Icons.task_alt,
+              label: commandFinishedLabel(command),
+            ),
+          ],
         ),
-        SizedBox(width: 190, child: Text(commandFinishedLabel(command))),
+        if (failure != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            failure,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.error),
+          ),
+        ],
       ],
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colors.onSurfaceVariant),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -338,16 +573,25 @@ class _CommandStatusPill extends StatelessWidget {
 }
 
 class _DevicesData {
-  const _DevicesData({required this.devices, required this.commands});
+  const _DevicesData({
+    required this.devices,
+    required this.machines,
+    required this.commands,
+  });
 
   final List<DeviceState> devices;
+  final List<MachineConnection> machines;
   final List<DeviceCommand> commands;
 
-  int get onlineCount =>
-      devices.where((device) => device.status == 'online').length;
-  int get offlineCount =>
-      devices.where((device) => device.status == 'offline').length;
-  int get attentionCount => devices
+  List<DeviceState> get facilityDevices =>
+      devices.where((device) => !isGameMachine(device)).toList();
+  List<MachineConnection> get gameMachines => machines;
+
+  int get onlineMachineCount =>
+      gameMachines.where((machine) => machine.status == 'online').length;
+  int get offlineMachineCount =>
+      gameMachines.where((machine) => machine.status != 'online').length;
+  int get facilityAttentionCount => facilityDevices
       .where(
         (device) => device.status == 'degraded' || device.status == 'unhealthy',
       )
@@ -355,27 +599,39 @@ class _DevicesData {
   int get pendingCommandCount =>
       commands.where((command) => command.status == 'pending').length;
 
-  factory _DevicesData.empty() => const _DevicesData(devices: [], commands: []);
+  factory _DevicesData.empty() =>
+      const _DevicesData(devices: [], machines: [], commands: []);
 }
 
 String deviceTypeLabel(String value) {
   return switch (value) {
-    'door' || 'gate' => '门禁',
+    'door.open' || 'door' || 'gate' => '门禁',
     'coin' => '投币',
-    'scan' || 'reader' => '读卡器',
+    'aime.scan' || 'scan' || 'reader' => 'Aime 读卡',
     'gateway' => '网关',
-    'power' => '电源',
+    'power.on' || 'power.off' || 'power' => '电源',
+    'ac.set_temperature' => '空调',
     _ => '设备',
   };
 }
 
 String commandTypeLabel(String value) {
   return switch (value) {
-    'door' => '门禁',
+    'door.open' || 'door' => '打开门禁',
     'coin' => '投币',
-    'scan' => '扫码',
-    'power' => '电源',
+    'aime.scan' || 'scan' => 'Aime 扫卡',
+    'power.on' => '打开电源',
+    'power.off' => '关闭电源',
+    'ac.set_temperature' => '调整空调',
     _ => '设备操作',
+  };
+}
+
+String capabilityLabel(String value) {
+  return switch (value) {
+    'coin' => '投币',
+    'aime.scan' || 'scan' => 'Aime 扫卡',
+    _ => value,
   };
 }
 
@@ -400,10 +656,47 @@ String requesterLabel(DeviceCommand command) {
 
 String commandFinishedLabel(DeviceCommand command) {
   if (command.ackedAt != null) {
-    return '确认：${formatAdminDateTime(command.ackedAt)}';
+    return '完成 ${formatAdminDateTime(command.ackedAt)}';
   }
   if (command.expiredAt != null) {
-    return '超时：${formatAdminDateTime(command.expiredAt)}';
+    return '失败 ${formatAdminDateTime(command.expiredAt)}';
   }
-  return '等待设备响应';
+  return '等待执行';
+}
+
+bool isGameMachine(DeviceState device) =>
+    device.targetKind == 'game_machine' ||
+    device.executorKind == 'machine_ws' ||
+    device.type == 'coin' ||
+    device.type == 'aime.scan' ||
+    device.type == 'scan';
+
+String executorLabel(DeviceState device) {
+  if (device.executorKind == 'machine_ws' || isGameMachine(device)) {
+    return '机器软件';
+  }
+  if (device.executorKind == 'home_assistant') return 'Home Assistant';
+  return '设施网关';
+}
+
+String targetLabel(DeviceCommand command) {
+  if (command.targetKind == 'game_machine' ||
+      command.executorKind == 'machine_ws') {
+    return '游戏机器';
+  }
+  return '设施设备';
+}
+
+String? commandFailureLabel(DeviceCommand command) {
+  final payload = command.payload;
+  if (payload == null) return null;
+  final machineAck = payload['machineAck'];
+  if (machineAck is Map && machineAck['message'] is String) {
+    return machineAck['message'] as String;
+  }
+  final executorFailure = payload['executorFailure'];
+  if (executorFailure is Map && executorFailure['message'] is String) {
+    return executorFailure['message'] as String;
+  }
+  return null;
 }

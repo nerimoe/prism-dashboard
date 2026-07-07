@@ -762,6 +762,14 @@ class PrismApiClient {
     );
   }
 
+  Future<List<MachineConnection>> listMachineConnections() async {
+    final json = await get('/rpc/staff/machine-connections');
+    return listOf(
+      json['machineConnections'] ?? json['machines'],
+      MachineConnection.fromJson,
+    );
+  }
+
   Future<List<DeviceCommand>> listDeviceCommands() async {
     final json = await get('/rpc/staff/device-commands');
     return listOf(json['commands'], DeviceCommand.fromJson);

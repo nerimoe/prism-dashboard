@@ -166,7 +166,8 @@ void main() {
     await tester.tap(find.text('设备看板').first);
     await tester.pumpAndSettle();
     expect(find.text('设备看板'), findsWidgets);
-    expect(find.text('暂无设备上报'), findsOneWidget);
+    expect(find.text('暂无设施上报'), findsOneWidget);
+    expect(find.text('暂无机器连接'), findsOneWidget);
     _expectSingleSidebarSelection();
 
     // 8. Navigate to 计费配置

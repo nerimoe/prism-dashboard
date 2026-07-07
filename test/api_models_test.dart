@@ -377,6 +377,23 @@ void main() {
       expect(model.metadata?['battery'], 92);
     });
 
+    test('MachineConnection parses correctly', () {
+      final json = {
+        'machineId': 'maimai-dx-1',
+        'status': 'online',
+        'capabilities': ['coin', 'aime.scan'],
+        'connectedAt': '2026-07-04T12:00:00.000Z',
+        'lastSeenAt': '2026-07-04T12:35:00.000Z',
+        'disconnectedAt': null,
+      };
+      final model = MachineConnection.fromJson(json);
+      expect(model.machineId, 'maimai-dx-1');
+      expect(model.status, 'online');
+      expect(model.capabilities, ['coin', 'aime.scan']);
+      expect(model.lastSeenAt.toUtc(), DateTime.utc(2026, 7, 4, 12, 35));
+      expect(model.disconnectedAt, isNull);
+    });
+
     test('DeviceCommand parses correctly', () {
       final json = {
         'id': 'cmd-1',

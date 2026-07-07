@@ -640,6 +640,8 @@ _DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => _DeviceState(
   deviceId: json['deviceId'] as String,
   label: json['label'] as String,
   type: json['type'] as String,
+  targetKind: readTargetKind(json, 'targetKind') as String? ?? 'facility',
+  executorKind: json['executorKind'] as String?,
   status: json['status'] as String,
   state: json['state'] as String?,
   metadata: json['metadata'] as Map<String, dynamic>?,
@@ -652,6 +654,8 @@ Map<String, dynamic> _$DeviceStateToJson(_DeviceState instance) =>
       'deviceId': instance.deviceId,
       'label': instance.label,
       'type': instance.type,
+      'targetKind': instance.targetKind,
+      'executorKind': instance.executorKind,
       'status': instance.status,
       'state': instance.state,
       'metadata': instance.metadata,
@@ -659,15 +663,44 @@ Map<String, dynamic> _$DeviceStateToJson(_DeviceState instance) =>
       'reportedBy': instance.reportedBy,
     };
 
+_MachineConnection _$MachineConnectionFromJson(Map<String, dynamic> json) =>
+    _MachineConnection(
+      machineId: json['machineId'] as String,
+      status: json['status'] as String,
+      capabilities:
+          (json['capabilities'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      connectedAt: DateTime.parse(json['connectedAt'] as String),
+      lastSeenAt: DateTime.parse(json['lastSeenAt'] as String),
+      disconnectedAt: json['disconnectedAt'] == null
+          ? null
+          : DateTime.parse(json['disconnectedAt'] as String),
+    );
+
+Map<String, dynamic> _$MachineConnectionToJson(_MachineConnection instance) =>
+    <String, dynamic>{
+      'machineId': instance.machineId,
+      'status': instance.status,
+      'capabilities': instance.capabilities,
+      'connectedAt': instance.connectedAt.toIso8601String(),
+      'lastSeenAt': instance.lastSeenAt.toIso8601String(),
+      'disconnectedAt': instance.disconnectedAt?.toIso8601String(),
+    };
+
 _DeviceCommand _$DeviceCommandFromJson(Map<String, dynamic> json) =>
     _DeviceCommand(
       id: json['id'] as String,
       commandType: readCommandType(json, 'commandType') as String,
       deviceId: json['deviceId'] as String,
+      targetKind: readTargetKind(json, 'targetKind') as String? ?? 'facility',
+      executorKind: json['executorKind'] as String?,
       requester: readRequester(json, 'requester') as String,
       playerId: json['playerId'] as String?,
       staffId: json['staffId'] as String?,
       status: json['status'] as String,
+      payload: json['payload'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(readCreatedAt(json, 'createdAt') as String),
       ackedAt: json['ackedAt'] == null
           ? null
@@ -682,10 +715,13 @@ Map<String, dynamic> _$DeviceCommandToJson(_DeviceCommand instance) =>
       'id': instance.id,
       'commandType': instance.commandType,
       'deviceId': instance.deviceId,
+      'targetKind': instance.targetKind,
+      'executorKind': instance.executorKind,
       'requester': instance.requester,
       'playerId': instance.playerId,
       'staffId': instance.staffId,
       'status': instance.status,
+      'payload': instance.payload,
       'createdAt': instance.createdAt.toIso8601String(),
       'ackedAt': instance.ackedAt?.toIso8601String(),
       'expiredAt': instance.expiredAt?.toIso8601String(),

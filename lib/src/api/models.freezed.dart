@@ -6903,7 +6903,7 @@ as DateTime?,
 /// @nodoc
 mixin _$DeviceState {
 
- String get deviceId; String get label; String get type; String get status; String? get state; Map<String, dynamic>? get metadata; DateTime get reportedAt; String get reportedBy;
+ String get deviceId; String get label; String get type;@JsonKey(readValue: readTargetKind) String get targetKind; String? get executorKind; String get status; String? get state; Map<String, dynamic>? get metadata; DateTime get reportedAt; String get reportedBy;
 /// Create a copy of DeviceState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6916,16 +6916,16 @@ $DeviceStateCopyWith<DeviceState> get copyWith => _$DeviceStateCopyWithImpl<Devi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceState&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.state, state) || other.state == state)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.reportedAt, reportedAt) || other.reportedAt == reportedAt)&&(identical(other.reportedBy, reportedBy) || other.reportedBy == reportedBy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceState&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.targetKind, targetKind) || other.targetKind == targetKind)&&(identical(other.executorKind, executorKind) || other.executorKind == executorKind)&&(identical(other.status, status) || other.status == status)&&(identical(other.state, state) || other.state == state)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.reportedAt, reportedAt) || other.reportedAt == reportedAt)&&(identical(other.reportedBy, reportedBy) || other.reportedBy == reportedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceId,label,type,status,state,const DeepCollectionEquality().hash(metadata),reportedAt,reportedBy);
+int get hashCode => Object.hash(runtimeType,deviceId,label,type,targetKind,executorKind,status,state,const DeepCollectionEquality().hash(metadata),reportedAt,reportedBy);
 
 @override
 String toString() {
-  return 'DeviceState(deviceId: $deviceId, label: $label, type: $type, status: $status, state: $state, metadata: $metadata, reportedAt: $reportedAt, reportedBy: $reportedBy)';
+  return 'DeviceState(deviceId: $deviceId, label: $label, type: $type, targetKind: $targetKind, executorKind: $executorKind, status: $status, state: $state, metadata: $metadata, reportedAt: $reportedAt, reportedBy: $reportedBy)';
 }
 
 
@@ -6936,7 +6936,7 @@ abstract mixin class $DeviceStateCopyWith<$Res>  {
   factory $DeviceStateCopyWith(DeviceState value, $Res Function(DeviceState) _then) = _$DeviceStateCopyWithImpl;
 @useResult
 $Res call({
- String deviceId, String label, String type, String status, String? state, Map<String, dynamic>? metadata, DateTime reportedAt, String reportedBy
+ String deviceId, String label, String type,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind, String status, String? state, Map<String, dynamic>? metadata, DateTime reportedAt, String reportedBy
 });
 
 
@@ -6953,12 +6953,14 @@ class _$DeviceStateCopyWithImpl<$Res>
 
 /// Create a copy of DeviceState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? deviceId = null,Object? label = null,Object? type = null,Object? status = null,Object? state = freezed,Object? metadata = freezed,Object? reportedAt = null,Object? reportedBy = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? deviceId = null,Object? label = null,Object? type = null,Object? targetKind = null,Object? executorKind = freezed,Object? status = null,Object? state = freezed,Object? metadata = freezed,Object? reportedAt = null,Object? reportedBy = null,}) {
   return _then(_self.copyWith(
 deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,state: freezed == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,reportedAt: null == reportedAt ? _self.reportedAt : reportedAt // ignore: cast_nullable_to_non_nullable
@@ -7048,10 +7050,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String deviceId,  String label,  String type,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String deviceId,  String label,  String type, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceState() when $default != null:
-return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
+return $default(_that.deviceId,_that.label,_that.type,_that.targetKind,_that.executorKind,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
   return orElse();
 
 }
@@ -7069,10 +7071,10 @@ return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String deviceId,  String label,  String type,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String deviceId,  String label,  String type, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceState():
-return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
+return $default(_that.deviceId,_that.label,_that.type,_that.targetKind,_that.executorKind,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7089,10 +7091,10 @@ return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String deviceId,  String label,  String type,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String deviceId,  String label,  String type, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind,  String status,  String? state,  Map<String, dynamic>? metadata,  DateTime reportedAt,  String reportedBy)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceState() when $default != null:
-return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
+return $default(_that.deviceId,_that.label,_that.type,_that.targetKind,_that.executorKind,_that.status,_that.state,_that.metadata,_that.reportedAt,_that.reportedBy);case _:
   return null;
 
 }
@@ -7104,12 +7106,14 @@ return $default(_that.deviceId,_that.label,_that.type,_that.status,_that.state,_
 @JsonSerializable()
 
 class _DeviceState implements DeviceState {
-  const _DeviceState({required this.deviceId, required this.label, required this.type, required this.status, this.state, final  Map<String, dynamic>? metadata, required this.reportedAt, required this.reportedBy}): _metadata = metadata;
+  const _DeviceState({required this.deviceId, required this.label, required this.type, @JsonKey(readValue: readTargetKind) this.targetKind = 'facility', this.executorKind, required this.status, this.state, final  Map<String, dynamic>? metadata, required this.reportedAt, required this.reportedBy}): _metadata = metadata;
   factory _DeviceState.fromJson(Map<String, dynamic> json) => _$DeviceStateFromJson(json);
 
 @override final  String deviceId;
 @override final  String label;
 @override final  String type;
+@override@JsonKey(readValue: readTargetKind) final  String targetKind;
+@override final  String? executorKind;
 @override final  String status;
 @override final  String? state;
  final  Map<String, dynamic>? _metadata;
@@ -7137,16 +7141,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceState&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.state, state) || other.state == state)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.reportedAt, reportedAt) || other.reportedAt == reportedAt)&&(identical(other.reportedBy, reportedBy) || other.reportedBy == reportedBy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceState&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.label, label) || other.label == label)&&(identical(other.type, type) || other.type == type)&&(identical(other.targetKind, targetKind) || other.targetKind == targetKind)&&(identical(other.executorKind, executorKind) || other.executorKind == executorKind)&&(identical(other.status, status) || other.status == status)&&(identical(other.state, state) || other.state == state)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.reportedAt, reportedAt) || other.reportedAt == reportedAt)&&(identical(other.reportedBy, reportedBy) || other.reportedBy == reportedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceId,label,type,status,state,const DeepCollectionEquality().hash(_metadata),reportedAt,reportedBy);
+int get hashCode => Object.hash(runtimeType,deviceId,label,type,targetKind,executorKind,status,state,const DeepCollectionEquality().hash(_metadata),reportedAt,reportedBy);
 
 @override
 String toString() {
-  return 'DeviceState(deviceId: $deviceId, label: $label, type: $type, status: $status, state: $state, metadata: $metadata, reportedAt: $reportedAt, reportedBy: $reportedBy)';
+  return 'DeviceState(deviceId: $deviceId, label: $label, type: $type, targetKind: $targetKind, executorKind: $executorKind, status: $status, state: $state, metadata: $metadata, reportedAt: $reportedAt, reportedBy: $reportedBy)';
 }
 
 
@@ -7157,7 +7161,7 @@ abstract mixin class _$DeviceStateCopyWith<$Res> implements $DeviceStateCopyWith
   factory _$DeviceStateCopyWith(_DeviceState value, $Res Function(_DeviceState) _then) = __$DeviceStateCopyWithImpl;
 @override @useResult
 $Res call({
- String deviceId, String label, String type, String status, String? state, Map<String, dynamic>? metadata, DateTime reportedAt, String reportedBy
+ String deviceId, String label, String type,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind, String status, String? state, Map<String, dynamic>? metadata, DateTime reportedAt, String reportedBy
 });
 
 
@@ -7174,12 +7178,14 @@ class __$DeviceStateCopyWithImpl<$Res>
 
 /// Create a copy of DeviceState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? deviceId = null,Object? label = null,Object? type = null,Object? status = null,Object? state = freezed,Object? metadata = freezed,Object? reportedAt = null,Object? reportedBy = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? deviceId = null,Object? label = null,Object? type = null,Object? targetKind = null,Object? executorKind = freezed,Object? status = null,Object? state = freezed,Object? metadata = freezed,Object? reportedAt = null,Object? reportedBy = null,}) {
   return _then(_DeviceState(
 deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,state: freezed == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,reportedAt: null == reportedAt ? _self.reportedAt : reportedAt // ignore: cast_nullable_to_non_nullable
@@ -7193,9 +7199,293 @@ as String,
 
 
 /// @nodoc
+mixin _$MachineConnection {
+
+ String get machineId; String get status; List<String> get capabilities; DateTime get connectedAt; DateTime get lastSeenAt; DateTime? get disconnectedAt;
+/// Create a copy of MachineConnection
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MachineConnectionCopyWith<MachineConnection> get copyWith => _$MachineConnectionCopyWithImpl<MachineConnection>(this as MachineConnection, _$identity);
+
+  /// Serializes this MachineConnection to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MachineConnection&&(identical(other.machineId, machineId) || other.machineId == machineId)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.capabilities, capabilities)&&(identical(other.connectedAt, connectedAt) || other.connectedAt == connectedAt)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.disconnectedAt, disconnectedAt) || other.disconnectedAt == disconnectedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,machineId,status,const DeepCollectionEquality().hash(capabilities),connectedAt,lastSeenAt,disconnectedAt);
+
+@override
+String toString() {
+  return 'MachineConnection(machineId: $machineId, status: $status, capabilities: $capabilities, connectedAt: $connectedAt, lastSeenAt: $lastSeenAt, disconnectedAt: $disconnectedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MachineConnectionCopyWith<$Res>  {
+  factory $MachineConnectionCopyWith(MachineConnection value, $Res Function(MachineConnection) _then) = _$MachineConnectionCopyWithImpl;
+@useResult
+$Res call({
+ String machineId, String status, List<String> capabilities, DateTime connectedAt, DateTime lastSeenAt, DateTime? disconnectedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$MachineConnectionCopyWithImpl<$Res>
+    implements $MachineConnectionCopyWith<$Res> {
+  _$MachineConnectionCopyWithImpl(this._self, this._then);
+
+  final MachineConnection _self;
+  final $Res Function(MachineConnection) _then;
+
+/// Create a copy of MachineConnection
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? machineId = null,Object? status = null,Object? capabilities = null,Object? connectedAt = null,Object? lastSeenAt = null,Object? disconnectedAt = freezed,}) {
+  return _then(_self.copyWith(
+machineId: null == machineId ? _self.machineId : machineId // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,capabilities: null == capabilities ? _self.capabilities : capabilities // ignore: cast_nullable_to_non_nullable
+as List<String>,connectedAt: null == connectedAt ? _self.connectedAt : connectedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,lastSeenAt: null == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
+as DateTime,disconnectedAt: freezed == disconnectedAt ? _self.disconnectedAt : disconnectedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MachineConnection].
+extension MachineConnectionPatterns on MachineConnection {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MachineConnection value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MachineConnection() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MachineConnection value)  $default,){
+final _that = this;
+switch (_that) {
+case _MachineConnection():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MachineConnection value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MachineConnection() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String machineId,  String status,  List<String> capabilities,  DateTime connectedAt,  DateTime lastSeenAt,  DateTime? disconnectedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MachineConnection() when $default != null:
+return $default(_that.machineId,_that.status,_that.capabilities,_that.connectedAt,_that.lastSeenAt,_that.disconnectedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String machineId,  String status,  List<String> capabilities,  DateTime connectedAt,  DateTime lastSeenAt,  DateTime? disconnectedAt)  $default,) {final _that = this;
+switch (_that) {
+case _MachineConnection():
+return $default(_that.machineId,_that.status,_that.capabilities,_that.connectedAt,_that.lastSeenAt,_that.disconnectedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String machineId,  String status,  List<String> capabilities,  DateTime connectedAt,  DateTime lastSeenAt,  DateTime? disconnectedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _MachineConnection() when $default != null:
+return $default(_that.machineId,_that.status,_that.capabilities,_that.connectedAt,_that.lastSeenAt,_that.disconnectedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _MachineConnection implements MachineConnection {
+  const _MachineConnection({required this.machineId, required this.status, final  List<String> capabilities = const [], required this.connectedAt, required this.lastSeenAt, this.disconnectedAt}): _capabilities = capabilities;
+  factory _MachineConnection.fromJson(Map<String, dynamic> json) => _$MachineConnectionFromJson(json);
+
+@override final  String machineId;
+@override final  String status;
+ final  List<String> _capabilities;
+@override@JsonKey() List<String> get capabilities {
+  if (_capabilities is EqualUnmodifiableListView) return _capabilities;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_capabilities);
+}
+
+@override final  DateTime connectedAt;
+@override final  DateTime lastSeenAt;
+@override final  DateTime? disconnectedAt;
+
+/// Create a copy of MachineConnection
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MachineConnectionCopyWith<_MachineConnection> get copyWith => __$MachineConnectionCopyWithImpl<_MachineConnection>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MachineConnectionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MachineConnection&&(identical(other.machineId, machineId) || other.machineId == machineId)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._capabilities, _capabilities)&&(identical(other.connectedAt, connectedAt) || other.connectedAt == connectedAt)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.disconnectedAt, disconnectedAt) || other.disconnectedAt == disconnectedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,machineId,status,const DeepCollectionEquality().hash(_capabilities),connectedAt,lastSeenAt,disconnectedAt);
+
+@override
+String toString() {
+  return 'MachineConnection(machineId: $machineId, status: $status, capabilities: $capabilities, connectedAt: $connectedAt, lastSeenAt: $lastSeenAt, disconnectedAt: $disconnectedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MachineConnectionCopyWith<$Res> implements $MachineConnectionCopyWith<$Res> {
+  factory _$MachineConnectionCopyWith(_MachineConnection value, $Res Function(_MachineConnection) _then) = __$MachineConnectionCopyWithImpl;
+@override @useResult
+$Res call({
+ String machineId, String status, List<String> capabilities, DateTime connectedAt, DateTime lastSeenAt, DateTime? disconnectedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$MachineConnectionCopyWithImpl<$Res>
+    implements _$MachineConnectionCopyWith<$Res> {
+  __$MachineConnectionCopyWithImpl(this._self, this._then);
+
+  final _MachineConnection _self;
+  final $Res Function(_MachineConnection) _then;
+
+/// Create a copy of MachineConnection
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? machineId = null,Object? status = null,Object? capabilities = null,Object? connectedAt = null,Object? lastSeenAt = null,Object? disconnectedAt = freezed,}) {
+  return _then(_MachineConnection(
+machineId: null == machineId ? _self.machineId : machineId // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,capabilities: null == capabilities ? _self._capabilities : capabilities // ignore: cast_nullable_to_non_nullable
+as List<String>,connectedAt: null == connectedAt ? _self.connectedAt : connectedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,lastSeenAt: null == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
+as DateTime,disconnectedAt: freezed == disconnectedAt ? _self.disconnectedAt : disconnectedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$DeviceCommand {
 
- String get id;@JsonKey(readValue: readCommandType) String get commandType; String get deviceId;@JsonKey(readValue: readRequester) String get requester; String? get playerId; String? get staffId; String get status;@JsonKey(readValue: readCreatedAt) DateTime get createdAt; DateTime? get ackedAt; DateTime? get expiredAt;
+ String get id;@JsonKey(readValue: readCommandType) String get commandType; String get deviceId;@JsonKey(readValue: readTargetKind) String get targetKind; String? get executorKind;@JsonKey(readValue: readRequester) String get requester; String? get playerId; String? get staffId; String get status; Map<String, dynamic>? get payload;@JsonKey(readValue: readCreatedAt) DateTime get createdAt; DateTime? get ackedAt; DateTime? get expiredAt;
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7208,16 +7498,16 @@ $DeviceCommandCopyWith<DeviceCommand> get copyWith => _$DeviceCommandCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceCommand&&(identical(other.id, id) || other.id == id)&&(identical(other.commandType, commandType) || other.commandType == commandType)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.requester, requester) || other.requester == requester)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.ackedAt, ackedAt) || other.ackedAt == ackedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceCommand&&(identical(other.id, id) || other.id == id)&&(identical(other.commandType, commandType) || other.commandType == commandType)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.targetKind, targetKind) || other.targetKind == targetKind)&&(identical(other.executorKind, executorKind) || other.executorKind == executorKind)&&(identical(other.requester, requester) || other.requester == requester)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.payload, payload)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.ackedAt, ackedAt) || other.ackedAt == ackedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,commandType,deviceId,requester,playerId,staffId,status,createdAt,ackedAt,expiredAt);
+int get hashCode => Object.hash(runtimeType,id,commandType,deviceId,targetKind,executorKind,requester,playerId,staffId,status,const DeepCollectionEquality().hash(payload),createdAt,ackedAt,expiredAt);
 
 @override
 String toString() {
-  return 'DeviceCommand(id: $id, commandType: $commandType, deviceId: $deviceId, requester: $requester, playerId: $playerId, staffId: $staffId, status: $status, createdAt: $createdAt, ackedAt: $ackedAt, expiredAt: $expiredAt)';
+  return 'DeviceCommand(id: $id, commandType: $commandType, deviceId: $deviceId, targetKind: $targetKind, executorKind: $executorKind, requester: $requester, playerId: $playerId, staffId: $staffId, status: $status, payload: $payload, createdAt: $createdAt, ackedAt: $ackedAt, expiredAt: $expiredAt)';
 }
 
 
@@ -7228,7 +7518,7 @@ abstract mixin class $DeviceCommandCopyWith<$Res>  {
   factory $DeviceCommandCopyWith(DeviceCommand value, $Res Function(DeviceCommand) _then) = _$DeviceCommandCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
 });
 
 
@@ -7245,16 +7535,19 @@ class _$DeviceCommandCopyWithImpl<$Res>
 
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,commandType: null == commandType ? _self.commandType : commandType // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
-as String,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
+as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
+as String?,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
 as String,playerId: freezed == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String?,staffId: freezed == staffId ? _self.staffId : staffId // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,payload: freezed == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,ackedAt: freezed == ackedAt ? _self.ackedAt : ackedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -7342,10 +7635,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
-return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.playerId,_that.staffId,_that.status,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
+return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
   return orElse();
 
 }
@@ -7363,10 +7656,10 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand():
-return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.playerId,_that.staffId,_that.status,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
+return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7383,10 +7676,10 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
-return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.playerId,_that.staffId,_that.status,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
+return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
   return null;
 
 }
@@ -7398,16 +7691,27 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.requester,_that.
 @JsonSerializable()
 
 class _DeviceCommand implements DeviceCommand {
-  const _DeviceCommand({required this.id, @JsonKey(readValue: readCommandType) required this.commandType, required this.deviceId, @JsonKey(readValue: readRequester) required this.requester, this.playerId, this.staffId, required this.status, @JsonKey(readValue: readCreatedAt) required this.createdAt, this.ackedAt, this.expiredAt});
+  const _DeviceCommand({required this.id, @JsonKey(readValue: readCommandType) required this.commandType, required this.deviceId, @JsonKey(readValue: readTargetKind) this.targetKind = 'facility', this.executorKind, @JsonKey(readValue: readRequester) required this.requester, this.playerId, this.staffId, required this.status, final  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt) required this.createdAt, this.ackedAt, this.expiredAt}): _payload = payload;
   factory _DeviceCommand.fromJson(Map<String, dynamic> json) => _$DeviceCommandFromJson(json);
 
 @override final  String id;
 @override@JsonKey(readValue: readCommandType) final  String commandType;
 @override final  String deviceId;
+@override@JsonKey(readValue: readTargetKind) final  String targetKind;
+@override final  String? executorKind;
 @override@JsonKey(readValue: readRequester) final  String requester;
 @override final  String? playerId;
 @override final  String? staffId;
 @override final  String status;
+ final  Map<String, dynamic>? _payload;
+@override Map<String, dynamic>? get payload {
+  final value = _payload;
+  if (value == null) return null;
+  if (_payload is EqualUnmodifiableMapView) return _payload;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 @override@JsonKey(readValue: readCreatedAt) final  DateTime createdAt;
 @override final  DateTime? ackedAt;
 @override final  DateTime? expiredAt;
@@ -7425,16 +7729,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceCommand&&(identical(other.id, id) || other.id == id)&&(identical(other.commandType, commandType) || other.commandType == commandType)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.requester, requester) || other.requester == requester)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.ackedAt, ackedAt) || other.ackedAt == ackedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceCommand&&(identical(other.id, id) || other.id == id)&&(identical(other.commandType, commandType) || other.commandType == commandType)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.targetKind, targetKind) || other.targetKind == targetKind)&&(identical(other.executorKind, executorKind) || other.executorKind == executorKind)&&(identical(other.requester, requester) || other.requester == requester)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._payload, _payload)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.ackedAt, ackedAt) || other.ackedAt == ackedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,commandType,deviceId,requester,playerId,staffId,status,createdAt,ackedAt,expiredAt);
+int get hashCode => Object.hash(runtimeType,id,commandType,deviceId,targetKind,executorKind,requester,playerId,staffId,status,const DeepCollectionEquality().hash(_payload),createdAt,ackedAt,expiredAt);
 
 @override
 String toString() {
-  return 'DeviceCommand(id: $id, commandType: $commandType, deviceId: $deviceId, requester: $requester, playerId: $playerId, staffId: $staffId, status: $status, createdAt: $createdAt, ackedAt: $ackedAt, expiredAt: $expiredAt)';
+  return 'DeviceCommand(id: $id, commandType: $commandType, deviceId: $deviceId, targetKind: $targetKind, executorKind: $executorKind, requester: $requester, playerId: $playerId, staffId: $staffId, status: $status, payload: $payload, createdAt: $createdAt, ackedAt: $ackedAt, expiredAt: $expiredAt)';
 }
 
 
@@ -7445,7 +7749,7 @@ abstract mixin class _$DeviceCommandCopyWith<$Res> implements $DeviceCommandCopy
   factory _$DeviceCommandCopyWith(_DeviceCommand value, $Res Function(_DeviceCommand) _then) = __$DeviceCommandCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
 });
 
 
@@ -7462,16 +7766,19 @@ class __$DeviceCommandCopyWithImpl<$Res>
 
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
   return _then(_DeviceCommand(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,commandType: null == commandType ? _self.commandType : commandType // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
-as String,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
+as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
+as String?,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
 as String,playerId: freezed == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String?,staffId: freezed == staffId ? _self.staffId : staffId // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,payload: freezed == payload ? _self._payload : payload // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,ackedAt: freezed == ackedAt ? _self.ackedAt : ackedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
