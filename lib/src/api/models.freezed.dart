@@ -9053,7 +9053,7 @@ return $default(_that.id,_that.label,_that.token,_that.createdAt,_that.role,_tha
 @JsonSerializable()
 
 class _ApiToken implements ApiToken {
-  const _ApiToken({required this.id, required this.label, @JsonKey(includeToJson: false) this.token, required this.createdAt, this.role = 'player', this.tokenPrefix = '', @JsonKey(readValue: readIsRevoked) this.isRevoked = false});
+  const _ApiToken({required this.id, required this.label, @JsonKey(includeToJson: false) this.token, required this.createdAt, this.role = 'integration', this.tokenPrefix = '', @JsonKey(readValue: readIsRevoked) this.isRevoked = false});
   factory _ApiToken.fromJson(Map<String, dynamic> json) => _$ApiTokenFromJson(json);
 
 @override final  String id;

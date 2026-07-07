@@ -417,10 +417,10 @@ void main() {
     test('ApiToken parses correctly', () {
       final json = {
         'id': 'token-1',
-        'label': '网关密钥',
+        'label': '机器通道',
         'token': 'secret-xyz',
         'createdAt': '2026-07-04T12:00:00.000Z',
-        'role': 'agent',
+        'role': 'machine',
         'status': 'active',
       };
       final model = ApiToken.fromJson(json);
@@ -491,6 +491,23 @@ void main() {
                 'settings': {
                   'store': {'name': 'New Store', 'timeZone': 'Asia/Shanghai'},
                   'operations': {'coinCooldownMs': 500},
+                },
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          } else if (path == '/rpc/staff/api-tokens' &&
+              request.method == 'POST') {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            return http.Response(
+              jsonEncode({
+                'apiToken': {
+                  'id': 'token-created',
+                  'token': 'integration-secret',
+                  'createdAt': '2026-07-04T12:00:00.000Z',
+                  'tokenPrefix': 'integ',
+                  'status': 'active',
+                  ...body,
                 },
               }),
               200,
@@ -588,6 +605,19 @@ void main() {
       expect(body['store']['name'], 'New Store');
       expect(body['operations']['coinCooldownMs'], 500);
       expect(settings.storeName, 'New Store');
+    });
+
+    test('createApiToken defaults to integration role', () async {
+      final token = await client.createApiToken(label: '机器人验证');
+
+      expect(requests.first.method, 'POST');
+      expect(requests.first.url.path, '/rpc/staff/api-tokens');
+      expect(jsonDecode(requests.first.body), {
+        'label': '机器人验证',
+        'role': 'integration',
+      });
+      expect(token.role, 'integration');
+      expect(token.tokenPrefix, 'integ');
     });
 
     test('reportsSummary passes query parameters', () async {

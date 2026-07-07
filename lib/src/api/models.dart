@@ -539,7 +539,7 @@ abstract class ApiToken with _$ApiToken {
     required String label,
     @JsonKey(includeToJson: false) String? token,
     required DateTime createdAt,
-    @Default('player') String role,
+    @Default('integration') String role,
     @Default('') String tokenPrefix,
     @JsonKey(readValue: readIsRevoked) @Default(false) bool isRevoked,
   }) = _ApiToken;

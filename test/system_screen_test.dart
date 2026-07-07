@@ -74,24 +74,38 @@ void main() {
     );
   });
 
-  testWidgets('creates API token, shows secret once, and revokes token', (
-    tester,
-  ) async {
+  testWidgets(
+    'creates API token for integration role, shows business roles, and revokes token',
+    (tester) async {
     final requests = <http.Request>[];
     await tester.pumpWidget(_buildSystemScreen(requests));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('接入密钥').first);
     await tester.pumpAndSettle();
-    expect(find.text('设备网关'), findsOneWidget);
+    expect(find.text('机器通道'), findsOneWidget);
+    expect(find.textContaining('机器软件接入'), findsOneWidget);
     expect(find.text('可使用'), findsOneWidget);
 
     await tester.tap(find.text('新建密钥'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, '用途名称'), '浏览器验证');
+    expect(find.text('机器人/店内入口'), findsOneWidget);
+    expect(find.text('设备接入'), findsNothing);
+    expect(find.text('玩家接口'), findsNothing);
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    expect(find.text('机器人/店内入口'), findsWidgets);
+    expect(find.text('机器软件接入'), findsWidgets);
+    expect(find.text('设备接入'), findsNothing);
+    expect(find.text('玩家接口'), findsNothing);
+    await tester.tap(find.text('机器人/店内入口').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextField, '用途名称'), '机器人验证');
     await tester.tap(find.text('创建').last);
     await tester.pumpAndSettle();
-    expect(find.text('agent_secret_once'), findsOneWidget);
+    expect(find.text('integration_secret_once'), findsOneWidget);
     await tester.tap(find.text('我已保存'));
     await tester.pumpAndSettle();
 
@@ -100,7 +114,7 @@ void main() {
           request.method == 'POST' &&
           request.url.path == '/rpc/staff/api-tokens',
     );
-    expect(jsonDecode(create.body), {'label': '浏览器验证', 'role': 'agent'});
+    expect(jsonDecode(create.body), {'label': '机器人验证', 'role': 'integration'});
 
     await tester.tap(find.text('撤销').first);
     await tester.pumpAndSettle();
@@ -112,7 +126,8 @@ void main() {
       ),
       true,
     );
-  });
+    },
+  );
 }
 
 Widget _buildSystemScreen(List<http.Request> requests) {
@@ -177,8 +192,8 @@ Map<String, dynamic> _responseFor(http.Request request) {
       return {
         'apiToken': {
           'id': 'token-new',
-          'token': 'agent_secret_once',
-          'tokenPrefix': 'agent',
+          'token': 'integration_secret_once',
+          'tokenPrefix': 'integ',
           'status': 'active',
           'createdAt': '2026-07-05T00:00:00.000Z',
           ...body,
@@ -207,9 +222,9 @@ Map<String, dynamic> _staffUserJson() => {
 
 Map<String, dynamic> _apiTokenJson({bool revoked = false}) => {
   'id': 'token-1',
-  'label': '设备网关',
-  'role': 'agent',
-  'tokenPrefix': 'agent',
+  'label': '机器通道',
+  'role': 'machine',
+  'tokenPrefix': 'mach',
   'status': revoked ? 'revoked' : 'active',
   'createdAt': '2026-07-05T00:00:00.000Z',
   'lastUsedAt': null,

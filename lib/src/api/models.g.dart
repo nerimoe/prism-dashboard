@@ -793,7 +793,7 @@ _ApiToken _$ApiTokenFromJson(Map<String, dynamic> json) => _ApiToken(
   label: json['label'] as String,
   token: json['token'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
-  role: json['role'] as String? ?? 'player',
+  role: json['role'] as String? ?? 'integration',
   tokenPrefix: json['tokenPrefix'] as String? ?? '',
   isRevoked: readIsRevoked(json, 'isRevoked') as bool? ?? false,
 );

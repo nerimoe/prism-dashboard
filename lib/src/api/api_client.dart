@@ -244,7 +244,7 @@ class PrismApiClient {
 
   Future<ApiToken> createApiToken({
     required String label,
-    String role = 'player',
+    String role = 'integration',
   }) async {
     final json = await post(
       '/rpc/staff/api-tokens',

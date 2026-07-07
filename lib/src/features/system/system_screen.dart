@@ -7,6 +7,7 @@ import '../../app_state.dart';
 import '../../context_extensions.dart';
 import '../../shared/admin_forms.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/token_role_labels.dart';
 import '../../shared/widgets.dart';
 
 class SystemScreen extends ConsumerStatefulWidget {
@@ -345,7 +346,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
 
   Future<void> _showCreateTokenDialog() async {
     final label = TextEditingController();
-    var role = 'agent';
+    var role = 'integration';
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -362,8 +363,14 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                 initialValue: role,
                 decoration: const InputDecoration(labelText: '用途'),
                 items: const [
-                  DropdownMenuItem(value: 'agent', child: Text('设备接入')),
-                  DropdownMenuItem(value: 'player', child: Text('玩家接口')),
+                  DropdownMenuItem(
+                    value: 'integration',
+                    child: Text('机器人/店内入口'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'machine',
+                    child: Text('机器软件接入'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) setDialogState(() => role = value);
@@ -579,7 +586,7 @@ class _TokensTab extends StatelessWidget {
                     leading: const Icon(Icons.vpn_key),
                     title: Text(token.label),
                     subtitle: Text(
-                      '${_tokenRoleLabel(token.role)} · 前缀 ${token.tokenPrefix}',
+                      '${tokenRoleLabel(token.role)} · 前缀 ${token.tokenPrefix}',
                     ),
                     trailing: Wrap(
                       spacing: 8,
@@ -658,10 +665,4 @@ String _roleLabel(StaffRole role) => switch (role) {
   StaffRole.owner => '店主',
   StaffRole.manager => '店长',
   StaffRole.viewer => '店员',
-};
-
-String _tokenRoleLabel(String role) => switch (role) {
-  'agent' => '设备接入',
-  'player' => '玩家接口',
-  _ => '外部接入',
 };
