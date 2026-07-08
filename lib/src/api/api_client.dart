@@ -90,34 +90,24 @@ class PrismApiClient {
 
   Future<SettlementPreview> previewAllCheckout(String playerId) async {
     return _settlementPreviewFromResponse(
-      await post('/rpc/staff/players/$playerId/checkout/preview-all'),
+      await post('/rpc/staff/players/$playerId/checkout/preview'),
       playerId: playerId,
     );
   }
 
-  Future<SettlementPreview> previewCheckout(
-    String playerId, {
-    String? sessionId,
-  }) async {
+  Future<SettlementPreview> previewCheckout(String playerId) async {
     return _settlementPreviewFromResponse(
-      await post(
-        '/rpc/staff/players/$playerId/checkout/preview',
-        body: {if (sessionId != null) 'sessionId': sessionId},
-      ),
+      await post('/rpc/staff/players/$playerId/checkout/preview'),
       playerId: playerId,
     );
   }
 
-  Future<void> checkout(String playerId, {String? sessionId}) async {
-    await post(
-      '/rpc/staff/players/$playerId/checkout/confirm',
-      body: {if (sessionId != null) 'sessionId': sessionId},
-    );
+  Future<void> checkout(String playerId) async {
+    await post('/rpc/staff/players/$playerId/checkout/confirm');
   }
 
   Future<void> checkoutWithOverride(
     String playerId, {
-    String? sessionId,
     required num total,
     required String reason,
   }) async {
@@ -126,13 +116,12 @@ class PrismApiClient {
       body: {
         'total': total,
         'reason': reason,
-        if (sessionId != null) 'sessionId': sessionId,
       },
     );
   }
 
   Future<void> confirmAllCheckout(String playerId) async {
-    await post('/rpc/staff/players/$playerId/checkout/confirm-all');
+    await post('/rpc/staff/players/$playerId/checkout/confirm');
   }
 
   Future<void> bulkCheckoutActiveSessions() async {

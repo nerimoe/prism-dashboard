@@ -59,7 +59,7 @@ void main() {
       );
       expect(
         requests[1].url.path,
-        '/rpc/staff/players/player-1/checkout/confirm-all',
+        '/rpc/staff/players/player-1/checkout/confirm',
       );
       expect(requests[0].headers['Authorization'], 'Bearer staff-token');
     },
@@ -72,27 +72,9 @@ void main() {
       token: 'staff-token',
       httpClient: MockClient((request) async {
         requests.add(request);
-        if (request.url.path.endsWith('/checkout/preview-all')) {
-          return http.Response(
-            jsonEncode(_checkoutPreviewJson),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
-        }
         if (request.url.path.endsWith('/checkout/preview')) {
           return http.Response(
-            jsonEncode({
-              'settlementPreview': {
-                'sessionId': 'session-1',
-                'subtotal': 64,
-                'total': 56,
-                'status': 'preview',
-                'previewedAt': '2026-07-04T12:43:00.000Z',
-              },
-              'chargeItems': [],
-              'adjustments': [],
-              'assetHoldings': [],
-            }),
+            jsonEncode(_checkoutPreviewJson),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -102,10 +84,7 @@ void main() {
     );
 
     final all = await client.previewAllCheckout('player-1');
-    final single = await client.previewCheckout(
-      'player-1',
-      sessionId: 'session-1',
-    );
+    final single = await client.previewCheckout('player-1');
 
     expect(all.playerId, 'player-1');
     expect(all.sessionIds, ['session-1', 'session-2']);
@@ -116,12 +95,11 @@ void main() {
       'session-2',
     ]);
     expect(single.playerId, 'player-1');
-    expect(single.sessionIds, ['session-1']);
+    expect(single.sessionIds, ['session-1', 'session-2']);
     expect(single.total, 56);
     expect(
       requests.map((request) => request.url.path),
       containsAll([
-        '/rpc/staff/players/player-1/checkout/preview-all',
         '/rpc/staff/players/player-1/checkout/preview',
       ]),
     );
@@ -264,14 +242,14 @@ void main() {
               headers: {'content-type': 'application/json'},
             );
           }
-          if (request.url.path.endsWith('/checkout/preview-all')) {
+          if (request.url.path.endsWith('/checkout/preview')) {
             return http.Response(
               jsonEncode(_checkoutPreviewJson),
               200,
               headers: {'content-type': 'application/json'},
             );
           }
-          if (request.url.path.endsWith('/checkout/confirm-all')) {
+          if (request.url.path.endsWith('/checkout/confirm')) {
             return http.Response(
               jsonEncode(_checkoutResultJson),
               200,
@@ -312,7 +290,7 @@ void main() {
           (request) =>
               request.method == 'POST' &&
               request.url.path ==
-                  '/rpc/staff/players/player-1/checkout/preview-all',
+                  '/rpc/staff/players/player-1/checkout/preview',
         ),
         isTrue,
       );
@@ -321,7 +299,7 @@ void main() {
           (request) =>
               request.method == 'POST' &&
               request.url.path ==
-                  '/rpc/staff/players/player-1/checkout/confirm-all',
+                  '/rpc/staff/players/player-1/checkout/confirm',
         ),
         isTrue,
       );
