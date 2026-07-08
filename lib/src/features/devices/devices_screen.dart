@@ -774,12 +774,22 @@ class _EditHaDevicesDialog extends StatefulWidget {
 
 class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
   final List<_HaDeviceInput> _haDevices = [];
+  late final TextEditingController _urlController;
+  late final TextEditingController _tokenController;
+  bool _obscureToken = true;
   bool _saving = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    final conn = widget.rawSettings['homeAssistantConnection'];
+    _urlController = TextEditingController(
+      text: conn is Map ? (conn['url']?.toString() ?? '') : '',
+    );
+    _tokenController = TextEditingController(
+      text: conn is Map ? (conn['token']?.toString() ?? '') : '',
+    );
     final haDevices = widget.rawSettings['homeAssistantDevices'] ?? [];
     for (final dev in haDevices) {
       if (dev is Map) {
@@ -795,6 +805,8 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
 
   @override
   void dispose() {
+    _urlController.dispose();
+    _tokenController.dispose();
     for (final dev in _haDevices) {
       dev.dispose();
     }
@@ -822,6 +834,10 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
 
     try {
       final updatedRaw = Map<String, dynamic>.from(widget.rawSettings);
+      updatedRaw['homeAssistantConnection'] = {
+        'url': _urlController.text.trim(),
+        'token': _tokenController.text.trim(),
+      };
       updatedRaw['homeAssistantDevices'] = haDevicesJson;
       await widget.api.updateRawSettings(updatedRaw);
       if (mounted) Navigator.pop(context, true);
@@ -864,7 +880,61 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
                       color: colors.onSurfaceVariant,
                     ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              // ── Home Assistant 连接配置 ──
+              Text(
+                'Home Assistant 连接',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _urlController,
+                decoration: const InputDecoration(
+                  labelText: 'Home Assistant URL',
+                  hintText: 'http://homeassistant.local:8123',
+                  helperText: '支持局域网地址或公网域名（部署在远端时需填写外网可访问地址）',
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.link),
+                ),
+              ),
+              const SizedBox(height: 10),
+              StatefulBuilder(
+                builder: (context, setInner) {
+                  return TextField(
+                    controller: _tokenController,
+                    obscureText: _obscureToken,
+                    decoration: InputDecoration(
+                      labelText: 'Long-Lived Access Token',
+                      hintText: 'eyJ0eXAiOiJKV1QiLCJhb...',
+                      helperText: '在 Home Assistant 的用户配置页面生成',
+                      isDense: true,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.vpn_key),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureToken ? Icons.visibility_off : Icons.visibility),
+                        tooltip: _obscureToken ? '显示 Token' : '隐藏 Token',
+                        onPressed: () {
+                          setState(() => _obscureToken = !_obscureToken);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              Divider(color: colors.outlineVariant),
+              const SizedBox(height: 12),
+              // ── 设备列表 ──
+              Text(
+                '设备映射',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
               if (_haDevices.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
