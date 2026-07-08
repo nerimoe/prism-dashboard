@@ -89,8 +89,9 @@ class PrismApiClient {
   }
 
   Future<SettlementPreview> previewAllCheckout(String playerId) async {
-    return SettlementPreview.fromJson(
+    return _settlementPreviewFromResponse(
       await post('/rpc/staff/players/$playerId/checkout/preview-all'),
+      playerId: playerId,
     );
   }
 
@@ -98,11 +99,12 @@ class PrismApiClient {
     String playerId, {
     String? sessionId,
   }) async {
-    return SettlementPreview.fromJson(
+    return _settlementPreviewFromResponse(
       await post(
         '/rpc/staff/players/$playerId/checkout/preview',
         body: {if (sessionId != null) 'sessionId': sessionId},
       ),
+      playerId: playerId,
     );
   }
 
@@ -330,7 +332,14 @@ class PrismApiClient {
       '/rpc/staff/players/$playerId/assets/grants',
       body: {
         'grants': [
-          {'assetType': assetType, 'assetCode': assetCode, 'amount': amount},
+          {
+            'assetType': assetType,
+            'assetCode': assetCode,
+            'amount': amount,
+            'mergeStrategy': 'stack',
+            'activeAt': null,
+            'expiresAt': null,
+          },
         ],
         'reason': reason,
       },
@@ -936,6 +945,35 @@ class PrismApiClient {
       'id': providerId ?? 'time.default',
       'rules': rules.map(_pricingRuleBody).toList(),
     };
+  }
+
+  SettlementPreview _settlementPreviewFromResponse(
+    Map<String, dynamic> json, {
+    required String playerId,
+  }) {
+    final preview = ((json['settlementPreview'] as Map?) ?? json)
+        .cast<String, dynamic>();
+    final rawSessionPreviews =
+        (json['sessionPreviews'] as List?) ?? const <dynamic>[];
+    final sessionPreviews = rawSessionPreviews
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList();
+    final sessionIds = (preview['sessionIds'] as List?)
+        ?.whereType<String>()
+        .toList();
+    final singleSessionId = preview['sessionId'];
+    return SettlementPreview.fromJson({
+      ...preview,
+      'playerId': preview['playerId'] ?? playerId,
+      'sessionIds':
+          sessionIds ??
+          [
+            if (singleSessionId is String && singleSessionId.isNotEmpty)
+              singleSessionId,
+          ],
+      'sessionPreviews': sessionPreviews,
+    });
   }
 
   Map<String, dynamic> _pricingRuleBody(Map<String, dynamic> rule) {

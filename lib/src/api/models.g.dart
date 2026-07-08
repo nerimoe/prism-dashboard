@@ -68,6 +68,11 @@ _LiveSession _$LiveSessionFromJson(Map<String, dynamic> json) => _LiveSession(
   elapsedMinutes:
       (readElapsedMinutes(json, 'elapsedMinutes') as num?)?.toInt() ?? 0,
   currentImpact: readCurrentImpact(json, 'currentImpact') as num?,
+  pricingCharges:
+      (json['pricingCharges'] as List<dynamic>?)
+          ?.map((e) => LivePricingCharge.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   status: json['status'] as String? ?? 'closed',
 );
 
@@ -78,7 +83,24 @@ Map<String, dynamic> _$LiveSessionToJson(_LiveSession instance) =>
       'startedAt': instance.startedAt.toIso8601String(),
       'elapsedMinutes': instance.elapsedMinutes,
       'currentImpact': instance.currentImpact,
+      'pricingCharges': instance.pricingCharges,
       'status': instance.status,
+    };
+
+_LivePricingCharge _$LivePricingChargeFromJson(Map<String, dynamic> json) =>
+    _LivePricingCharge(
+      pricingConfigId: json['pricingConfigId'] as String,
+      planName: json['planName'] as String,
+      ruleLabel: json['ruleLabel'] as String?,
+      amount: json['amount'] as num,
+    );
+
+Map<String, dynamic> _$LivePricingChargeToJson(_LivePricingCharge instance) =>
+    <String, dynamic>{
+      'pricingConfigId': instance.pricingConfigId,
+      'planName': instance.planName,
+      'ruleLabel': instance.ruleLabel,
+      'amount': instance.amount,
     };
 
 _SettlementPreview _$SettlementPreviewFromJson(Map<String, dynamic> json) =>

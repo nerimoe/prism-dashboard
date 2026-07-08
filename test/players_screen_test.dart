@@ -180,7 +180,11 @@ void main() {
             request.method == 'POST' &&
             request.url.path == '/rpc/staff/players/player-a/assets/grants',
       );
-      expect(jsonDecode(grant.body)['grants'].first['amount'], 10);
+      final grantBody = jsonDecode(grant.body) as Map<String, dynamic>;
+      expect(grantBody['grants'].first['amount'], 10);
+      expect(grantBody['grants'].first['mergeStrategy'], 'stack');
+      expect(grantBody['grants'].first['activeAt'], isNull);
+      expect(grantBody['grants'].first['expiresAt'], isNull);
 
       final adjustment = requests.singleWhere(
         (request) =>

@@ -485,7 +485,7 @@ class _OperationsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final sessions = players.fold<int>(
       0,
-      (sum, player) => sum + player.sessionCount,
+      (sum, player) => sum + player.activeSessionCount,
     );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,7 +541,7 @@ class _MetricRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final sessions = players.fold<int>(
       0,
-      (sum, player) => sum + player.sessionCount,
+      (sum, player) => sum + player.activeSessionCount,
     );
     final estimatedTotal = players.fold<num>(
       0,
@@ -758,7 +758,7 @@ class _PlayerRow extends StatelessWidget {
                       spacing: 12,
                       runSpacing: 6,
                       children: [
-                        Text('${player.sessionCount} 项计时'),
+                        Text('${player.activeSessionCount} 项计时中 · ${player.sessionCount} 项费用'),
                         Text(formatDurationMinutes(player.stayDurationMinutes)),
                         Text(formatMoney(player.estimatedTotal)),
                         _PlayerStatusText(player: player),
@@ -904,7 +904,7 @@ class _PlayerSessionDetail extends StatelessWidget {
       trailing: value == null
           ? null
           : Text(
-              '${value.sessionCount} 项计时',
+              '${value.sessionCount} 项费用',
               style: context.text.bodySmall?.copyWith(
                 color: context.colors.primary,
               ),
@@ -1146,7 +1146,7 @@ class _SessionTable extends StatelessWidget {
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text('收费方式', style: _tableHeadStyle(context)),
+                  child: Text('计费方案', style: _tableHeadStyle(context)),
                 ),
                 Expanded(
                   flex: 2,
@@ -1201,6 +1201,8 @@ class _SessionRow extends StatelessWidget {
     final impact = session.currentImpact ?? 0;
     final impactColor = context.colors.onSurface;
     final impactText = _formatSessionImpact(session, impact);
+    final isActive = session.status == 'active';
+    final statusText = isActive ? '进行中' : '已停止';
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: context.colors.outlineVariant)),
@@ -1219,13 +1221,27 @@ class _SessionRow extends StatelessWidget {
                     children: [
                       Text(formatDurationMinutes(session.elapsedMinutes)),
                       Text(
+                        session.pricingSummary,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
                         impactText,
                         style: TextStyle(
                           color: impactColor,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      _StopButton(onStop: onStop),
+                      Text(
+                        statusText,
+                        style: context.text.bodySmall?.copyWith(
+                          color: isActive
+                              ? context.colors.onSurface
+                              : context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                      _StopButton(onStop: onStop, enabled: isActive),
                     ],
                   ),
                 ],
@@ -1235,10 +1251,7 @@ class _SessionRow extends StatelessWidget {
                   Expanded(flex: 3, child: _SessionName(session: session)),
                   Expanded(
                     flex: 3,
-                    child: Text(
-                      session.pricingRuleLabel,
-                      style: context.text.bodySmall,
-                    ),
+                    child: _SessionPricingSummary(session: session),
                   ),
                   Expanded(
                     flex: 2,
@@ -1262,21 +1275,102 @@ class _SessionRow extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: Text(
-                      '进行中',
+                      statusText,
                       textAlign: TextAlign.center,
-                      style: context.text.bodySmall,
+                      style: context.text.bodySmall?.copyWith(
+                        color: isActive
+                            ? context.colors.onSurface
+                            : context.colors.onSurfaceVariant,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 2,
                     child: Align(
                       alignment: Alignment.centerRight,
-                      child: _StopButton(onStop: onStop),
+                      child: _StopButton(onStop: onStop, enabled: isActive),
                     ),
                   ),
                 ],
               ),
       ),
+    );
+  }
+}
+
+class _SessionPricingSummary extends StatelessWidget {
+  const _SessionPricingSummary({required this.session});
+
+  final LiveSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    if (session.pricingCharges.isEmpty) {
+      return Text(
+        session.pricingSummary,
+        style: context.text.bodySmall?.copyWith(
+          color: context.colors.onSurfaceVariant,
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final charge in session.pricingCharges.take(3))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: _PricingChargeLine(charge: charge),
+          ),
+        if (session.pricingCharges.length > 3)
+          Text(
+            '还有 ${session.pricingCharges.length - 3} 项',
+            style: context.text.bodySmall?.copyWith(
+              color: context.colors.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PricingChargeLine extends StatelessWidget {
+  const _PricingChargeLine({required this.charge});
+
+  final LivePricingCharge charge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                charge.planName,
+                style: context.text.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                softWrap: true,
+              ),
+              if ((charge.ruleLabel ?? '').trim().isNotEmpty)
+                Text(
+                  charge.ruleLabel!.trim(),
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                  softWrap: true,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _formatChargeAmount(charge.amount),
+          style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ],
     );
   }
 }
@@ -1308,26 +1402,33 @@ class _SessionName extends StatelessWidget {
 }
 
 class _StopButton extends StatelessWidget {
-  const _StopButton({required this.onStop});
+  const _StopButton({required this.onStop, required this.enabled});
 
   final VoidCallback onStop;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onStop,
+      onPressed: enabled ? onStop : null,
       style: TextButton.styleFrom(
-        foregroundColor: context.colors.error,
-        backgroundColor: context.colors.errorContainer.withValues(alpha: 0.42),
+        foregroundColor: enabled
+            ? context.colors.error
+            : context.colors.onSurfaceVariant,
+        backgroundColor: enabled
+            ? context.colors.errorContainer.withValues(alpha: 0.42)
+            : context.colors.surfaceContainerHighest,
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
       ),
       child: Text(
-        '停止',
+        enabled ? '停止' : '待结账',
         style: context.text.labelSmall?.copyWith(
-          color: context.colors.error,
+          color: enabled
+              ? context.colors.error
+              : context.colors.onSurfaceVariant,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -1471,6 +1572,11 @@ String _formatSessionImpact(LiveSession session, num impact) {
     return '+${formatMoney(impact)}';
   }
   return formatMoney(impact);
+}
+
+String _formatChargeAmount(num amount) {
+  if (amount > 0) return '+${formatMoney(amount)}';
+  return formatMoney(amount);
 }
 
 String _pricingConfigTitle(PricingConfig config) {

@@ -347,6 +347,8 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   Future<void> _showCreateTokenDialog() async {
     final label = TextEditingController();
     var role = 'integration';
+    var isSubmitting = false;
+    String? errorMessage;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -376,27 +378,56 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                   if (value != null) setDialogState(() => role = value);
                 },
               ),
+              if (errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    errorMessage!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              ],
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: isSubmitting ? null : () => Navigator.pop(context),
               child: const Text('取消'),
             ),
             FilledButton(
-              onPressed: () async {
-                final token = await _api.createApiToken(
-                  label: label.text.trim(),
-                  role: role,
-                );
-                if (context.mounted) Navigator.pop(context);
-                setState(() {
-                  _message = '接入密钥已创建。';
-                  _future = _load();
-                });
-                if (mounted) await _showTokenSecret(token);
-              },
-              child: const Text('创建'),
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        isSubmitting = true;
+                        errorMessage = null;
+                      });
+                      try {
+                        final token = await _api.createApiToken(
+                          label: label.text.trim(),
+                          role: role,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        setState(() {
+                          _message = '接入密钥已创建。';
+                          _future = _load();
+                        });
+                        if (mounted) await _showTokenSecret(token);
+                      } catch (error) {
+                        if (!context.mounted) return;
+                        setDialogState(() {
+                          isSubmitting = false;
+                          errorMessage = '创建失败：${_friendlyError(error)}';
+                        });
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('创建'),
             ),
           ],
         ),
@@ -427,6 +458,11 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
       _future = _load();
     });
   }
+}
+
+String _friendlyError(Object error) {
+  if (error is PrismApiException) return error.message;
+  return error.toString();
 }
 
 class _SettingsTab extends StatelessWidget {

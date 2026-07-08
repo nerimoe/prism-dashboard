@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/api_client.dart';
@@ -291,7 +292,14 @@ class _PricingConfigTile extends StatelessWidget {
               : Icons.donut_large,
         ),
         title: Text(_pricingConfigTitle(config)),
-        subtitle: Text(_pricingSummary(config)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_pricingSummary(config)),
+            const SizedBox(height: 4),
+            _PricingConfigIdLine(configId: config.id, compact: true),
+          ],
+        ),
         onTap: onSelect,
         trailing: Wrap(
           spacing: 8,
@@ -331,7 +339,7 @@ class _PricingEditorState extends State<_PricingEditor> {
   String _providerId = 'time.default';
   List<_RuleDraft> _rules = [];
   int _selectedRuleIndex = 0;
-  int _fixedAmount = 500;
+  num _fixedAmount = 500;
   String? _error;
   Future<PricingTimeline>? _timelineFuture;
   PricingTimeline? _lastTimeline;
@@ -377,6 +385,7 @@ class _PricingEditorState extends State<_PricingEditor> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _PlanBasics(
+                  configId: widget.selected?.id,
                   name: _name,
                   mode: _mode,
                   enabled: _enabled,
@@ -413,6 +422,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                   onAdd: _addRule,
                 );
                 final basics = _PlanBasics(
+                  configId: widget.selected?.id,
                   name: _name,
                   mode: _mode,
                   enabled: _enabled,
@@ -495,7 +505,7 @@ class _PricingEditorState extends State<_PricingEditor> {
             ? 'fixed.${DateTime.now().millisecondsSinceEpoch}'
             : 'time.${DateTime.now().millisecondsSinceEpoch}');
     _fixedLabel.text = config?.fixedChargeLabel ?? '店内固定收费';
-    _fixedAmount = (config?.fixedChargeAmount ?? 500).round();
+    _fixedAmount = config?.fixedChargeAmount ?? 500;
     _rules = (config?.rules.isEmpty ?? true)
         ? [_RuleDraft.standard()]
         : [for (final rule in config!.rules) _RuleDraft.fromModel(rule)];
@@ -644,6 +654,7 @@ class _PricingEditorState extends State<_PricingEditor> {
 
 class _PlanBasics extends StatelessWidget {
   const _PlanBasics({
+    required this.configId,
     required this.name,
     required this.mode,
     required this.enabled,
@@ -651,6 +662,7 @@ class _PlanBasics extends StatelessWidget {
     required this.onEnabledChanged,
   });
 
+  final String? configId;
   final TextEditingController name;
   final String mode;
   final bool enabled;
@@ -670,6 +682,10 @@ class _PlanBasics extends StatelessWidget {
             controller: name,
             decoration: const InputDecoration(labelText: '方案名称'),
           ),
+          if (configId != null && configId!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _PricingConfigIdLine(configId: configId!),
+          ],
           const SizedBox(height: 12),
           SegmentedButton<String>(
             segments: const [
@@ -703,6 +719,47 @@ class _PlanBasics extends StatelessWidget {
   }
 }
 
+class _PricingConfigIdLine extends StatelessWidget {
+  const _PricingConfigIdLine({required this.configId, this.compact = false});
+
+  final String configId;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = compact
+        ? context.text.labelSmall
+        : context.text.labelMedium?.copyWith(fontWeight: FontWeight.w700);
+    final idStyle = compact
+        ? context.text.bodySmall
+        : context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w700);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('计费方案 ID', style: labelStyle),
+        const SizedBox(width: 8),
+        Flexible(child: SelectableText(configId, maxLines: 1, style: idStyle)),
+        const SizedBox(width: 4),
+        Tooltip(
+          message: '复制计费方案 ID',
+          child: IconButton(
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            padding: EdgeInsets.zero,
+            icon: const Icon(Icons.copy_all_outlined, size: 18),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: configId));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('计费方案 ID 已复制。')));
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _FixedChargeEditor extends StatelessWidget {
   const _FixedChargeEditor({
     required this.label,
@@ -711,8 +768,8 @@ class _FixedChargeEditor extends StatelessWidget {
   });
 
   final TextEditingController label;
-  final int amount;
-  final ValueChanged<int> onAmountChanged;
+  final num amount;
+  final ValueChanged<num> onAmountChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -728,12 +785,12 @@ class _FixedChargeEditor extends StatelessWidget {
             decoration: const InputDecoration(labelText: '账单显示名称'),
           ),
           const SizedBox(height: 12),
-          StepperNumberField(
+          DecimalNumberField(
             label: '收费金额',
             value: amount,
             min: 0,
             max: 99999,
-            step: 10,
+            step: 1,
             onChanged: onAmountChanged,
           ),
         ],
@@ -1130,10 +1187,10 @@ class _RuleForm extends StatelessWidget {
             onChanged: (value) => onChanged(rule.copyWith(unitMinutes: value)),
           ),
           const SizedBox(height: 12),
-          StepperNumberField(
+          DecimalNumberField(
             label: '每单位金额',
             value: rule.unitPrice,
-            min: 0,
+            min: -9999,
             max: 9999,
             step: 1,
             onChanged: (value) => onChanged(rule.copyWith(unitPrice: value)),
@@ -1148,12 +1205,12 @@ class _RuleForm extends StatelessWidget {
             onChanged: (value) => onChanged(rule.copyWith(graceMinutes: value)),
           ),
           const SizedBox(height: 12),
-          StepperNumberField(
+          DecimalNumberField(
             label: '本时段封顶',
             value: rule.priceCap,
             min: 0,
             max: 99999,
-            step: 10,
+            step: 1,
             onChanged: (value) => onChanged(rule.copyWith(priceCap: value)),
           ),
           const SizedBox(height: 12),
@@ -1557,9 +1614,9 @@ class _RuleDraft {
       startDateTime: rule.startDateTime,
       endDateTime: rule.endDateTime,
       unitMinutes: rule.unitMinutes,
-      unitPrice: rule.unitPrice.round(),
+      unitPrice: rule.unitPrice,
       graceMinutes: rule.graceMinutes,
-      priceCap: (rule.priceCap ?? 0).round(),
+      priceCap: rule.priceCap ?? 0,
     );
   }
 
@@ -1578,9 +1635,9 @@ class _RuleDraft {
   final String? startDateTime;
   final String? endDateTime;
   final int unitMinutes;
-  final int unitPrice;
+  final num unitPrice;
   final int graceMinutes;
-  final int priceCap;
+  final num priceCap;
 
   String get scopeLabel {
     if (isArchived) return '已归档';
@@ -1608,9 +1665,9 @@ class _RuleDraft {
     Object? startDateTime = _unchanged,
     Object? endDateTime = _unchanged,
     int? unitMinutes,
-    int? unitPrice,
+    num? unitPrice,
     int? graceMinutes,
-    int? priceCap,
+    num? priceCap,
   }) {
     return _RuleDraft(
       id: id ?? this.id,

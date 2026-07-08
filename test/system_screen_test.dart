@@ -128,6 +128,59 @@ void main() {
     );
     },
   );
+
+  testWidgets('shows an error when API token creation fails', (tester) async {
+    final requests = <http.Request>[];
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        requests.add(request);
+        if (request.url.path == '/rpc/staff/api-tokens' &&
+            request.method == 'POST') {
+          return http.Response(
+            jsonEncode({
+              'error': {
+                'code': 'FORBIDDEN',
+                'message': 'Staff role manager or owner required.',
+              },
+            }),
+            403,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          jsonEncode(_responseFor(request)),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [apiClientProvider.overrideWithValue(api)],
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: Scaffold(body: SystemScreen(api: api, canWrite: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('接入密钥').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('新建密钥'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '用途名称'), '机器人验证');
+    await tester.tap(find.text('创建').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('创建失败：Staff role manager or owner required.'), findsOneWidget);
+    expect(find.text('新建接入密钥'), findsOneWidget);
+  });
 }
 
 Widget _buildSystemScreen(List<http.Request> requests) {

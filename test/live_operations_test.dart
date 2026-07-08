@@ -22,6 +22,11 @@ void main() {
     expect(formatDurationMinutes(player.stayDurationMinutes), '2 小时 08 分');
     expect(player.sessions.map((session) => session.title), ['音游区间', '四口麻将']);
     expect(player.sessions.last.currentImpact, -8);
+    expect(
+      player.sessions.first.pricingCharges.map((charge) => charge.planName),
+      ['音游标准计费'],
+    );
+    expect(player.sessions.first.pricingSummary, '音游标准计费 · 日场');
   });
 
   test(
@@ -60,6 +65,68 @@ void main() {
     },
   );
 
+  test('api client parses wrapped checkout preview responses', () async {
+    final requests = <http.Request>[];
+    final client = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        requests.add(request);
+        if (request.url.path.endsWith('/checkout/preview-all')) {
+          return http.Response(
+            jsonEncode(_checkoutPreviewJson),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.path.endsWith('/checkout/preview')) {
+          return http.Response(
+            jsonEncode({
+              'settlementPreview': {
+                'sessionId': 'session-1',
+                'subtotal': 64,
+                'total': 56,
+                'status': 'preview',
+                'previewedAt': '2026-07-04T12:43:00.000Z',
+              },
+              'chargeItems': [],
+              'adjustments': [],
+              'assetHoldings': [],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('{}', 404);
+      }),
+    );
+
+    final all = await client.previewAllCheckout('player-1');
+    final single = await client.previewCheckout(
+      'player-1',
+      sessionId: 'session-1',
+    );
+
+    expect(all.playerId, 'player-1');
+    expect(all.sessionIds, ['session-1', 'session-2']);
+    expect(all.total, 56);
+    expect(all.status, 'preview');
+    expect(all.sessionPreviews.map((preview) => preview.sessionId), [
+      'session-1',
+      'session-2',
+    ]);
+    expect(single.playerId, 'player-1');
+    expect(single.sessionIds, ['session-1']);
+    expect(single.total, 56);
+    expect(
+      requests.map((request) => request.url.path),
+      containsAll([
+        '/rpc/staff/players/player-1/checkout/preview-all',
+        '/rpc/staff/players/player-1/checkout/preview',
+      ]),
+    );
+  });
+
   testWidgets('operations page shows stay duration and flat session details', (
     tester,
   ) async {
@@ -89,6 +156,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('在场玩家'), findsWidgets);
+    expect(find.textContaining('1 项计时中'), findsOneWidget);
+    expect(find.text('2 项费用'), findsOneWidget);
     expect(find.text('2 小时 08 分'), findsWidgets);
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
@@ -102,7 +171,17 @@ void main() {
     expect(find.textContaining('平级展示'), findsNothing);
     expect(find.textContaining('session'), findsNothing);
     expect(find.text('计时项'), findsWidgets);
-    expect(find.text('停止'), findsNWidgets(2));
+    expect(find.text('音游标准计费'), findsWidgets);
+    expect(find.text('日场'), findsOneWidget);
+    expect(find.text('+¥64'), findsOneWidget);
+    expect(find.text('麻将四口加价'), findsOneWidget);
+    expect(find.text('A 桌'), findsOneWidget);
+    expect(find.text('+¥5'), findsOneWidget);
+    expect(find.text('-¥13'), findsOneWidget);
+    expect(find.text('已停止'), findsOneWidget);
+    expect(find.text('待结账'), findsOneWidget);
+    expect(find.text('音游按时收费'), findsNothing);
+    expect(find.text('停止'), findsOneWidget);
   });
 
   testWidgets(
@@ -169,6 +248,87 @@ void main() {
     },
   );
 
+  testWidgets(
+    'player checkout preview opens confirmation and settles all fees',
+    (tester) async {
+      final requests = <http.Request>[];
+      final api = PrismApiClient(
+        baseUrl: 'https://prism.example',
+        token: 'staff-token',
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          if (request.url.path == '/rpc/staff/live-players') {
+            return http.Response(
+              jsonEncode(_livePlayersJson),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path.endsWith('/checkout/preview-all')) {
+            return http.Response(
+              jsonEncode(_checkoutPreviewJson),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path.endsWith('/checkout/confirm-all')) {
+            return http.Response(
+              jsonEncode(_checkoutResultJson),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            '{}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: buildPrismDashboardTheme(
+              ColorScheme.fromSeed(seedColor: prismSeedColor),
+            ),
+            home: OperationsScreen(api: api),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('给 A 结账'));
+      await tester.tap(find.text('给 A 结账'));
+      await tester.pumpAndSettle();
+      expect(find.text('结清 A'), findsOneWidget);
+      expect(find.textContaining('2 笔未结费用'), findsOneWidget);
+      expect(find.text('会把 A 现在的 2 笔未结费用一起结掉，预计扣款 ¥56。'), findsOneWidget);
+      await tester.tap(find.text('确认结账'));
+      await tester.pumpAndSettle();
+
+      expect(
+        requests.any(
+          (request) =>
+              request.method == 'POST' &&
+              request.url.path ==
+                  '/rpc/staff/players/player-1/checkout/preview-all',
+        ),
+        isTrue,
+      );
+      expect(
+        requests.any(
+          (request) =>
+              request.method == 'POST' &&
+              request.url.path ==
+                  '/rpc/staff/players/player-1/checkout/confirm-all',
+        ),
+        isTrue,
+      );
+      expect(find.text('A 已结账。'), findsOneWidget);
+    },
+  );
+
   testWidgets('live header actions start an extra timer and bulk checkout', (
     tester,
   ) async {
@@ -216,7 +376,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('计时名称'), findsOneWidget);
     expect(find.text('使用的计费方案'), findsOneWidget);
-    expect(find.text('音游标准计费'), findsOneWidget);
+    expect(find.text('音游标准计费'), findsWidgets);
     await tester.enterText(find.byType(TextField), '四口麻将');
     await tester.tap(find.text('开始计时'));
     await tester.pumpAndSettle();
@@ -326,6 +486,14 @@ const Map<String, dynamic> _livePlayersJson = {
           'elapsedMinutes': 128,
           'currentImpact': 64,
           'status': 'active',
+          'pricingCharges': [
+            {
+              'pricingConfigId': 'pricing-music',
+              'planName': '音游标准计费',
+              'ruleLabel': '日场',
+              'amount': 64,
+            },
+          ],
         },
         {
           'id': 'session-2',
@@ -333,11 +501,59 @@ const Map<String, dynamic> _livePlayersJson = {
           'startedAt': '2026-07-04T11:20:00.000Z',
           'elapsedMinutes': 83,
           'currentImpact': -8,
-          'status': 'active',
+          'status': 'closed',
+          'pricingCharges': [
+            {
+              'pricingConfigId': 'pricing-mahjong-a',
+              'planName': '麻将四口加价',
+              'ruleLabel': 'A 桌',
+              'amount': 5,
+            },
+            {
+              'pricingConfigId': 'asset-month-pass',
+              'planName': '月卡折抵',
+              'ruleLabel': '会员权益',
+              'amount': -13,
+            },
+          ],
         },
       ],
     },
   ],
+};
+
+const Map<String, dynamic> _checkoutPreviewJson = {
+  'settlementPreview': {
+    'playerId': 'player-1',
+    'sessionIds': ['session-1', 'session-2'],
+    'subtotal': 64,
+    'total': 56,
+    'status': 'preview',
+    'previewedAt': '2026-07-04T12:43:00.000Z',
+  },
+  'sessionPreviews': [
+    {'sessionId': 'session-1', 'subtotal': 64, 'total': 64},
+    {'sessionId': 'session-2', 'subtotal': 0, 'total': -8},
+  ],
+  'chargeItems': [],
+  'adjustments': [],
+  'assetHoldings': [],
+};
+
+const Map<String, dynamic> _checkoutResultJson = {
+  'playerSettlement': {
+    'playerId': 'player-1',
+    'sessionIds': ['session-1', 'session-2'],
+    'subtotal': 64,
+    'total': 56,
+    'status': 'settled',
+    'settledAt': '2026-07-04T12:44:00.000Z',
+  },
+  'settlements': [],
+  'chargeItems': [],
+  'adjustments': [],
+  'assetLedgerEntries': [],
+  'assetHoldings': [],
 };
 
 String _expectedDateTime(String iso) {

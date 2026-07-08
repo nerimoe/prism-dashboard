@@ -30,8 +30,23 @@ void main() {
     expect(find.byType(Stepper), findsNothing);
     expect(find.widgetWithText(TextField, '方案名称'), findsOneWidget);
     expect(find.widgetWithText(TextField, '时段名称'), findsOneWidget);
+    expect(find.textContaining('计费方案 ID'), findsWidgets);
+    expect(find.textContaining('pricing-1'), findsWidgets);
+    expect(find.byIcon(Icons.copy_all_outlined), findsWidgets);
     expect(find.textContaining('provider'), findsNothing);
     expect(find.textContaining('metadata'), findsNothing);
+  });
+
+  testWidgets('pricing plan id is visible for bot configuration', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests));
+    await tester.pumpAndSettle();
+
+    expect(find.text('计费方案 ID'), findsWidgets);
+    expect(find.text('pricing-1'), findsWidgets);
+    expect(find.byTooltip('复制计费方案 ID'), findsWidgets);
   });
 
   testWidgets(
@@ -201,6 +216,31 @@ void main() {
     expect(body['provider']['rules'], hasLength(2));
     expect(body['provider']['rules'].first['pricing']['unitPrice'], 10);
     expect(body['provider']['rules'][1]['id'], 'night');
+  });
+
+  testWidgets('save preserves decimal pricing amounts', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(
+      _buildPricingScreen(requests, decimalPricing: true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('保存方案'));
+    await tester.tap(find.text('保存方案'));
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'PATCH' &&
+          request.url.path == '/rpc/staff/pricing-configs/pricing-1',
+    );
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    final pricing =
+        (((body['provider'] as Map<String, dynamic>)['rules'] as List).first
+                as Map<String, dynamic>)['pricing']
+            as Map<String, dynamic>;
+    expect(pricing['unitPrice'], 5.5);
+    expect(pricing['priceCap'], 12.5);
   });
 
   testWidgets('new pricing plan button opens an empty draft and posts create', (
@@ -375,6 +415,7 @@ Widget _buildPricingScreen(
   String configName = '基础计费',
   bool includeFixed = false,
   bool scopedRules = false,
+  bool decimalPricing = false,
 }) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
@@ -389,6 +430,7 @@ Widget _buildPricingScreen(
             configName: configName,
             includeFixed: includeFixed,
             scopedRules: scopedRules,
+            decimalPricing: decimalPricing,
           ),
         ),
         200,
@@ -414,6 +456,7 @@ Map<String, dynamic> _responseFor(
   String configName = '基础计费',
   bool includeFixed = false,
   bool scopedRules = false,
+  bool decimalPricing = false,
 }) {
   final path = request.url.path;
   if (path == '/rpc/staff/pricing-configs') {
@@ -421,7 +464,11 @@ Map<String, dynamic> _responseFor(
       'pricingConfigs': [
         if (scopedRules) _scopedPricingConfigJson(),
         if (!scopedRules)
-          _pricingConfigJson(archived: archived, name: configName),
+          _pricingConfigJson(
+            archived: archived,
+            name: configName,
+            decimalPricing: decimalPricing,
+          ),
         if (includeFixed) _fixedPricingConfigJson(),
       ],
     };
@@ -485,6 +532,7 @@ Map<String, dynamic> _fixedPricingConfigJson() {
 Map<String, dynamic> _pricingConfigJson({
   required bool archived,
   String name = '基础计费',
+  bool decimalPricing = false,
 }) {
   return {
     'id': 'pricing-1',
@@ -502,9 +550,9 @@ Map<String, dynamic> _pricingConfigJson({
           'timeRange': {'start': '00:00', 'end': '00:00'},
           'pricing': {
             'unitMinutes': 30,
-            'unitPrice': 10,
+            'unitPrice': decimalPricing ? 5.5 : 10,
             'roundGraceMinutes': 5,
-            'priceCap': 80,
+            'priceCap': decimalPricing ? 12.5 : 80,
           },
         },
         {

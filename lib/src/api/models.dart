@@ -47,6 +47,8 @@ abstract class LivePlayer with _$LivePlayer {
   }) = _LivePlayer;
 
   int get sessionCount => sessions.length;
+  int get activeSessionCount =>
+      sessions.where((session) => session.status == 'active').length;
   bool get isActive => status == 'active';
 
   factory LivePlayer.fromJson(Map<String, dynamic> json) =>
@@ -62,6 +64,7 @@ abstract class LiveSession with _$LiveSession {
     required DateTime startedAt,
     @JsonKey(readValue: readElapsedMinutes) @Default(0) int elapsedMinutes,
     @JsonKey(readValue: readCurrentImpact) num? currentImpact,
+    @Default([]) List<LivePricingCharge> pricingCharges,
     @Default('closed') String status,
   }) = _LiveSession;
 
@@ -75,13 +78,34 @@ abstract class LiveSession with _$LiveSession {
   String get startedLine => '${formatClock(startedAt)} 开始';
   String get entrySourceLine =>
       '${entrySource(title)} · ${formatClock(startedAt)}';
-  String get pricingRuleLabel {
-    if (title.contains('麻将') || title.contains('自定义')) return '店内加减价';
-    return '音游按时收费';
-  }
+  String get pricingSummary => pricingCharges.isEmpty
+      ? '暂无计费明细'
+      : pricingCharges
+            .map((charge) => charge.displayName)
+            .toSet()
+            .join('、');
 
   factory LiveSession.fromJson(Map<String, dynamic> json) =>
       _$LiveSessionFromJson(json);
+}
+
+@freezed
+abstract class LivePricingCharge with _$LivePricingCharge {
+  const LivePricingCharge._();
+  const factory LivePricingCharge({
+    required String pricingConfigId,
+    required String planName,
+    String? ruleLabel,
+    required num amount,
+  }) = _LivePricingCharge;
+
+  String get displayName {
+    final rule = ruleLabel?.trim();
+    return rule == null || rule.isEmpty ? planName : '$planName · $rule';
+  }
+
+  factory LivePricingCharge.fromJson(Map<String, dynamic> json) =>
+      _$LivePricingChargeFromJson(json);
 }
 
 @freezed
