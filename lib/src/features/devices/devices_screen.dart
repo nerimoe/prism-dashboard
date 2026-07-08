@@ -22,6 +22,33 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
+  bool get _canWrite =>
+      ref.watch(appControllerProvider).value?.staff?.canWrite ??
+      true;
+
+  Future<void> _showConfigureHaDevices(BuildContext context) async {
+    try {
+      final rawSettings = await _api.getRawSettings();
+      if (!context.mounted) return;
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (context) => _EditHaDevicesDialog(
+          api: _api,
+          rawSettings: rawSettings,
+        ),
+      );
+      if (saved == true) {
+        _refresh();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('加载配置失败：$e')),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +100,13 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         devices: data.facilityDevices,
                         emptyTitle: '暂无设施上报',
                         emptyMessage: '配置 Home Assistant 后，门禁、电源和空调状态会显示在这里。',
+                        trailing: _canWrite
+                            ? IconButton(
+                                tooltip: '配置设备映射',
+                                icon: const Icon(Icons.settings),
+                                onPressed: () => _showConfigureHaDevices(context),
+                              )
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       _DeviceGroupPanel(
@@ -206,6 +240,7 @@ class _DeviceGroupPanel extends StatelessWidget {
     required this.emptyMessage,
     this.devices = const [],
     this.machines = const [],
+    this.trailing,
   });
 
   final String title;
@@ -215,6 +250,7 @@ class _DeviceGroupPanel extends StatelessWidget {
   final String emptyMessage;
   final List<DeviceState> devices;
   final List<MachineConnection> machines;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +258,7 @@ class _DeviceGroupPanel extends StatelessWidget {
       return PrismPanel(
         title: title,
         subtitle: subtitle,
+        trailing: trailing,
         child: EmptyState(icon: icon, title: emptyTitle, message: emptyMessage),
       );
     }
@@ -229,6 +266,7 @@ class _DeviceGroupPanel extends StatelessWidget {
     return PrismPanel(
       title: title,
       subtitle: subtitle,
+      trailing: trailing,
       child: Column(
         children: [
           for (final device in devices) ...[
@@ -699,4 +737,246 @@ String? commandFailureLabel(DeviceCommand command) {
     return executorFailure['message'] as String;
   }
   return null;
+}
+
+class _HaDeviceInput {
+  _HaDeviceInput({
+    required String name,
+    required List<String> alias,
+    required String id,
+  }) : nameController = TextEditingController(text: name),
+       aliasController = TextEditingController(text: alias.join(', ')),
+       idController = TextEditingController(text: id);
+
+  final TextEditingController nameController;
+  final TextEditingController aliasController;
+  final TextEditingController idController;
+
+  void dispose() {
+    nameController.dispose();
+    aliasController.dispose();
+    idController.dispose();
+  }
+}
+
+class _EditHaDevicesDialog extends StatefulWidget {
+  const _EditHaDevicesDialog({
+    required this.api,
+    required this.rawSettings,
+  });
+
+  final PrismApiClient api;
+  final Map<String, dynamic> rawSettings;
+
+  @override
+  State<_EditHaDevicesDialog> createState() => _EditHaDevicesDialogState();
+}
+
+class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
+  final List<_HaDeviceInput> _haDevices = [];
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final haDevices = widget.rawSettings['homeAssistantDevices'] ?? [];
+    for (final dev in haDevices) {
+      if (dev is Map) {
+        final aliases = (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        _haDevices.add(_HaDeviceInput(
+          name: dev['name']?.toString() ?? '',
+          alias: aliases,
+          id: dev['id']?.toString() ?? '',
+        ));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final dev in _haDevices) {
+      dev.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    final haDevicesJson = _haDevices.map((dev) {
+      final aliases = dev.aliasController.text
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      return {
+        'name': dev.nameController.text.trim(),
+        'alias': aliases,
+        'id': dev.idController.text.trim(),
+      };
+    }).toList();
+
+    try {
+      final updatedRaw = Map<String, dynamic>.from(widget.rawSettings);
+      updatedRaw['homeAssistantDevices'] = haDevicesJson;
+      await widget.api.updateRawSettings(updatedRaw);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      setState(() {
+        _saving = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: const Text('配置 Home Assistant 设备映射'),
+      content: SizedBox(
+        width: 650,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_error != null) ...[
+                Card(
+                  color: colors.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: colors.onErrorContainer),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Text(
+                '管理绑定在系统上的物理设备。配置后，您可以在看板上直接监控这些设备，并可通过微信/QQ等机器人指令控制开关。',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              if (_haDevices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text(
+                      '暂无配置的设备，请点击下方「添加设备」进行绑定。',
+                      style: TextStyle(color: colors.onSurfaceVariant.withOpacity(0.6)),
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(_haDevices.length, (index) {
+                  final dev = _haDevices[index];
+                  return Padding(
+                    key: ValueKey(dev),
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: colors.outlineVariant),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: TextField(
+                                controller: dev.nameController,
+                                decoration: const InputDecoration(
+                                  labelText: '设备名称',
+                                  hintText: '中二官拆',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 3,
+                              child: TextField(
+                                controller: dev.aliasController,
+                                decoration: const InputDecoration(
+                                  labelText: '别名 (逗号分隔)',
+                                  hintText: 'chu2, gc',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 4,
+                              child: TextField(
+                                controller: dev.idController,
+                                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                decoration: const InputDecoration(
+                                  labelText: 'HA 实体 ID',
+                                  hintText: 'switch.cuco_cn...',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  final removed = _haDevices.removeAt(index);
+                                  removed.dispose();
+                                });
+                              },
+                              icon: Icon(Icons.delete_outline, color: colors.error),
+                              tooltip: '删除此行',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _haDevices.add(_HaDeviceInput(name: '', alias: [], id: ''));
+                  });
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('添加设备'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Text('保存'),
+        ),
+      ],
+    );
+  }
 }
