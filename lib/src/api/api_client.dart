@@ -211,6 +211,16 @@ class PrismApiClient {
     );
   }
 
+  Future<Map<String, dynamic>> getRawSettings() async {
+    final json = await get('/rpc/staff/settings');
+    return (json['settings'] as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> updateRawSettings(Map<String, dynamic> body) async {
+    final json = await put('/rpc/staff/settings', body: body);
+    return (json['settings'] as Map).cast<String, dynamic>();
+  }
+
   Future<SettingsData> updateSettings({
     required String storeName,
     required String timeZone,

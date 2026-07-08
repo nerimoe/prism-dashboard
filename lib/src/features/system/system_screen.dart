@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,6 +25,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   late Future<_SystemData> _future;
   final _storeNameController = TextEditingController();
   final _timeZoneController = TextEditingController();
+  final _haDevicesController = TextEditingController();
   int _coinCooldownMs = 1000;
   bool _settingsAdopted = false;
   String? _message;
@@ -45,6 +47,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   void dispose() {
     _storeNameController.dispose();
     _timeZoneController.dispose();
+    _haDevicesController.dispose();
     super.dispose();
   }
 
@@ -54,7 +57,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
       future: _future,
       builder: (context, snapshot) {
         final data = snapshot.data;
-        if (data != null && !_settingsAdopted) _adoptSettings(data.settings);
+        if (data != null && !_settingsAdopted) _adoptSettings(data);
         return AdminWorkspace(
           title: '员工与系统',
           subtitle: '管理店铺设置、员工账号和外部接入密钥。',
@@ -101,12 +104,13 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        height: 620,
+                        height: 750,
                         child: TabBarView(
                           children: [
                             _SettingsTab(
                               storeNameController: _storeNameController,
                               timeZoneController: _timeZoneController,
+                              homeAssistantDevicesController: _haDevicesController,
                               coinCooldownMs: _coinCooldownMs,
                               canWrite: _canWrite,
                               onCooldownChanged: (value) =>
@@ -141,21 +145,28 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
 
   Future<_SystemData> _load() async {
     final results = await Future.wait<Object>([
-      _api.getSettings(),
+      _api.getRawSettings(),
       _api.listStaffUsers(),
       _api.listApiTokens(),
     ]);
+    final rawSettings = results[0] as Map<String, dynamic>;
     return _SystemData(
-      settings: results[0] as SettingsData,
+      settings: SettingsData.fromJson(rawSettings),
+      rawSettings: rawSettings,
       staffUsers: results[1] as List<StaffUser>,
       apiTokens: results[2] as List<ApiToken>,
     );
   }
 
-  void _adoptSettings(SettingsData settings) {
-    _storeNameController.text = settings.storeName;
-    _timeZoneController.text = settings.timeZone;
-    _coinCooldownMs = settings.coinCooldownMs;
+  void _adoptSettings(_SystemData data) {
+    _storeNameController.text = data.settings.storeName;
+    _timeZoneController.text = data.settings.timeZone;
+    _coinCooldownMs = data.settings.coinCooldownMs;
+    
+    final haDevices = data.rawSettings['homeAssistantDevices'] ?? [];
+    const encoder = JsonEncoder.withIndent('  ');
+    _haDevicesController.text = encoder.convert(haDevices);
+
     _settingsAdopted = true;
   }
 
@@ -167,16 +178,40 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   }
 
   Future<void> _saveSettings() async {
-    await _api.updateSettings(
-      storeName: _storeNameController.text.trim(),
-      timeZone: _timeZoneController.text.trim(),
-      coinCooldownMs: _coinCooldownMs,
-    );
-    setState(() {
-      _message = '店铺设置已保存。';
-      _settingsAdopted = false;
-      _future = _load();
-    });
+    Object? haDevicesJson;
+    try {
+      haDevicesJson = jsonDecode(_haDevicesController.text.trim());
+      if (haDevicesJson is! List) {
+        throw const FormatException('Home Assistant devices configuration must be a JSON array.');
+      }
+    } catch (e) {
+      setState(() {
+        _message = '⚠️ 保存失败：Home Assistant 设备配置 JSON 格式不正确。';
+      });
+      return;
+    }
+
+    try {
+      await _api.updateRawSettings({
+        'store': {
+          'name': _storeNameController.text.trim(),
+          'timeZone': _timeZoneController.text.trim(),
+        },
+        'operations': {
+          'coinCooldownMs': _coinCooldownMs,
+        },
+        'homeAssistantDevices': haDevicesJson,
+      });
+      setState(() {
+        _message = '店铺设置已保存。';
+        _settingsAdopted = false;
+        _future = _load();
+      });
+    } catch (e) {
+      setState(() {
+        _message = '⚠️ 保存失败：${e.toString()}';
+      });
+    }
   }
 
   Future<void> _showCreateStaffDialog() async {
@@ -469,6 +504,7 @@ class _SettingsTab extends StatelessWidget {
   const _SettingsTab({
     required this.storeNameController,
     required this.timeZoneController,
+    required this.homeAssistantDevicesController,
     required this.coinCooldownMs,
     required this.canWrite,
     required this.onCooldownChanged,
@@ -477,6 +513,7 @@ class _SettingsTab extends StatelessWidget {
 
   final TextEditingController storeNameController;
   final TextEditingController timeZoneController;
+  final TextEditingController homeAssistantDevicesController;
   final int coinCooldownMs;
   final bool canWrite;
   final ValueChanged<int> onCooldownChanged;
@@ -505,6 +542,19 @@ class _SettingsTab extends StatelessWidget {
             controller: timeZoneController,
             enabled: canWrite,
             decoration: const InputDecoration(labelText: '营业时区'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: homeAssistantDevicesController,
+            enabled: canWrite,
+            maxLines: 8,
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+            decoration: const InputDecoration(
+              labelText: 'Home Assistant 设备映射 (JSON)',
+              hintText: '[\n  {\n    "name": "中二官拆",\n    "alias": ["chu2"],\n    "id": "switch.cuco_cn_571514441_v3_on_p_2_1"\n  }\n]',
+              border: OutlineInputBorder(),
+              alignLabelWithHint: true,
+            ),
           ),
           const SizedBox(height: 16),
           StepperNumberField(
@@ -688,11 +738,13 @@ class _MessageBanner extends StatelessWidget {
 class _SystemData {
   const _SystemData({
     required this.settings,
+    required this.rawSettings,
     required this.staffUsers,
     required this.apiTokens,
   });
 
   final SettingsData settings;
+  final Map<String, dynamic> rawSettings;
   final List<StaffUser> staffUsers;
   final List<ApiToken> apiTokens;
 }
