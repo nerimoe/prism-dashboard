@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -135,13 +134,15 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                               haDevices: _haDevices,
                               onAddDevice: () {
                                 setState(() {
-                                  _haDevices.add(_HaDeviceInput(name: '', alias: [], id: ''));
+                                  _haDevices.add(
+                                    _HaDeviceInput(name: '', alias: [], id: ''),
+                                  );
                                 });
                               },
                               onDeleteDevice: (index) {
                                 setState(() {
-                                    final dev = _haDevices.removeAt(index);
-                                    dev.dispose();
+                                  final dev = _haDevices.removeAt(index);
+                                  dev.dispose();
                                 });
                               },
                               coinCooldownMs: _coinCooldownMs,
@@ -195,7 +196,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
     _storeNameController.text = data.settings.storeName;
     _timeZoneController.text = data.settings.timeZone;
     _coinCooldownMs = data.settings.coinCooldownMs;
-    
+
     for (final dev in _haDevices) {
       dev.dispose();
     }
@@ -204,12 +205,15 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
     final haDevices = data.rawSettings['homeAssistantDevices'] ?? [];
     for (final dev in haDevices) {
       if (dev is Map) {
-        final aliases = (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
-        _haDevices.add(_HaDeviceInput(
-          name: dev['name']?.toString() ?? '',
-          alias: aliases,
-          id: dev['id']?.toString() ?? '',
-        ));
+        final aliases =
+            (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        _haDevices.add(
+          _HaDeviceInput(
+            name: dev['name']?.toString() ?? '',
+            alias: aliases,
+            id: dev['id']?.toString() ?? '',
+          ),
+        );
       }
     }
 
@@ -243,9 +247,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
           'name': _storeNameController.text.trim(),
           'timeZone': _timeZoneController.text.trim(),
         },
-        'operations': {
-          'coinCooldownMs': _coinCooldownMs,
-        },
+        'operations': {'coinCooldownMs': _coinCooldownMs},
         'homeAssistantDevices': haDevicesJson,
       });
       setState(() {
@@ -450,10 +452,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                     value: 'integration',
                     child: Text('机器人/店内入口'),
                   ),
-                  DropdownMenuItem(
-                    value: 'machine',
-                    child: Text('机器软件接入'),
-                  ),
+                  DropdownMenuItem(value: 'machine', child: Text('机器软件接入')),
                 ],
                 onChanged: (value) {
                   if (value != null) setDialogState(() => role = value);
@@ -465,7 +464,9 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     errorMessage!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               ],
@@ -599,9 +600,9 @@ class _SettingsTab extends StatelessWidget {
             children: [
               Text(
                 'Home Assistant 设备映射',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (canWrite)
                 TextButton.icon(
@@ -619,8 +620,10 @@ class _SettingsTab extends StatelessWidget {
                 child: Text(
                   '暂无绑定的 Home Assistant 设备',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
                 ),
               ),
             )
@@ -676,7 +679,10 @@ class _SettingsTab extends StatelessWidget {
                           child: TextField(
                             controller: dev.idController,
                             enabled: canWrite,
-                            style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 13,
+                            ),
                             decoration: const InputDecoration(
                               labelText: 'Home Assistant 实体 ID',
                               hintText: '例如：switch.cuco_cn_...',

@@ -113,10 +113,7 @@ class PrismApiClient {
   }) async {
     await post(
       '/rpc/staff/players/$playerId/checkout/override',
-      body: {
-        'total': total,
-        'reason': reason,
-      },
+      body: {'total': total, 'reason': reason},
     );
   }
 
@@ -216,7 +213,9 @@ class PrismApiClient {
     return (json['settings'] as Map).cast<String, dynamic>();
   }
 
-  Future<Map<String, dynamic>> updateRawSettings(Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> updateRawSettings(
+    Map<String, dynamic> body,
+  ) async {
     final json = await put('/rpc/staff/settings', body: body);
     return (json['settings'] as Map).cast<String, dynamic>();
   }
@@ -781,6 +780,24 @@ class PrismApiClient {
   Future<List<DeviceCommand>> listDeviceCommands() async {
     final json = await get('/rpc/staff/device-commands');
     return listOf(json['commands'], DeviceCommand.fromJson);
+  }
+
+  Future<DeviceCommand> requestStaffDeviceAction({
+    required String type,
+    required String targetKind,
+    required String deviceId,
+    Map<String, dynamic>? payload,
+  }) async {
+    final json = await post(
+      '/rpc/staff/device-actions',
+      body: {
+        'type': type,
+        'target': {'kind': targetKind, 'id': deviceId},
+        if (payload != null) 'payload': payload,
+      },
+    );
+    final action = (json['action'] ?? json['command']) as Map;
+    return DeviceCommand.fromJson(action.cast<String, dynamic>());
   }
 
   Future<ReportSummary> reportsSummary({String? start, String? end}) async {

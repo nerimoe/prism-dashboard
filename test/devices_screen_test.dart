@@ -28,7 +28,11 @@ void main() {
     expect(find.text('maimai-dx-1'), findsOneWidget);
     expect(find.text('chunithm-2'), findsOneWidget);
     expect(find.text('机厅空调'), findsOneWidget);
-    expect(find.text('已锁定'), findsOneWidget);
+    expect(find.text('音游区电源'), findsOneWidget);
+    expect(find.textContaining('已锁定'), findsOneWidget);
+    expect(find.textContaining('已开启'), findsOneWidget);
+    expect(find.text('开'), findsOneWidget);
+    expect(find.text('关'), findsOneWidget);
     expect(find.text('在线'), findsWidgets);
     expect(find.text('离线'), findsOneWidget);
     expect(find.text('故障'), findsOneWidget);
@@ -43,6 +47,22 @@ void main() {
     expect(find.textContaining('metadata'), findsNothing);
     expect(find.textContaining('agent'), findsNothing);
     expect(find.textContaining('locked'), findsNothing);
+
+    await tester.ensureVisible(find.text('关'));
+    await tester.tap(find.text('关'));
+    await tester.pumpAndSettle();
+
+    final powerRequest = requests.singleWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/device-actions',
+    );
+    expect(jsonDecode(powerRequest.body), {
+      'type': 'power.off',
+      'target': {'kind': 'facility', 'id': 'switch.wacca'},
+      'payload': {'state': 'off'},
+    });
+    expect(find.text('音游区电源 关机指令已发送'), findsOneWidget);
   });
 
   testWidgets('command audit renders staff-facing statuses and times', (
@@ -154,6 +174,18 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'reportedAt': '2026-07-04T12:32:00.000Z',
           'reportedBy': 'ha-main',
         },
+        {
+          'deviceId': 'switch.wacca',
+          'type': 'switch',
+          'targetKind': 'facility',
+          'executorKind': 'home_assistant',
+          'label': '音游区电源',
+          'status': 'online',
+          'state': '{"state":"on"}',
+          'metadata': null,
+          'reportedAt': '2026-07-04T12:36:00.000Z',
+          'reportedBy': 'ha-main',
+        },
       ],
     };
   }
@@ -228,6 +260,24 @@ Map<String, dynamic> _responseFor(http.Request request) {
           },
         },
       ],
+    };
+  }
+  if (path == '/rpc/staff/device-actions') {
+    return {
+      'action': {
+        'id': 'cmd-power-off',
+        'type': 'power.off',
+        'deviceId': 'switch.wacca',
+        'target': {'kind': 'facility', 'id': 'switch.wacca'},
+        'executorKind': 'home_assistant',
+        'playerId': null,
+        'staffId': 'staff',
+        'status': 'acked',
+        'payload': {'state': 'off'},
+        'requestedAt': '2026-07-04T12:37:00.000Z',
+        'ackedAt': '2026-07-04T12:37:01.000Z',
+        'expiredAt': null,
+      },
     };
   }
   return {};

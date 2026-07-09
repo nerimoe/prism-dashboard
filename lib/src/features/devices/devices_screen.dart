@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,12 +21,12 @@ class DevicesScreen extends ConsumerStatefulWidget {
 
 class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   late Future<_DevicesData> _future;
+  final Set<String> _busyDeviceIds = <String>{};
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
   bool get _canWrite =>
-      ref.watch(appControllerProvider).value?.staff?.canWrite ??
-      true;
+      ref.watch(appControllerProvider).value?.staff?.canWrite ?? true;
 
   Future<void> _showConfigureHaDevices(BuildContext context) async {
     try {
@@ -32,19 +34,17 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       if (!context.mounted) return;
       final saved = await showDialog<bool>(
         context: context,
-        builder: (context) => _EditHaDevicesDialog(
-          api: _api,
-          rawSettings: rawSettings,
-        ),
+        builder: (context) =>
+            _EditHaDevicesDialog(api: _api, rawSettings: rawSettings),
       );
       if (saved == true) {
         _refresh();
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载配置失败：$e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载配置失败：$e')));
       }
     }
   }
@@ -100,11 +100,15 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         devices: data.facilityDevices,
                         emptyTitle: '暂无设施上报',
                         emptyMessage: '配置 Home Assistant 后，门禁、电源和空调状态会显示在这里。',
+                        canControl: _canWrite,
+                        busyDeviceIds: _busyDeviceIds,
+                        onPower: _requestPower,
                         trailing: _canWrite
                             ? IconButton(
                                 tooltip: '配置设备映射',
                                 icon: const Icon(Icons.settings),
-                                onPressed: () => _showConfigureHaDevices(context),
+                                onPressed: () =>
+                                    _showConfigureHaDevices(context),
                               )
                             : null,
                       ),
@@ -162,6 +166,39 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       machines: results[1] as List<MachineConnection>,
       commands: results[2] as List<DeviceCommand>,
     );
+  }
+
+  Future<void> _requestPower(DeviceState device, bool turnOn) async {
+    if (!_canWrite || _busyDeviceIds.contains(device.deviceId)) return;
+    setState(() => _busyDeviceIds.add(device.deviceId));
+    try {
+      final command = await _api.requestStaffDeviceAction(
+        type: turnOn ? 'power.on' : 'power.off',
+        targetKind: device.targetKind,
+        deviceId: device.deviceId,
+        payload: {'state': turnOn ? 'on' : 'off'},
+      );
+      if (!mounted) return;
+      final failure = commandFailureLabel(command);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failure == null
+                ? '${device.label} ${turnOn ? '开机' : '关机'}指令已发送'
+                : '${device.label} 操作失败：$failure',
+          ),
+        ),
+      );
+      _refresh();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${device.label} 操作失败：$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busyDeviceIds.remove(device.deviceId));
+    }
   }
 
   void _refresh() {
@@ -240,6 +277,9 @@ class _DeviceGroupPanel extends StatelessWidget {
     required this.emptyMessage,
     this.devices = const [],
     this.machines = const [],
+    this.canControl = false,
+    this.busyDeviceIds = const <String>{},
+    this.onPower,
     this.trailing,
   });
 
@@ -250,6 +290,9 @@ class _DeviceGroupPanel extends StatelessWidget {
   final String emptyMessage;
   final List<DeviceState> devices;
   final List<MachineConnection> machines;
+  final bool canControl;
+  final Set<String> busyDeviceIds;
+  final Future<void> Function(DeviceState device, bool turnOn)? onPower;
   final Widget? trailing;
 
   @override
@@ -270,7 +313,12 @@ class _DeviceGroupPanel extends StatelessWidget {
       child: Column(
         children: [
           for (final device in devices) ...[
-            _DeviceCard(device: device),
+            _DeviceCard(
+              device: device,
+              canControl: canControl,
+              busy: busyDeviceIds.contains(device.deviceId),
+              onPower: onPower,
+            ),
             if (device != devices.last || machines.isNotEmpty)
               const SizedBox(height: 12),
           ],
@@ -362,81 +410,165 @@ class _MachineCard extends StatelessWidget {
 }
 
 class _DeviceCard extends StatelessWidget {
-  const _DeviceCard({required this.device});
+  const _DeviceCard({
+    required this.device,
+    required this.canControl,
+    required this.busy,
+    required this.onPower,
+  });
 
   final DeviceState device;
+  final bool canControl;
+  final bool busy;
+  final Future<void> Function(DeviceState device, bool turnOn)? onPower;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final isMachine = isGameMachine(device);
+    final powerState = normalizedDeviceState(device.state);
+    final hasKnownPowerState = powerState == 'on' || powerState == 'off';
+    final isOn = powerState == 'on';
+    final controllable = canControl && isPowerDevice(device) && onPower != null;
+    final stateColor = switch (powerState) {
+      'on' => colors.primary,
+      'off' => colors.onSurfaceVariant,
+      _ => colors.tertiary,
+    };
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.outlineVariant),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  isMachine
-                      ? Icons.sports_esports_outlined
-                      : Icons.home_repair_service_outlined,
-                  color: colors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: stateColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(deviceIcon(device), color: stateColor),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      device.label,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${deviceTypeLabel(device.type)} · ${executorLabel(device)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
+                    Expanded(
+                      child: Text(
+                        device.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    _DeviceStatePill(status: device.status),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${deviceTypeLabel(device.type)} · ${executorLabel(device)} · ${powerStateLabel(powerState)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _InfoChip(
+                      icon: Icons.memory_outlined,
+                      label: device.deviceId,
+                    ),
+                    _InfoChip(
+                      icon: Icons.schedule,
+                      label: '同步 ${formatAdminDateTime(device.reportedAt)}',
                     ),
                   ],
                 ),
-              ),
-              _DeviceStatePill(status: device.status),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _InfoChip(icon: Icons.memory_outlined, label: device.deviceId),
-              _InfoChip(
-                icon: Icons.info_outline,
-                label: currentStateLabel(device.state),
-              ),
-              _InfoChip(
-                icon: Icons.schedule,
-                label: '上次心跳 ${formatAdminDateTime(device.reportedAt)}',
-              ),
-            ],
-          ),
+          if (controllable) ...[
+            const SizedBox(width: 12),
+            _PowerControls(
+              isOn: isOn,
+              hasKnownState: hasKnownPowerState,
+              busy: busy,
+              onTurnOn: () => onPower!(device, true),
+              onTurnOff: () => onPower!(device, false),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _PowerControls extends StatelessWidget {
+  const _PowerControls({
+    required this.isOn,
+    required this.hasKnownState,
+    required this.busy,
+    required this.onTurnOn,
+    required this.onTurnOff,
+  });
+
+  final bool isOn;
+  final bool hasKnownState;
+  final bool busy;
+  final VoidCallback onTurnOn;
+  final VoidCallback onTurnOff;
+
+  @override
+  Widget build(BuildContext context) {
+    if (busy) {
+      return const SizedBox(
+        width: 88,
+        height: 36,
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return SegmentedButton<bool>(
+      emptySelectionAllowed: true,
+      showSelectedIcon: false,
+      segments: const [
+        ButtonSegment(
+          value: true,
+          icon: Icon(Icons.power_settings_new, size: 18),
+          label: Text('开'),
+        ),
+        ButtonSegment(
+          value: false,
+          icon: Icon(Icons.power_off, size: 18),
+          label: Text('关'),
+        ),
+      ],
+      selected: hasKnownState ? {isOn} : <bool>{},
+      onSelectionChanged: (selected) {
+        if (selected.isEmpty) return;
+        final next = selected.first;
+        if (hasKnownState && next == isOn) return;
+        next ? onTurnOn() : onTurnOff();
+      },
     );
   }
 }
@@ -673,16 +805,54 @@ String capabilityLabel(String value) {
   };
 }
 
-String currentStateLabel(String? state) {
-  if (state == null || state.isEmpty || state == 'unknown') return '当前状态未知';
+String currentStateLabel(String? state) =>
+    powerStateLabel(normalizedDeviceState(state));
+
+String normalizedDeviceState(String? state) {
+  final raw = state?.trim();
+  if (raw == null || raw.isEmpty || raw == 'unknown') return 'unknown';
+  if (raw.startsWith('{')) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map && decoded['state'] is String) {
+        final nested = (decoded['state'] as String).trim();
+        return nested.isEmpty ? 'unknown' : nested;
+      }
+    } catch (_) {
+      return raw;
+    }
+  }
+  return raw;
+}
+
+String powerStateLabel(String state) {
   return switch (state) {
     'locked' => '已锁定',
     'unlocked' => '已解锁',
     'on' => '已开启',
     'off' => '已关闭',
     'slow' => '响应较慢',
+    'unknown' => '当前状态未知',
     _ => '当前 $state',
   };
+}
+
+bool isPowerDevice(DeviceState device) {
+  return !isGameMachine(device) &&
+      (device.type == 'power' ||
+          device.type == 'switch' ||
+          device.type == 'power.on' ||
+          device.type == 'power.off' ||
+          device.deviceId.startsWith('switch.'));
+}
+
+IconData deviceIcon(DeviceState device) {
+  if (device.type == 'ac.set_temperature') return Icons.ac_unit;
+  if (device.type == 'door.open' || device.type == 'door') {
+    return Icons.lock_open;
+  }
+  if (isPowerDevice(device)) return Icons.power_settings_new;
+  return Icons.home_repair_service_outlined;
 }
 
 String requesterLabel(DeviceCommand command) {
@@ -760,10 +930,7 @@ class _HaDeviceInput {
 }
 
 class _EditHaDevicesDialog extends StatefulWidget {
-  const _EditHaDevicesDialog({
-    required this.api,
-    required this.rawSettings,
-  });
+  const _EditHaDevicesDialog({required this.api, required this.rawSettings});
 
   final PrismApiClient api;
   final Map<String, dynamic> rawSettings;
@@ -793,12 +960,15 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
     final haDevices = widget.rawSettings['homeAssistantDevices'] ?? [];
     for (final dev in haDevices) {
       if (dev is Map) {
-        final aliases = (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
-        _haDevices.add(_HaDeviceInput(
-          name: dev['name']?.toString() ?? '',
-          alias: aliases,
-          id: dev['id']?.toString() ?? '',
-        ));
+        final aliases =
+            (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
+        _haDevices.add(
+          _HaDeviceInput(
+            name: dev['name']?.toString() ?? '',
+            alias: aliases,
+            id: dev['id']?.toString() ?? '',
+          ),
+        );
       }
     }
   }
@@ -877,16 +1047,16 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
               Text(
                 '管理绑定在系统上的物理设备。配置后，您可以在看板上直接监控这些设备，并可通过微信/QQ等机器人指令控制开关。',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+                  color: colors.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 20),
               // ── Home Assistant 连接配置 ──
               Text(
                 'Home Assistant 连接',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -914,7 +1084,11 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.vpn_key),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureToken ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          _obscureToken
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         tooltip: _obscureToken ? '显示 Token' : '隐藏 Token',
                         onPressed: () {
                           setState(() => _obscureToken = !_obscureToken);
@@ -930,9 +1104,9 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
               // ── 设备列表 ──
               Text(
                 '设备映射',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               if (_haDevices.isEmpty)
@@ -941,7 +1115,9 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
                   child: Center(
                     child: Text(
                       '暂无配置的设备，请点击下方「添加设备」进行绑定。',
-                      style: TextStyle(color: colors.onSurfaceVariant.withOpacity(0.6)),
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.6),
+                      ),
                     ),
                   ),
                 )
@@ -991,7 +1167,10 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
                               flex: 4,
                               child: TextField(
                                 controller: dev.idController,
-                                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 13,
+                                ),
                                 decoration: const InputDecoration(
                                   labelText: 'HA 实体 ID',
                                   hintText: 'switch.cuco_cn...',
@@ -1008,7 +1187,10 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
                                   removed.dispose();
                                 });
                               },
-                              icon: Icon(Icons.delete_outline, color: colors.error),
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: colors.error,
+                              ),
                               tooltip: '删除此行',
                             ),
                           ],
@@ -1042,7 +1224,10 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
               : const Text('保存'),
         ),

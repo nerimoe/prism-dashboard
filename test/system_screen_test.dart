@@ -31,6 +31,7 @@ void main() {
     expect(jsonDecode(request.body), {
       'store': {'name': '新店名', 'timeZone': 'Asia/Shanghai'},
       'operations': {'coinCooldownMs': 1500},
+      'homeAssistantDevices': [],
     });
     expect(find.text('店铺设置已保存。'), findsOneWidget);
   });
@@ -77,55 +78,58 @@ void main() {
   testWidgets(
     'creates API token for integration role, shows business roles, and revokes token',
     (tester) async {
-    final requests = <http.Request>[];
-    await tester.pumpWidget(_buildSystemScreen(requests));
-    await tester.pumpAndSettle();
+      final requests = <http.Request>[];
+      await tester.pumpWidget(_buildSystemScreen(requests));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('接入密钥').first);
-    await tester.pumpAndSettle();
-    expect(find.text('机器通道'), findsOneWidget);
-    expect(find.textContaining('机器软件接入'), findsOneWidget);
-    expect(find.text('可使用'), findsOneWidget);
+      await tester.tap(find.text('接入密钥').first);
+      await tester.pumpAndSettle();
+      expect(find.text('机器通道'), findsOneWidget);
+      expect(find.textContaining('机器软件接入'), findsOneWidget);
+      expect(find.text('可使用'), findsOneWidget);
 
-    await tester.tap(find.text('新建密钥'));
-    await tester.pumpAndSettle();
-    expect(find.text('机器人/店内入口'), findsOneWidget);
-    expect(find.text('设备接入'), findsNothing);
-    expect(find.text('玩家接口'), findsNothing);
+      await tester.tap(find.text('新建密钥'));
+      await tester.pumpAndSettle();
+      expect(find.text('机器人/店内入口'), findsOneWidget);
+      expect(find.text('设备接入'), findsNothing);
+      expect(find.text('玩家接口'), findsNothing);
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
-    await tester.pumpAndSettle();
-    expect(find.text('机器人/店内入口'), findsWidgets);
-    expect(find.text('机器软件接入'), findsWidgets);
-    expect(find.text('设备接入'), findsNothing);
-    expect(find.text('玩家接口'), findsNothing);
-    await tester.tap(find.text('机器人/店内入口').last);
-    await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('机器人/店内入口'), findsWidgets);
+      expect(find.text('机器软件接入'), findsWidgets);
+      expect(find.text('设备接入'), findsNothing);
+      expect(find.text('玩家接口'), findsNothing);
+      await tester.tap(find.text('机器人/店内入口').last);
+      await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, '用途名称'), '机器人验证');
-    await tester.tap(find.text('创建').last);
-    await tester.pumpAndSettle();
-    expect(find.text('integration_secret_once'), findsOneWidget);
-    await tester.tap(find.text('我已保存'));
-    await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, '用途名称'), '机器人验证');
+      await tester.tap(find.text('创建').last);
+      await tester.pumpAndSettle();
+      expect(find.text('integration_secret_once'), findsOneWidget);
+      await tester.tap(find.text('我已保存'));
+      await tester.pumpAndSettle();
 
-    final create = requests.singleWhere(
-      (request) =>
-          request.method == 'POST' &&
-          request.url.path == '/rpc/staff/api-tokens',
-    );
-    expect(jsonDecode(create.body), {'label': '机器人验证', 'role': 'integration'});
-
-    await tester.tap(find.text('撤销').first);
-    await tester.pumpAndSettle();
-    expect(
-      requests.any(
+      final create = requests.singleWhere(
         (request) =>
             request.method == 'POST' &&
-            request.url.path == '/rpc/staff/api-tokens/token-1/revoke',
-      ),
-      true,
-    );
+            request.url.path == '/rpc/staff/api-tokens',
+      );
+      expect(jsonDecode(create.body), {
+        'label': '机器人验证',
+        'role': 'integration',
+      });
+
+      await tester.tap(find.text('撤销').first);
+      await tester.pumpAndSettle();
+      expect(
+        requests.any(
+          (request) =>
+              request.method == 'POST' &&
+              request.url.path == '/rpc/staff/api-tokens/token-1/revoke',
+        ),
+        true,
+      );
     },
   );
 
@@ -178,7 +182,10 @@ void main() {
     await tester.tap(find.text('创建').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('创建失败：Staff role manager or owner required.'), findsOneWidget);
+    expect(
+      find.text('创建失败：Staff role manager or owner required.'),
+      findsOneWidget,
+    );
     expect(find.text('新建接入密钥'), findsOneWidget);
   });
 }
