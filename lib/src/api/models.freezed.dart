@@ -550,7 +550,7 @@ as bool,
 /// @nodoc
 mixin _$LivePlayer {
 
- String get playerId; String get displayName; String get status; num get walletTotal; int get stayDurationMinutes; num? get estimatedTotal; List<LiveSession> get sessions;
+ String get playerId; String get displayName; String get status; num get walletTotal; int get stayDurationMinutes; num? get estimatedTotal; List<LiveGlobalCapWindow> get globalCapWindows; List<LiveSession> get sessions;
 /// Create a copy of LivePlayer
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -563,16 +563,16 @@ $LivePlayerCopyWith<LivePlayer> get copyWith => _$LivePlayerCopyWithImpl<LivePla
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LivePlayer&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.estimatedTotal, estimatedTotal) || other.estimatedTotal == estimatedTotal)&&const DeepCollectionEquality().equals(other.sessions, sessions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LivePlayer&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.estimatedTotal, estimatedTotal) || other.estimatedTotal == estimatedTotal)&&const DeepCollectionEquality().equals(other.globalCapWindows, globalCapWindows)&&const DeepCollectionEquality().equals(other.sessions, sessions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,playerId,displayName,status,walletTotal,stayDurationMinutes,estimatedTotal,const DeepCollectionEquality().hash(sessions));
+int get hashCode => Object.hash(runtimeType,playerId,displayName,status,walletTotal,stayDurationMinutes,estimatedTotal,const DeepCollectionEquality().hash(globalCapWindows),const DeepCollectionEquality().hash(sessions));
 
 @override
 String toString() {
-  return 'LivePlayer(playerId: $playerId, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, estimatedTotal: $estimatedTotal, sessions: $sessions)';
+  return 'LivePlayer(playerId: $playerId, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, estimatedTotal: $estimatedTotal, globalCapWindows: $globalCapWindows, sessions: $sessions)';
 }
 
 
@@ -583,7 +583,7 @@ abstract mixin class $LivePlayerCopyWith<$Res>  {
   factory $LivePlayerCopyWith(LivePlayer value, $Res Function(LivePlayer) _then) = _$LivePlayerCopyWithImpl;
 @useResult
 $Res call({
- String playerId, String displayName, String status, num walletTotal, int stayDurationMinutes, num? estimatedTotal, List<LiveSession> sessions
+ String playerId, String displayName, String status, num walletTotal, int stayDurationMinutes, num? estimatedTotal, List<LiveGlobalCapWindow> globalCapWindows, List<LiveSession> sessions
 });
 
 
@@ -600,7 +600,7 @@ class _$LivePlayerCopyWithImpl<$Res>
 
 /// Create a copy of LivePlayer
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? estimatedTotal = freezed,Object? sessions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? playerId = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? estimatedTotal = freezed,Object? globalCapWindows = null,Object? sessions = null,}) {
   return _then(_self.copyWith(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -608,7 +608,8 @@ as String,status: null == status ? _self.status : status // ignore: cast_nullabl
 as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // ignore: cast_nullable_to_non_nullable
 as num,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,estimatedTotal: freezed == estimatedTotal ? _self.estimatedTotal : estimatedTotal // ignore: cast_nullable_to_non_nullable
-as num?,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
+as num?,globalCapWindows: null == globalCapWindows ? _self.globalCapWindows : globalCapWindows // ignore: cast_nullable_to_non_nullable
+as List<LiveGlobalCapWindow>,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
 as List<LiveSession>,
   ));
 }
@@ -694,10 +695,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveSession> sessions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveGlobalCapWindow> globalCapWindows,  List<LiveSession> sessions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LivePlayer() when $default != null:
-return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.sessions);case _:
+return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.globalCapWindows,_that.sessions);case _:
   return orElse();
 
 }
@@ -715,10 +716,10 @@ return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveSession> sessions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveGlobalCapWindow> globalCapWindows,  List<LiveSession> sessions)  $default,) {final _that = this;
 switch (_that) {
 case _LivePlayer():
-return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.sessions);case _:
+return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.globalCapWindows,_that.sessions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -735,10 +736,10 @@ return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveSession> sessions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String playerId,  String displayName,  String status,  num walletTotal,  int stayDurationMinutes,  num? estimatedTotal,  List<LiveGlobalCapWindow> globalCapWindows,  List<LiveSession> sessions)?  $default,) {final _that = this;
 switch (_that) {
 case _LivePlayer() when $default != null:
-return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.sessions);case _:
+return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,_that.stayDurationMinutes,_that.estimatedTotal,_that.globalCapWindows,_that.sessions);case _:
   return null;
 
 }
@@ -750,7 +751,7 @@ return $default(_that.playerId,_that.displayName,_that.status,_that.walletTotal,
 @JsonSerializable()
 
 class _LivePlayer extends LivePlayer {
-  const _LivePlayer({required this.playerId, required this.displayName, required this.status, required this.walletTotal, required this.stayDurationMinutes, this.estimatedTotal, required final  List<LiveSession> sessions}): _sessions = sessions,super._();
+  const _LivePlayer({required this.playerId, required this.displayName, required this.status, required this.walletTotal, required this.stayDurationMinutes, this.estimatedTotal, final  List<LiveGlobalCapWindow> globalCapWindows = const [], required final  List<LiveSession> sessions}): _globalCapWindows = globalCapWindows,_sessions = sessions,super._();
   factory _LivePlayer.fromJson(Map<String, dynamic> json) => _$LivePlayerFromJson(json);
 
 @override final  String playerId;
@@ -759,6 +760,13 @@ class _LivePlayer extends LivePlayer {
 @override final  num walletTotal;
 @override final  int stayDurationMinutes;
 @override final  num? estimatedTotal;
+ final  List<LiveGlobalCapWindow> _globalCapWindows;
+@override@JsonKey() List<LiveGlobalCapWindow> get globalCapWindows {
+  if (_globalCapWindows is EqualUnmodifiableListView) return _globalCapWindows;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_globalCapWindows);
+}
+
  final  List<LiveSession> _sessions;
 @override List<LiveSession> get sessions {
   if (_sessions is EqualUnmodifiableListView) return _sessions;
@@ -780,16 +788,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LivePlayer&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.estimatedTotal, estimatedTotal) || other.estimatedTotal == estimatedTotal)&&const DeepCollectionEquality().equals(other._sessions, _sessions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LivePlayer&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.status, status) || other.status == status)&&(identical(other.walletTotal, walletTotal) || other.walletTotal == walletTotal)&&(identical(other.stayDurationMinutes, stayDurationMinutes) || other.stayDurationMinutes == stayDurationMinutes)&&(identical(other.estimatedTotal, estimatedTotal) || other.estimatedTotal == estimatedTotal)&&const DeepCollectionEquality().equals(other._globalCapWindows, _globalCapWindows)&&const DeepCollectionEquality().equals(other._sessions, _sessions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,playerId,displayName,status,walletTotal,stayDurationMinutes,estimatedTotal,const DeepCollectionEquality().hash(_sessions));
+int get hashCode => Object.hash(runtimeType,playerId,displayName,status,walletTotal,stayDurationMinutes,estimatedTotal,const DeepCollectionEquality().hash(_globalCapWindows),const DeepCollectionEquality().hash(_sessions));
 
 @override
 String toString() {
-  return 'LivePlayer(playerId: $playerId, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, estimatedTotal: $estimatedTotal, sessions: $sessions)';
+  return 'LivePlayer(playerId: $playerId, displayName: $displayName, status: $status, walletTotal: $walletTotal, stayDurationMinutes: $stayDurationMinutes, estimatedTotal: $estimatedTotal, globalCapWindows: $globalCapWindows, sessions: $sessions)';
 }
 
 
@@ -800,7 +808,7 @@ abstract mixin class _$LivePlayerCopyWith<$Res> implements $LivePlayerCopyWith<$
   factory _$LivePlayerCopyWith(_LivePlayer value, $Res Function(_LivePlayer) _then) = __$LivePlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String playerId, String displayName, String status, num walletTotal, int stayDurationMinutes, num? estimatedTotal, List<LiveSession> sessions
+ String playerId, String displayName, String status, num walletTotal, int stayDurationMinutes, num? estimatedTotal, List<LiveGlobalCapWindow> globalCapWindows, List<LiveSession> sessions
 });
 
 
@@ -817,7 +825,7 @@ class __$LivePlayerCopyWithImpl<$Res>
 
 /// Create a copy of LivePlayer
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? estimatedTotal = freezed,Object? sessions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? playerId = null,Object? displayName = null,Object? status = null,Object? walletTotal = null,Object? stayDurationMinutes = null,Object? estimatedTotal = freezed,Object? globalCapWindows = null,Object? sessions = null,}) {
   return _then(_LivePlayer(
 playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -825,7 +833,8 @@ as String,status: null == status ? _self.status : status // ignore: cast_nullabl
 as String,walletTotal: null == walletTotal ? _self.walletTotal : walletTotal // ignore: cast_nullable_to_non_nullable
 as num,stayDurationMinutes: null == stayDurationMinutes ? _self.stayDurationMinutes : stayDurationMinutes // ignore: cast_nullable_to_non_nullable
 as int,estimatedTotal: freezed == estimatedTotal ? _self.estimatedTotal : estimatedTotal // ignore: cast_nullable_to_non_nullable
-as num?,sessions: null == sessions ? _self._sessions : sessions // ignore: cast_nullable_to_non_nullable
+as num?,globalCapWindows: null == globalCapWindows ? _self._globalCapWindows : globalCapWindows // ignore: cast_nullable_to_non_nullable
+as List<LiveGlobalCapWindow>,sessions: null == sessions ? _self._sessions : sessions // ignore: cast_nullable_to_non_nullable
 as List<LiveSession>,
   ));
 }
@@ -837,7 +846,7 @@ as List<LiveSession>,
 /// @nodoc
 mixin _$LiveSession {
 
-@JsonKey(readValue: readSessionId) String get id; String? get label; DateTime get startedAt; DateTime? get endedAt;@JsonKey(readValue: readElapsedMinutes) int get elapsedMinutes;@JsonKey(readValue: readCurrentImpact) num? get currentImpact; List<LivePricingCharge> get pricingCharges; String get status;
+@JsonKey(readValue: readSessionId) String get id; String? get label; DateTime get startedAt; DateTime? get endedAt;@JsonKey(readValue: readElapsedMinutes) int get elapsedMinutes;@JsonKey(readValue: readCurrentImpact) num? get currentImpact; List<LivePricingCharge> get pricingCharges; List<LivePricingSegment> get pricingSegments; String get status;
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -850,16 +859,16 @@ $LiveSessionCopyWith<LiveSession> get copyWith => _$LiveSessionCopyWithImpl<Live
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other.pricingCharges, pricingCharges)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other.pricingCharges, pricingCharges)&&const DeepCollectionEquality().equals(other.pricingSegments, pricingSegments)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(pricingCharges),status);
+int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(pricingCharges),const DeepCollectionEquality().hash(pricingSegments),status);
 
 @override
 String toString() {
-  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
+  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, pricingSegments: $pricingSegments, status: $status)';
 }
 
 
@@ -870,7 +879,7 @@ abstract mixin class $LiveSessionCopyWith<$Res>  {
   factory $LiveSessionCopyWith(LiveSession value, $Res Function(LiveSession) _then) = _$LiveSessionCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, List<LivePricingSegment> pricingSegments, String status
 });
 
 
@@ -887,7 +896,7 @@ class _$LiveSessionCopyWithImpl<$Res>
 
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? pricingSegments = null,Object? status = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -896,7 +905,8 @@ as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cas
 as DateTime?,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
 as int,currentImpact: freezed == currentImpact ? _self.currentImpact : currentImpact // ignore: cast_nullable_to_non_nullable
 as num?,pricingCharges: null == pricingCharges ? _self.pricingCharges : pricingCharges // ignore: cast_nullable_to_non_nullable
-as List<LivePricingCharge>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as List<LivePricingCharge>,pricingSegments: null == pricingSegments ? _self.pricingSegments : pricingSegments // ignore: cast_nullable_to_non_nullable
+as List<LivePricingSegment>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -982,10 +992,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  List<LivePricingSegment> pricingSegments,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
-return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.pricingSegments,_that.status);case _:
   return orElse();
 
 }
@@ -1003,10 +1013,10 @@ return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsed
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  List<LivePricingSegment> pricingSegments,  String status)  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession():
-return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.pricingSegments,_that.status);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1023,10 +1033,10 @@ return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsed
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  List<LivePricingSegment> pricingSegments,  String status)?  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
-return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.pricingSegments,_that.status);case _:
   return null;
 
 }
@@ -1038,7 +1048,7 @@ return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsed
 @JsonSerializable()
 
 class _LiveSession extends LiveSession {
-  const _LiveSession({@JsonKey(readValue: readSessionId) required this.id, this.label, required this.startedAt, this.endedAt, @JsonKey(readValue: readElapsedMinutes) this.elapsedMinutes = 0, @JsonKey(readValue: readCurrentImpact) this.currentImpact, final  List<LivePricingCharge> pricingCharges = const [], this.status = 'closed'}): _pricingCharges = pricingCharges,super._();
+  const _LiveSession({@JsonKey(readValue: readSessionId) required this.id, this.label, required this.startedAt, this.endedAt, @JsonKey(readValue: readElapsedMinutes) this.elapsedMinutes = 0, @JsonKey(readValue: readCurrentImpact) this.currentImpact, final  List<LivePricingCharge> pricingCharges = const [], final  List<LivePricingSegment> pricingSegments = const [], this.status = 'closed'}): _pricingCharges = pricingCharges,_pricingSegments = pricingSegments,super._();
   factory _LiveSession.fromJson(Map<String, dynamic> json) => _$LiveSessionFromJson(json);
 
 @override@JsonKey(readValue: readSessionId) final  String id;
@@ -1052,6 +1062,13 @@ class _LiveSession extends LiveSession {
   if (_pricingCharges is EqualUnmodifiableListView) return _pricingCharges;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_pricingCharges);
+}
+
+ final  List<LivePricingSegment> _pricingSegments;
+@override@JsonKey() List<LivePricingSegment> get pricingSegments {
+  if (_pricingSegments is EqualUnmodifiableListView) return _pricingSegments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_pricingSegments);
 }
 
 @override@JsonKey() final  String status;
@@ -1069,16 +1086,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other._pricingCharges, _pricingCharges)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other._pricingCharges, _pricingCharges)&&const DeepCollectionEquality().equals(other._pricingSegments, _pricingSegments)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(_pricingCharges),status);
+int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(_pricingCharges),const DeepCollectionEquality().hash(_pricingSegments),status);
 
 @override
 String toString() {
-  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
+  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, pricingSegments: $pricingSegments, status: $status)';
 }
 
 
@@ -1089,7 +1106,7 @@ abstract mixin class _$LiveSessionCopyWith<$Res> implements $LiveSessionCopyWith
   factory _$LiveSessionCopyWith(_LiveSession value, $Res Function(_LiveSession) _then) = __$LiveSessionCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, List<LivePricingSegment> pricingSegments, String status
 });
 
 
@@ -1106,7 +1123,7 @@ class __$LiveSessionCopyWithImpl<$Res>
 
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? pricingSegments = null,Object? status = null,}) {
   return _then(_LiveSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -1115,8 +1132,881 @@ as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cas
 as DateTime?,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
 as int,currentImpact: freezed == currentImpact ? _self.currentImpact : currentImpact // ignore: cast_nullable_to_non_nullable
 as num?,pricingCharges: null == pricingCharges ? _self._pricingCharges : pricingCharges // ignore: cast_nullable_to_non_nullable
-as List<LivePricingCharge>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as List<LivePricingCharge>,pricingSegments: null == pricingSegments ? _self._pricingSegments : pricingSegments // ignore: cast_nullable_to_non_nullable
+as List<LivePricingSegment>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$LivePricingSegment {
+
+ String get pricingConfigId; String get planName; String get providerId; String get ruleId; String get ruleLabel; DateTime get actualStartedAt; DateTime get actualEndedAt; Map<String, dynamic>? get ruleTimeRange; num get amount; num get intervalCap; bool get intervalCapReached;
+/// Create a copy of LivePricingSegment
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LivePricingSegmentCopyWith<LivePricingSegment> get copyWith => _$LivePricingSegmentCopyWithImpl<LivePricingSegment>(this as LivePricingSegment, _$identity);
+
+  /// Serializes this LivePricingSegment to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LivePricingSegment&&(identical(other.pricingConfigId, pricingConfigId) || other.pricingConfigId == pricingConfigId)&&(identical(other.planName, planName) || other.planName == planName)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.ruleId, ruleId) || other.ruleId == ruleId)&&(identical(other.ruleLabel, ruleLabel) || other.ruleLabel == ruleLabel)&&(identical(other.actualStartedAt, actualStartedAt) || other.actualStartedAt == actualStartedAt)&&(identical(other.actualEndedAt, actualEndedAt) || other.actualEndedAt == actualEndedAt)&&const DeepCollectionEquality().equals(other.ruleTimeRange, ruleTimeRange)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.intervalCap, intervalCap) || other.intervalCap == intervalCap)&&(identical(other.intervalCapReached, intervalCapReached) || other.intervalCapReached == intervalCapReached));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,pricingConfigId,planName,providerId,ruleId,ruleLabel,actualStartedAt,actualEndedAt,const DeepCollectionEquality().hash(ruleTimeRange),amount,intervalCap,intervalCapReached);
+
+@override
+String toString() {
+  return 'LivePricingSegment(pricingConfigId: $pricingConfigId, planName: $planName, providerId: $providerId, ruleId: $ruleId, ruleLabel: $ruleLabel, actualStartedAt: $actualStartedAt, actualEndedAt: $actualEndedAt, ruleTimeRange: $ruleTimeRange, amount: $amount, intervalCap: $intervalCap, intervalCapReached: $intervalCapReached)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $LivePricingSegmentCopyWith<$Res>  {
+  factory $LivePricingSegmentCopyWith(LivePricingSegment value, $Res Function(LivePricingSegment) _then) = _$LivePricingSegmentCopyWithImpl;
+@useResult
+$Res call({
+ String pricingConfigId, String planName, String providerId, String ruleId, String ruleLabel, DateTime actualStartedAt, DateTime actualEndedAt, Map<String, dynamic>? ruleTimeRange, num amount, num intervalCap, bool intervalCapReached
+});
+
+
+
+
+}
+/// @nodoc
+class _$LivePricingSegmentCopyWithImpl<$Res>
+    implements $LivePricingSegmentCopyWith<$Res> {
+  _$LivePricingSegmentCopyWithImpl(this._self, this._then);
+
+  final LivePricingSegment _self;
+  final $Res Function(LivePricingSegment) _then;
+
+/// Create a copy of LivePricingSegment
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? pricingConfigId = null,Object? planName = null,Object? providerId = null,Object? ruleId = null,Object? ruleLabel = null,Object? actualStartedAt = null,Object? actualEndedAt = null,Object? ruleTimeRange = freezed,Object? amount = null,Object? intervalCap = null,Object? intervalCapReached = null,}) {
+  return _then(_self.copyWith(
+pricingConfigId: null == pricingConfigId ? _self.pricingConfigId : pricingConfigId // ignore: cast_nullable_to_non_nullable
+as String,planName: null == planName ? _self.planName : planName // ignore: cast_nullable_to_non_nullable
+as String,providerId: null == providerId ? _self.providerId : providerId // ignore: cast_nullable_to_non_nullable
+as String,ruleId: null == ruleId ? _self.ruleId : ruleId // ignore: cast_nullable_to_non_nullable
+as String,ruleLabel: null == ruleLabel ? _self.ruleLabel : ruleLabel // ignore: cast_nullable_to_non_nullable
+as String,actualStartedAt: null == actualStartedAt ? _self.actualStartedAt : actualStartedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,actualEndedAt: null == actualEndedAt ? _self.actualEndedAt : actualEndedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,ruleTimeRange: freezed == ruleTimeRange ? _self.ruleTimeRange : ruleTimeRange // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as num,intervalCap: null == intervalCap ? _self.intervalCap : intervalCap // ignore: cast_nullable_to_non_nullable
+as num,intervalCapReached: null == intervalCapReached ? _self.intervalCapReached : intervalCapReached // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [LivePricingSegment].
+extension LivePricingSegmentPatterns on LivePricingSegment {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LivePricingSegment value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LivePricingSegment() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LivePricingSegment value)  $default,){
+final _that = this;
+switch (_that) {
+case _LivePricingSegment():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LivePricingSegment value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LivePricingSegment() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String pricingConfigId,  String planName,  String providerId,  String ruleId,  String ruleLabel,  DateTime actualStartedAt,  DateTime actualEndedAt,  Map<String, dynamic>? ruleTimeRange,  num amount,  num intervalCap,  bool intervalCapReached)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LivePricingSegment() when $default != null:
+return $default(_that.pricingConfigId,_that.planName,_that.providerId,_that.ruleId,_that.ruleLabel,_that.actualStartedAt,_that.actualEndedAt,_that.ruleTimeRange,_that.amount,_that.intervalCap,_that.intervalCapReached);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String pricingConfigId,  String planName,  String providerId,  String ruleId,  String ruleLabel,  DateTime actualStartedAt,  DateTime actualEndedAt,  Map<String, dynamic>? ruleTimeRange,  num amount,  num intervalCap,  bool intervalCapReached)  $default,) {final _that = this;
+switch (_that) {
+case _LivePricingSegment():
+return $default(_that.pricingConfigId,_that.planName,_that.providerId,_that.ruleId,_that.ruleLabel,_that.actualStartedAt,_that.actualEndedAt,_that.ruleTimeRange,_that.amount,_that.intervalCap,_that.intervalCapReached);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String pricingConfigId,  String planName,  String providerId,  String ruleId,  String ruleLabel,  DateTime actualStartedAt,  DateTime actualEndedAt,  Map<String, dynamic>? ruleTimeRange,  num amount,  num intervalCap,  bool intervalCapReached)?  $default,) {final _that = this;
+switch (_that) {
+case _LivePricingSegment() when $default != null:
+return $default(_that.pricingConfigId,_that.planName,_that.providerId,_that.ruleId,_that.ruleLabel,_that.actualStartedAt,_that.actualEndedAt,_that.ruleTimeRange,_that.amount,_that.intervalCap,_that.intervalCapReached);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _LivePricingSegment implements LivePricingSegment {
+  const _LivePricingSegment({required this.pricingConfigId, required this.planName, required this.providerId, required this.ruleId, required this.ruleLabel, required this.actualStartedAt, required this.actualEndedAt, final  Map<String, dynamic>? ruleTimeRange, required this.amount, required this.intervalCap, this.intervalCapReached = false}): _ruleTimeRange = ruleTimeRange;
+  factory _LivePricingSegment.fromJson(Map<String, dynamic> json) => _$LivePricingSegmentFromJson(json);
+
+@override final  String pricingConfigId;
+@override final  String planName;
+@override final  String providerId;
+@override final  String ruleId;
+@override final  String ruleLabel;
+@override final  DateTime actualStartedAt;
+@override final  DateTime actualEndedAt;
+ final  Map<String, dynamic>? _ruleTimeRange;
+@override Map<String, dynamic>? get ruleTimeRange {
+  final value = _ruleTimeRange;
+  if (value == null) return null;
+  if (_ruleTimeRange is EqualUnmodifiableMapView) return _ruleTimeRange;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  num amount;
+@override final  num intervalCap;
+@override@JsonKey() final  bool intervalCapReached;
+
+/// Create a copy of LivePricingSegment
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LivePricingSegmentCopyWith<_LivePricingSegment> get copyWith => __$LivePricingSegmentCopyWithImpl<_LivePricingSegment>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$LivePricingSegmentToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LivePricingSegment&&(identical(other.pricingConfigId, pricingConfigId) || other.pricingConfigId == pricingConfigId)&&(identical(other.planName, planName) || other.planName == planName)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.ruleId, ruleId) || other.ruleId == ruleId)&&(identical(other.ruleLabel, ruleLabel) || other.ruleLabel == ruleLabel)&&(identical(other.actualStartedAt, actualStartedAt) || other.actualStartedAt == actualStartedAt)&&(identical(other.actualEndedAt, actualEndedAt) || other.actualEndedAt == actualEndedAt)&&const DeepCollectionEquality().equals(other._ruleTimeRange, _ruleTimeRange)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.intervalCap, intervalCap) || other.intervalCap == intervalCap)&&(identical(other.intervalCapReached, intervalCapReached) || other.intervalCapReached == intervalCapReached));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,pricingConfigId,planName,providerId,ruleId,ruleLabel,actualStartedAt,actualEndedAt,const DeepCollectionEquality().hash(_ruleTimeRange),amount,intervalCap,intervalCapReached);
+
+@override
+String toString() {
+  return 'LivePricingSegment(pricingConfigId: $pricingConfigId, planName: $planName, providerId: $providerId, ruleId: $ruleId, ruleLabel: $ruleLabel, actualStartedAt: $actualStartedAt, actualEndedAt: $actualEndedAt, ruleTimeRange: $ruleTimeRange, amount: $amount, intervalCap: $intervalCap, intervalCapReached: $intervalCapReached)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LivePricingSegmentCopyWith<$Res> implements $LivePricingSegmentCopyWith<$Res> {
+  factory _$LivePricingSegmentCopyWith(_LivePricingSegment value, $Res Function(_LivePricingSegment) _then) = __$LivePricingSegmentCopyWithImpl;
+@override @useResult
+$Res call({
+ String pricingConfigId, String planName, String providerId, String ruleId, String ruleLabel, DateTime actualStartedAt, DateTime actualEndedAt, Map<String, dynamic>? ruleTimeRange, num amount, num intervalCap, bool intervalCapReached
+});
+
+
+
+
+}
+/// @nodoc
+class __$LivePricingSegmentCopyWithImpl<$Res>
+    implements _$LivePricingSegmentCopyWith<$Res> {
+  __$LivePricingSegmentCopyWithImpl(this._self, this._then);
+
+  final _LivePricingSegment _self;
+  final $Res Function(_LivePricingSegment) _then;
+
+/// Create a copy of LivePricingSegment
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? pricingConfigId = null,Object? planName = null,Object? providerId = null,Object? ruleId = null,Object? ruleLabel = null,Object? actualStartedAt = null,Object? actualEndedAt = null,Object? ruleTimeRange = freezed,Object? amount = null,Object? intervalCap = null,Object? intervalCapReached = null,}) {
+  return _then(_LivePricingSegment(
+pricingConfigId: null == pricingConfigId ? _self.pricingConfigId : pricingConfigId // ignore: cast_nullable_to_non_nullable
+as String,planName: null == planName ? _self.planName : planName // ignore: cast_nullable_to_non_nullable
+as String,providerId: null == providerId ? _self.providerId : providerId // ignore: cast_nullable_to_non_nullable
+as String,ruleId: null == ruleId ? _self.ruleId : ruleId // ignore: cast_nullable_to_non_nullable
+as String,ruleLabel: null == ruleLabel ? _self.ruleLabel : ruleLabel // ignore: cast_nullable_to_non_nullable
+as String,actualStartedAt: null == actualStartedAt ? _self.actualStartedAt : actualStartedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,actualEndedAt: null == actualEndedAt ? _self.actualEndedAt : actualEndedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,ruleTimeRange: freezed == ruleTimeRange ? _self._ruleTimeRange : ruleTimeRange // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as num,intervalCap: null == intervalCap ? _self.intervalCap : intervalCap // ignore: cast_nullable_to_non_nullable
+as num,intervalCapReached: null == intervalCapReached ? _self.intervalCapReached : intervalCapReached // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$LiveGlobalCapWindow {
+
+ String get key; String get capConfigId; String get capRuleId; String get ruleLabel; DateTime get windowStartedAt; DateTime get windowEndedAt; num get priceCap; num get paidBefore; num get currentAmount; num get amountApplied; bool get priceCapReached; List<LiveGlobalCapContribution> get contributions;
+/// Create a copy of LiveGlobalCapWindow
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LiveGlobalCapWindowCopyWith<LiveGlobalCapWindow> get copyWith => _$LiveGlobalCapWindowCopyWithImpl<LiveGlobalCapWindow>(this as LiveGlobalCapWindow, _$identity);
+
+  /// Serializes this LiveGlobalCapWindow to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveGlobalCapWindow&&(identical(other.key, key) || other.key == key)&&(identical(other.capConfigId, capConfigId) || other.capConfigId == capConfigId)&&(identical(other.capRuleId, capRuleId) || other.capRuleId == capRuleId)&&(identical(other.ruleLabel, ruleLabel) || other.ruleLabel == ruleLabel)&&(identical(other.windowStartedAt, windowStartedAt) || other.windowStartedAt == windowStartedAt)&&(identical(other.windowEndedAt, windowEndedAt) || other.windowEndedAt == windowEndedAt)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap)&&(identical(other.paidBefore, paidBefore) || other.paidBefore == paidBefore)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.amountApplied, amountApplied) || other.amountApplied == amountApplied)&&(identical(other.priceCapReached, priceCapReached) || other.priceCapReached == priceCapReached)&&const DeepCollectionEquality().equals(other.contributions, contributions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,key,capConfigId,capRuleId,ruleLabel,windowStartedAt,windowEndedAt,priceCap,paidBefore,currentAmount,amountApplied,priceCapReached,const DeepCollectionEquality().hash(contributions));
+
+@override
+String toString() {
+  return 'LiveGlobalCapWindow(key: $key, capConfigId: $capConfigId, capRuleId: $capRuleId, ruleLabel: $ruleLabel, windowStartedAt: $windowStartedAt, windowEndedAt: $windowEndedAt, priceCap: $priceCap, paidBefore: $paidBefore, currentAmount: $currentAmount, amountApplied: $amountApplied, priceCapReached: $priceCapReached, contributions: $contributions)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $LiveGlobalCapWindowCopyWith<$Res>  {
+  factory $LiveGlobalCapWindowCopyWith(LiveGlobalCapWindow value, $Res Function(LiveGlobalCapWindow) _then) = _$LiveGlobalCapWindowCopyWithImpl;
+@useResult
+$Res call({
+ String key, String capConfigId, String capRuleId, String ruleLabel, DateTime windowStartedAt, DateTime windowEndedAt, num priceCap, num paidBefore, num currentAmount, num amountApplied, bool priceCapReached, List<LiveGlobalCapContribution> contributions
+});
+
+
+
+
+}
+/// @nodoc
+class _$LiveGlobalCapWindowCopyWithImpl<$Res>
+    implements $LiveGlobalCapWindowCopyWith<$Res> {
+  _$LiveGlobalCapWindowCopyWithImpl(this._self, this._then);
+
+  final LiveGlobalCapWindow _self;
+  final $Res Function(LiveGlobalCapWindow) _then;
+
+/// Create a copy of LiveGlobalCapWindow
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? key = null,Object? capConfigId = null,Object? capRuleId = null,Object? ruleLabel = null,Object? windowStartedAt = null,Object? windowEndedAt = null,Object? priceCap = null,Object? paidBefore = null,Object? currentAmount = null,Object? amountApplied = null,Object? priceCapReached = null,Object? contributions = null,}) {
+  return _then(_self.copyWith(
+key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String,capConfigId: null == capConfigId ? _self.capConfigId : capConfigId // ignore: cast_nullable_to_non_nullable
+as String,capRuleId: null == capRuleId ? _self.capRuleId : capRuleId // ignore: cast_nullable_to_non_nullable
+as String,ruleLabel: null == ruleLabel ? _self.ruleLabel : ruleLabel // ignore: cast_nullable_to_non_nullable
+as String,windowStartedAt: null == windowStartedAt ? _self.windowStartedAt : windowStartedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,windowEndedAt: null == windowEndedAt ? _self.windowEndedAt : windowEndedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,priceCap: null == priceCap ? _self.priceCap : priceCap // ignore: cast_nullable_to_non_nullable
+as num,paidBefore: null == paidBefore ? _self.paidBefore : paidBefore // ignore: cast_nullable_to_non_nullable
+as num,currentAmount: null == currentAmount ? _self.currentAmount : currentAmount // ignore: cast_nullable_to_non_nullable
+as num,amountApplied: null == amountApplied ? _self.amountApplied : amountApplied // ignore: cast_nullable_to_non_nullable
+as num,priceCapReached: null == priceCapReached ? _self.priceCapReached : priceCapReached // ignore: cast_nullable_to_non_nullable
+as bool,contributions: null == contributions ? _self.contributions : contributions // ignore: cast_nullable_to_non_nullable
+as List<LiveGlobalCapContribution>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [LiveGlobalCapWindow].
+extension LiveGlobalCapWindowPatterns on LiveGlobalCapWindow {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LiveGlobalCapWindow value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LiveGlobalCapWindow value)  $default,){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LiveGlobalCapWindow value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String key,  String capConfigId,  String capRuleId,  String ruleLabel,  DateTime windowStartedAt,  DateTime windowEndedAt,  num priceCap,  num paidBefore,  num currentAmount,  num amountApplied,  bool priceCapReached,  List<LiveGlobalCapContribution> contributions)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow() when $default != null:
+return $default(_that.key,_that.capConfigId,_that.capRuleId,_that.ruleLabel,_that.windowStartedAt,_that.windowEndedAt,_that.priceCap,_that.paidBefore,_that.currentAmount,_that.amountApplied,_that.priceCapReached,_that.contributions);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String key,  String capConfigId,  String capRuleId,  String ruleLabel,  DateTime windowStartedAt,  DateTime windowEndedAt,  num priceCap,  num paidBefore,  num currentAmount,  num amountApplied,  bool priceCapReached,  List<LiveGlobalCapContribution> contributions)  $default,) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow():
+return $default(_that.key,_that.capConfigId,_that.capRuleId,_that.ruleLabel,_that.windowStartedAt,_that.windowEndedAt,_that.priceCap,_that.paidBefore,_that.currentAmount,_that.amountApplied,_that.priceCapReached,_that.contributions);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String key,  String capConfigId,  String capRuleId,  String ruleLabel,  DateTime windowStartedAt,  DateTime windowEndedAt,  num priceCap,  num paidBefore,  num currentAmount,  num amountApplied,  bool priceCapReached,  List<LiveGlobalCapContribution> contributions)?  $default,) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapWindow() when $default != null:
+return $default(_that.key,_that.capConfigId,_that.capRuleId,_that.ruleLabel,_that.windowStartedAt,_that.windowEndedAt,_that.priceCap,_that.paidBefore,_that.currentAmount,_that.amountApplied,_that.priceCapReached,_that.contributions);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _LiveGlobalCapWindow implements LiveGlobalCapWindow {
+  const _LiveGlobalCapWindow({required this.key, required this.capConfigId, required this.capRuleId, required this.ruleLabel, required this.windowStartedAt, required this.windowEndedAt, required this.priceCap, required this.paidBefore, required this.currentAmount, required this.amountApplied, this.priceCapReached = false, final  List<LiveGlobalCapContribution> contributions = const []}): _contributions = contributions;
+  factory _LiveGlobalCapWindow.fromJson(Map<String, dynamic> json) => _$LiveGlobalCapWindowFromJson(json);
+
+@override final  String key;
+@override final  String capConfigId;
+@override final  String capRuleId;
+@override final  String ruleLabel;
+@override final  DateTime windowStartedAt;
+@override final  DateTime windowEndedAt;
+@override final  num priceCap;
+@override final  num paidBefore;
+@override final  num currentAmount;
+@override final  num amountApplied;
+@override@JsonKey() final  bool priceCapReached;
+ final  List<LiveGlobalCapContribution> _contributions;
+@override@JsonKey() List<LiveGlobalCapContribution> get contributions {
+  if (_contributions is EqualUnmodifiableListView) return _contributions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_contributions);
+}
+
+
+/// Create a copy of LiveGlobalCapWindow
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LiveGlobalCapWindowCopyWith<_LiveGlobalCapWindow> get copyWith => __$LiveGlobalCapWindowCopyWithImpl<_LiveGlobalCapWindow>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$LiveGlobalCapWindowToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveGlobalCapWindow&&(identical(other.key, key) || other.key == key)&&(identical(other.capConfigId, capConfigId) || other.capConfigId == capConfigId)&&(identical(other.capRuleId, capRuleId) || other.capRuleId == capRuleId)&&(identical(other.ruleLabel, ruleLabel) || other.ruleLabel == ruleLabel)&&(identical(other.windowStartedAt, windowStartedAt) || other.windowStartedAt == windowStartedAt)&&(identical(other.windowEndedAt, windowEndedAt) || other.windowEndedAt == windowEndedAt)&&(identical(other.priceCap, priceCap) || other.priceCap == priceCap)&&(identical(other.paidBefore, paidBefore) || other.paidBefore == paidBefore)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.amountApplied, amountApplied) || other.amountApplied == amountApplied)&&(identical(other.priceCapReached, priceCapReached) || other.priceCapReached == priceCapReached)&&const DeepCollectionEquality().equals(other._contributions, _contributions));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,key,capConfigId,capRuleId,ruleLabel,windowStartedAt,windowEndedAt,priceCap,paidBefore,currentAmount,amountApplied,priceCapReached,const DeepCollectionEquality().hash(_contributions));
+
+@override
+String toString() {
+  return 'LiveGlobalCapWindow(key: $key, capConfigId: $capConfigId, capRuleId: $capRuleId, ruleLabel: $ruleLabel, windowStartedAt: $windowStartedAt, windowEndedAt: $windowEndedAt, priceCap: $priceCap, paidBefore: $paidBefore, currentAmount: $currentAmount, amountApplied: $amountApplied, priceCapReached: $priceCapReached, contributions: $contributions)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LiveGlobalCapWindowCopyWith<$Res> implements $LiveGlobalCapWindowCopyWith<$Res> {
+  factory _$LiveGlobalCapWindowCopyWith(_LiveGlobalCapWindow value, $Res Function(_LiveGlobalCapWindow) _then) = __$LiveGlobalCapWindowCopyWithImpl;
+@override @useResult
+$Res call({
+ String key, String capConfigId, String capRuleId, String ruleLabel, DateTime windowStartedAt, DateTime windowEndedAt, num priceCap, num paidBefore, num currentAmount, num amountApplied, bool priceCapReached, List<LiveGlobalCapContribution> contributions
+});
+
+
+
+
+}
+/// @nodoc
+class __$LiveGlobalCapWindowCopyWithImpl<$Res>
+    implements _$LiveGlobalCapWindowCopyWith<$Res> {
+  __$LiveGlobalCapWindowCopyWithImpl(this._self, this._then);
+
+  final _LiveGlobalCapWindow _self;
+  final $Res Function(_LiveGlobalCapWindow) _then;
+
+/// Create a copy of LiveGlobalCapWindow
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? key = null,Object? capConfigId = null,Object? capRuleId = null,Object? ruleLabel = null,Object? windowStartedAt = null,Object? windowEndedAt = null,Object? priceCap = null,Object? paidBefore = null,Object? currentAmount = null,Object? amountApplied = null,Object? priceCapReached = null,Object? contributions = null,}) {
+  return _then(_LiveGlobalCapWindow(
+key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String,capConfigId: null == capConfigId ? _self.capConfigId : capConfigId // ignore: cast_nullable_to_non_nullable
+as String,capRuleId: null == capRuleId ? _self.capRuleId : capRuleId // ignore: cast_nullable_to_non_nullable
+as String,ruleLabel: null == ruleLabel ? _self.ruleLabel : ruleLabel // ignore: cast_nullable_to_non_nullable
+as String,windowStartedAt: null == windowStartedAt ? _self.windowStartedAt : windowStartedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,windowEndedAt: null == windowEndedAt ? _self.windowEndedAt : windowEndedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,priceCap: null == priceCap ? _self.priceCap : priceCap // ignore: cast_nullable_to_non_nullable
+as num,paidBefore: null == paidBefore ? _self.paidBefore : paidBefore // ignore: cast_nullable_to_non_nullable
+as num,currentAmount: null == currentAmount ? _self.currentAmount : currentAmount // ignore: cast_nullable_to_non_nullable
+as num,amountApplied: null == amountApplied ? _self.amountApplied : amountApplied // ignore: cast_nullable_to_non_nullable
+as num,priceCapReached: null == priceCapReached ? _self.priceCapReached : priceCapReached // ignore: cast_nullable_to_non_nullable
+as bool,contributions: null == contributions ? _self._contributions : contributions // ignore: cast_nullable_to_non_nullable
+as List<LiveGlobalCapContribution>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$LiveGlobalCapContribution {
+
+ String get sessionId; String get pricingConfigId; num get amount;
+/// Create a copy of LiveGlobalCapContribution
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LiveGlobalCapContributionCopyWith<LiveGlobalCapContribution> get copyWith => _$LiveGlobalCapContributionCopyWithImpl<LiveGlobalCapContribution>(this as LiveGlobalCapContribution, _$identity);
+
+  /// Serializes this LiveGlobalCapContribution to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveGlobalCapContribution&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.pricingConfigId, pricingConfigId) || other.pricingConfigId == pricingConfigId)&&(identical(other.amount, amount) || other.amount == amount));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sessionId,pricingConfigId,amount);
+
+@override
+String toString() {
+  return 'LiveGlobalCapContribution(sessionId: $sessionId, pricingConfigId: $pricingConfigId, amount: $amount)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $LiveGlobalCapContributionCopyWith<$Res>  {
+  factory $LiveGlobalCapContributionCopyWith(LiveGlobalCapContribution value, $Res Function(LiveGlobalCapContribution) _then) = _$LiveGlobalCapContributionCopyWithImpl;
+@useResult
+$Res call({
+ String sessionId, String pricingConfigId, num amount
+});
+
+
+
+
+}
+/// @nodoc
+class _$LiveGlobalCapContributionCopyWithImpl<$Res>
+    implements $LiveGlobalCapContributionCopyWith<$Res> {
+  _$LiveGlobalCapContributionCopyWithImpl(this._self, this._then);
+
+  final LiveGlobalCapContribution _self;
+  final $Res Function(LiveGlobalCapContribution) _then;
+
+/// Create a copy of LiveGlobalCapContribution
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? sessionId = null,Object? pricingConfigId = null,Object? amount = null,}) {
+  return _then(_self.copyWith(
+sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,pricingConfigId: null == pricingConfigId ? _self.pricingConfigId : pricingConfigId // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as num,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [LiveGlobalCapContribution].
+extension LiveGlobalCapContributionPatterns on LiveGlobalCapContribution {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LiveGlobalCapContribution value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LiveGlobalCapContribution value)  $default,){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LiveGlobalCapContribution value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String sessionId,  String pricingConfigId,  num amount)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution() when $default != null:
+return $default(_that.sessionId,_that.pricingConfigId,_that.amount);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String sessionId,  String pricingConfigId,  num amount)  $default,) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution():
+return $default(_that.sessionId,_that.pricingConfigId,_that.amount);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String sessionId,  String pricingConfigId,  num amount)?  $default,) {final _that = this;
+switch (_that) {
+case _LiveGlobalCapContribution() when $default != null:
+return $default(_that.sessionId,_that.pricingConfigId,_that.amount);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _LiveGlobalCapContribution implements LiveGlobalCapContribution {
+  const _LiveGlobalCapContribution({required this.sessionId, required this.pricingConfigId, required this.amount});
+  factory _LiveGlobalCapContribution.fromJson(Map<String, dynamic> json) => _$LiveGlobalCapContributionFromJson(json);
+
+@override final  String sessionId;
+@override final  String pricingConfigId;
+@override final  num amount;
+
+/// Create a copy of LiveGlobalCapContribution
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LiveGlobalCapContributionCopyWith<_LiveGlobalCapContribution> get copyWith => __$LiveGlobalCapContributionCopyWithImpl<_LiveGlobalCapContribution>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$LiveGlobalCapContributionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveGlobalCapContribution&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.pricingConfigId, pricingConfigId) || other.pricingConfigId == pricingConfigId)&&(identical(other.amount, amount) || other.amount == amount));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sessionId,pricingConfigId,amount);
+
+@override
+String toString() {
+  return 'LiveGlobalCapContribution(sessionId: $sessionId, pricingConfigId: $pricingConfigId, amount: $amount)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LiveGlobalCapContributionCopyWith<$Res> implements $LiveGlobalCapContributionCopyWith<$Res> {
+  factory _$LiveGlobalCapContributionCopyWith(_LiveGlobalCapContribution value, $Res Function(_LiveGlobalCapContribution) _then) = __$LiveGlobalCapContributionCopyWithImpl;
+@override @useResult
+$Res call({
+ String sessionId, String pricingConfigId, num amount
+});
+
+
+
+
+}
+/// @nodoc
+class __$LiveGlobalCapContributionCopyWithImpl<$Res>
+    implements _$LiveGlobalCapContributionCopyWith<$Res> {
+  __$LiveGlobalCapContributionCopyWithImpl(this._self, this._then);
+
+  final _LiveGlobalCapContribution _self;
+  final $Res Function(_LiveGlobalCapContribution) _then;
+
+/// Create a copy of LiveGlobalCapContribution
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? sessionId = null,Object? pricingConfigId = null,Object? amount = null,}) {
+  return _then(_LiveGlobalCapContribution(
+sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,pricingConfigId: null == pricingConfigId ? _self.pricingConfigId : pricingConfigId // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as num,
   ));
 }
 

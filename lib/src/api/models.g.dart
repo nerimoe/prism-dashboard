@@ -45,6 +45,11 @@ _LivePlayer _$LivePlayerFromJson(Map<String, dynamic> json) => _LivePlayer(
   walletTotal: json['walletTotal'] as num,
   stayDurationMinutes: (json['stayDurationMinutes'] as num).toInt(),
   estimatedTotal: json['estimatedTotal'] as num?,
+  globalCapWindows:
+      (json['globalCapWindows'] as List<dynamic>?)
+          ?.map((e) => LiveGlobalCapWindow.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   sessions: (json['sessions'] as List<dynamic>)
       .map((e) => LiveSession.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -58,6 +63,7 @@ Map<String, dynamic> _$LivePlayerToJson(_LivePlayer instance) =>
       'walletTotal': instance.walletTotal,
       'stayDurationMinutes': instance.stayDurationMinutes,
       'estimatedTotal': instance.estimatedTotal,
+      'globalCapWindows': instance.globalCapWindows,
       'sessions': instance.sessions,
     };
 
@@ -76,6 +82,11 @@ _LiveSession _$LiveSessionFromJson(Map<String, dynamic> json) => _LiveSession(
           ?.map((e) => LivePricingCharge.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  pricingSegments:
+      (json['pricingSegments'] as List<dynamic>?)
+          ?.map((e) => LivePricingSegment.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   status: json['status'] as String? ?? 'closed',
 );
 
@@ -88,8 +99,96 @@ Map<String, dynamic> _$LiveSessionToJson(_LiveSession instance) =>
       'elapsedMinutes': instance.elapsedMinutes,
       'currentImpact': instance.currentImpact,
       'pricingCharges': instance.pricingCharges,
+      'pricingSegments': instance.pricingSegments,
       'status': instance.status,
     };
+
+_LivePricingSegment _$LivePricingSegmentFromJson(Map<String, dynamic> json) =>
+    _LivePricingSegment(
+      pricingConfigId: json['pricingConfigId'] as String,
+      planName: json['planName'] as String,
+      providerId: json['providerId'] as String,
+      ruleId: json['ruleId'] as String,
+      ruleLabel: json['ruleLabel'] as String,
+      actualStartedAt: DateTime.parse(json['actualStartedAt'] as String),
+      actualEndedAt: DateTime.parse(json['actualEndedAt'] as String),
+      ruleTimeRange: json['ruleTimeRange'] as Map<String, dynamic>?,
+      amount: json['amount'] as num,
+      intervalCap: json['intervalCap'] as num,
+      intervalCapReached: json['intervalCapReached'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$LivePricingSegmentToJson(_LivePricingSegment instance) =>
+    <String, dynamic>{
+      'pricingConfigId': instance.pricingConfigId,
+      'planName': instance.planName,
+      'providerId': instance.providerId,
+      'ruleId': instance.ruleId,
+      'ruleLabel': instance.ruleLabel,
+      'actualStartedAt': instance.actualStartedAt.toIso8601String(),
+      'actualEndedAt': instance.actualEndedAt.toIso8601String(),
+      'ruleTimeRange': instance.ruleTimeRange,
+      'amount': instance.amount,
+      'intervalCap': instance.intervalCap,
+      'intervalCapReached': instance.intervalCapReached,
+    };
+
+_LiveGlobalCapWindow _$LiveGlobalCapWindowFromJson(Map<String, dynamic> json) =>
+    _LiveGlobalCapWindow(
+      key: json['key'] as String,
+      capConfigId: json['capConfigId'] as String,
+      capRuleId: json['capRuleId'] as String,
+      ruleLabel: json['ruleLabel'] as String,
+      windowStartedAt: DateTime.parse(json['windowStartedAt'] as String),
+      windowEndedAt: DateTime.parse(json['windowEndedAt'] as String),
+      priceCap: json['priceCap'] as num,
+      paidBefore: json['paidBefore'] as num,
+      currentAmount: json['currentAmount'] as num,
+      amountApplied: json['amountApplied'] as num,
+      priceCapReached: json['priceCapReached'] as bool? ?? false,
+      contributions:
+          (json['contributions'] as List<dynamic>?)
+              ?.map(
+                (e) => LiveGlobalCapContribution.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$LiveGlobalCapWindowToJson(
+  _LiveGlobalCapWindow instance,
+) => <String, dynamic>{
+  'key': instance.key,
+  'capConfigId': instance.capConfigId,
+  'capRuleId': instance.capRuleId,
+  'ruleLabel': instance.ruleLabel,
+  'windowStartedAt': instance.windowStartedAt.toIso8601String(),
+  'windowEndedAt': instance.windowEndedAt.toIso8601String(),
+  'priceCap': instance.priceCap,
+  'paidBefore': instance.paidBefore,
+  'currentAmount': instance.currentAmount,
+  'amountApplied': instance.amountApplied,
+  'priceCapReached': instance.priceCapReached,
+  'contributions': instance.contributions,
+};
+
+_LiveGlobalCapContribution _$LiveGlobalCapContributionFromJson(
+  Map<String, dynamic> json,
+) => _LiveGlobalCapContribution(
+  sessionId: json['sessionId'] as String,
+  pricingConfigId: json['pricingConfigId'] as String,
+  amount: json['amount'] as num,
+);
+
+Map<String, dynamic> _$LiveGlobalCapContributionToJson(
+  _LiveGlobalCapContribution instance,
+) => <String, dynamic>{
+  'sessionId': instance.sessionId,
+  'pricingConfigId': instance.pricingConfigId,
+  'amount': instance.amount,
+};
 
 _LivePricingCharge _$LivePricingChargeFromJson(Map<String, dynamic> json) =>
     _LivePricingCharge(

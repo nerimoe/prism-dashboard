@@ -43,6 +43,7 @@ abstract class LivePlayer with _$LivePlayer {
     required num walletTotal,
     required int stayDurationMinutes,
     num? estimatedTotal,
+    @Default([]) List<LiveGlobalCapWindow> globalCapWindows,
     required List<LiveSession> sessions,
   }) = _LivePlayer;
 
@@ -66,6 +67,7 @@ abstract class LiveSession with _$LiveSession {
     @JsonKey(readValue: readElapsedMinutes) @Default(0) int elapsedMinutes,
     @JsonKey(readValue: readCurrentImpact) num? currentImpact,
     @Default([]) List<LivePricingCharge> pricingCharges,
+    @Default([]) List<LivePricingSegment> pricingSegments,
     @Default('closed') String status,
   }) = _LiveSession;
 
@@ -85,6 +87,59 @@ abstract class LiveSession with _$LiveSession {
 
   factory LiveSession.fromJson(Map<String, dynamic> json) =>
       _$LiveSessionFromJson(json);
+}
+
+@freezed
+abstract class LivePricingSegment with _$LivePricingSegment {
+  const factory LivePricingSegment({
+    required String pricingConfigId,
+    required String planName,
+    required String providerId,
+    required String ruleId,
+    required String ruleLabel,
+    required DateTime actualStartedAt,
+    required DateTime actualEndedAt,
+    Map<String, dynamic>? ruleTimeRange,
+    required num amount,
+    required num intervalCap,
+    @Default(false) bool intervalCapReached,
+  }) = _LivePricingSegment;
+
+  factory LivePricingSegment.fromJson(Map<String, dynamic> json) =>
+      _$LivePricingSegmentFromJson(json);
+}
+
+@freezed
+abstract class LiveGlobalCapWindow with _$LiveGlobalCapWindow {
+  const factory LiveGlobalCapWindow({
+    required String key,
+    required String capConfigId,
+    required String capRuleId,
+    required String ruleLabel,
+    required DateTime windowStartedAt,
+    required DateTime windowEndedAt,
+    required num priceCap,
+    required num paidBefore,
+    required num currentAmount,
+    required num amountApplied,
+    @Default(false) bool priceCapReached,
+    @Default([]) List<LiveGlobalCapContribution> contributions,
+  }) = _LiveGlobalCapWindow;
+
+  factory LiveGlobalCapWindow.fromJson(Map<String, dynamic> json) =>
+      _$LiveGlobalCapWindowFromJson(json);
+}
+
+@freezed
+abstract class LiveGlobalCapContribution with _$LiveGlobalCapContribution {
+  const factory LiveGlobalCapContribution({
+    required String sessionId,
+    required String pricingConfigId,
+    required num amount,
+  }) = _LiveGlobalCapContribution;
+
+  factory LiveGlobalCapContribution.fromJson(Map<String, dynamic> json) =>
+      _$LiveGlobalCapContributionFromJson(json);
 }
 
 @freezed

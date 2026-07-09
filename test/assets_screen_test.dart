@@ -46,6 +46,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('WELCOME001'), findsOneWidget);
     expect(find.textContaining('已用 1 / 1'), findsWidgets);
+
+    await tester.ensureVisible(find.byTooltip('复制兑换码').first);
+    await tester.tap(find.byTooltip('复制兑换码').first);
+    await tester.pump();
+    expect(find.text('兑换码已复制。'), findsOneWidget);
   });
 
   testWidgets('asset tabs switch content without waiting for tab animation', (

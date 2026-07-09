@@ -23,6 +23,8 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   String? _selectedPlayerId;
   String? _message;
   DateTime? _loadedAt;
+  final Set<String> _expandedSessionIds = {};
+  final Set<String> _expandedGlobalCapWindowIds = {};
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -76,6 +78,10 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
               onStopSession: _confirmStopSession,
               onCheckoutAll: _confirmCheckoutAll,
               onManualAdjust: _showManualAdjustNotice,
+              expandedSessionIds: _expandedSessionIds,
+              onToggleSession: _toggleSession,
+              expandedGlobalCapWindowIds: _expandedGlobalCapWindowIds,
+              onToggleGlobalCapWindow: _toggleGlobalCapWindow,
             );
             final topContent = <Widget>[
               _OperationsHeader(
@@ -148,6 +154,12 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
                                   onStopSession: _confirmStopSession,
                                   onCheckoutAll: _confirmCheckoutAll,
                                   onManualAdjust: _showManualAdjustNotice,
+                                  expandedSessionIds: _expandedSessionIds,
+                                  onToggleSession: _toggleSession,
+                                  expandedGlobalCapWindowIds:
+                                      _expandedGlobalCapWindowIds,
+                                  onToggleGlobalCapWindow:
+                                      _toggleGlobalCapWindow,
                                 ),
                           ),
                         ),
@@ -181,7 +193,25 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   }
 
   void _refresh() {
-    setState(() => _future = _load());
+    setState(() {
+      _future = _load();
+    });
+  }
+
+  void _toggleSession(String sessionId) {
+    setState(() {
+      if (!_expandedSessionIds.add(sessionId)) {
+        _expandedSessionIds.remove(sessionId);
+      }
+    });
+  }
+
+  void _toggleGlobalCapWindow(String windowKey) {
+    setState(() {
+      if (!_expandedGlobalCapWindowIds.add(windowKey)) {
+        _expandedGlobalCapWindowIds.remove(windowKey);
+      }
+    });
   }
 
   Future<void> _showStartSessionDialog(LivePlayer? player) async {
@@ -515,6 +545,11 @@ class _OperationsHeader extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.end,
           children: [
+            IconButton(
+              onPressed: onRefresh,
+              tooltip: '刷新',
+              icon: const Icon(Icons.refresh),
+            ),
             FilledButton(
               onPressed: selected == null
                   ? null
@@ -885,6 +920,10 @@ class _PlayerSessionDetail extends StatelessWidget {
     required this.onStopSession,
     required this.onCheckoutAll,
     required this.onManualAdjust,
+    required this.expandedSessionIds,
+    required this.onToggleSession,
+    required this.expandedGlobalCapWindowIds,
+    required this.onToggleGlobalCapWindow,
     this.maxHeight,
   });
 
@@ -892,6 +931,10 @@ class _PlayerSessionDetail extends StatelessWidget {
   final void Function(LivePlayer player, LiveSession session) onStopSession;
   final ValueChanged<LivePlayer> onCheckoutAll;
   final ValueChanged<LivePlayer> onManualAdjust;
+  final Set<String> expandedSessionIds;
+  final ValueChanged<String> onToggleSession;
+  final Set<String> expandedGlobalCapWindowIds;
+  final ValueChanged<String> onToggleGlobalCapWindow;
   final double? maxHeight;
 
   @override
@@ -986,6 +1029,13 @@ class _PlayerSessionDetail extends StatelessWidget {
                     _SessionTable(
                       sessions: value.sessions,
                       onStop: (session) => onStopSession(value, session),
+                      expandedSessionIds: expandedSessionIds,
+                      onToggleSession: onToggleSession,
+                    ),
+                    _GlobalCapWindows(
+                      windows: value.globalCapWindows,
+                      expandedWindowIds: expandedGlobalCapWindowIds,
+                      onToggleWindow: onToggleGlobalCapWindow,
                     ),
                     _BillBlock(
                       player: value,
@@ -1117,10 +1167,17 @@ class _SmallFact extends StatelessWidget {
 }
 
 class _SessionTable extends StatelessWidget {
-  const _SessionTable({required this.sessions, required this.onStop});
+  const _SessionTable({
+    required this.sessions,
+    required this.onStop,
+    required this.expandedSessionIds,
+    required this.onToggleSession,
+  });
 
   final List<LiveSession> sessions;
   final ValueChanged<LiveSession> onStop;
+  final Set<String> expandedSessionIds;
+  final ValueChanged<String> onToggleSession;
 
   @override
   Widget build(BuildContext context) {
@@ -1186,17 +1243,29 @@ class _SessionTable extends StatelessWidget {
             ),
           ),
         for (final session in sessions)
-          _SessionRow(session: session, onStop: () => onStop(session)),
+          _SessionRow(
+            session: session,
+            onStop: () => onStop(session),
+            expanded: expandedSessionIds.contains(session.id),
+            onToggleDetails: () => onToggleSession(session.id),
+          ),
       ],
     );
   }
 }
 
 class _SessionRow extends StatelessWidget {
-  const _SessionRow({required this.session, required this.onStop});
+  const _SessionRow({
+    required this.session,
+    required this.onStop,
+    required this.expanded,
+    required this.onToggleDetails,
+  });
 
   final LiveSession session;
   final VoidCallback onStop;
+  final bool expanded;
+  final VoidCallback onToggleDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -1209,99 +1278,294 @@ class _SessionRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: context.colors.outlineVariant)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        child: context.isCompact
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SessionName(session: session),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            child: context.isCompact
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_sessionDurationLabel(session)),
-                      if (session.endedAt != null)
-                        Text(
-                          '停止 ${formatAdminDateTime(session.endedAt!)}',
+                      _SessionName(session: session),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 6,
+                        children: [
+                          Text(_sessionDurationLabel(session)),
+                          if (session.endedAt != null)
+                            Text(
+                              '停止 ${formatAdminDateTime(session.endedAt!)}',
+                              style: context.text.bodySmall?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          Text(
+                            session.pricingSummary,
+                            style: context.text.bodySmall?.copyWith(
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            impactText,
+                            style: TextStyle(
+                              color: impactColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            statusText,
+                            style: context.text.bodySmall?.copyWith(
+                              color: isActive
+                                  ? context.colors.onSurface
+                                  : context.colors.onSurfaceVariant,
+                            ),
+                          ),
+                          _StopButton(onStop: onStop, enabled: isActive),
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(flex: 3, child: _SessionName(session: session)),
+                      Expanded(
+                        flex: 3,
+                        child: _SessionPricingSummary(session: session),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          _sessionDurationLabel(session),
+                          textAlign: TextAlign.end,
+                          style: context.text.bodySmall,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          impactText,
+                          textAlign: TextAlign.end,
                           style: context.text.bodySmall?.copyWith(
-                            color: context.colors.onSurfaceVariant,
+                            color: impactColor,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      Text(
-                        session.pricingSummary,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          statusText,
+                          textAlign: TextAlign.center,
+                          style: context.text.bodySmall?.copyWith(
+                            color: isActive
+                                ? context.colors.onSurface
+                                : context.colors.onSurfaceVariant,
+                          ),
                         ),
                       ),
-                      Text(
-                        impactText,
-                        style: TextStyle(
-                          color: impactColor,
-                          fontWeight: FontWeight.w700,
+                      Expanded(
+                        flex: 2,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: _StopButton(onStop: onStop, enabled: isActive),
                         ),
                       ),
-                      Text(
-                        statusText,
-                        style: context.text.bodySmall?.copyWith(
-                          color: isActive
-                              ? context.colors.onSurface
-                              : context.colors.onSurfaceVariant,
-                        ),
-                      ),
-                      _StopButton(onStop: onStop, enabled: isActive),
                     ],
                   ),
-                ],
-              )
-            : Row(
+          ),
+          if (session.pricingSegments.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: onToggleDetails,
+                icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+                label: Text(expanded ? '收起计费明细' : '查看计费明细'),
+              ),
+            ),
+          if (expanded)
+            _SessionPricingSegments(segments: session.pricingSegments),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionPricingSegments extends StatelessWidget {
+  const _SessionPricingSegments({required this.segments});
+
+  final List<LivePricingSegment> segments;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      color: context.colors.surfaceContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final segment in segments) _PricingSegmentRow(segment: segment),
+        ],
+      ),
+    );
+  }
+}
+
+class _PricingSegmentRow extends StatelessWidget {
+  const _PricingSegmentRow({required this.segment});
+
+  final LivePricingSegment segment;
+
+  @override
+  Widget build(BuildContext context) {
+    final range = segment.ruleTimeRange;
+    final ruleRange = range == null
+        ? '--'
+        : '${range['start'] ?? '--'} - ${range['end'] ?? '--'}';
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${segment.planName} · ${segment.ruleLabel}',
+            style: context.text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            '实际计费：${formatAdminDateTime(segment.actualStartedAt)} 至 ${formatAdminDateTime(segment.actualEndedAt)}',
+            style: context.text.bodySmall,
+          ),
+          Text('规则时段：$ruleRange', style: context.text.bodySmall),
+          Row(
+            children: [
+              Text(
+                _formatChargeAmount(segment.amount),
+                style: context.text.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (segment.intervalCapReached) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.colors.secondaryContainer,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '区间内封顶 ${formatMoney(segment.intervalCap)} · 已达到',
+                    style: context.text.labelSmall,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlobalCapWindows extends StatelessWidget {
+  const _GlobalCapWindows({
+    required this.windows,
+    required this.expandedWindowIds,
+    required this.onToggleWindow,
+  });
+
+  final List<LiveGlobalCapWindow> windows;
+  final Set<String> expandedWindowIds;
+  final ValueChanged<String> onToggleWindow;
+
+  @override
+  Widget build(BuildContext context) {
+    if (windows.isEmpty) return const SizedBox.shrink();
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.colors.outlineVariant)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: Text(
+              '跨项目封顶',
+              style: context.text.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          for (final window in windows)
+            _GlobalCapWindowRow(
+              window: window,
+              expanded: expandedWindowIds.contains(window.key),
+              onToggle: () => onToggleWindow(window.key),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlobalCapWindowRow extends StatelessWidget {
+  const _GlobalCapWindowRow({
+    required this.window,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final LiveGlobalCapWindow window;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final amountLabel = window.priceCapReached
+        ? '参与金额 ${formatMoney(window.currentAmount)} -> 封顶金额 ${formatMoney(window.priceCap)}'
+        : '参与金额 ${formatMoney(window.currentAmount)} -> 当前计入金额 ${formatMoney(window.amountApplied)}';
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.colors.outlineVariant)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextButton(
+            onPressed: onToggle,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(window.ruleLabel, textAlign: TextAlign.start),
+                ),
+                Icon(expanded ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          if (expanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 3, child: _SessionName(session: session)),
-                  Expanded(
-                    flex: 3,
-                    child: _SessionPricingSummary(session: session),
+                  Text(
+                    '时间：${formatAdminDateTime(window.windowStartedAt)} 至 ${formatAdminDateTime(window.windowEndedAt)}',
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      _sessionDurationLabel(session),
-                      textAlign: TextAlign.end,
-                      style: context.text.bodySmall,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      impactText,
-                      textAlign: TextAlign.end,
-                      style: context.text.bodySmall?.copyWith(
-                        color: impactColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      statusText,
-                      textAlign: TextAlign.center,
-                      style: context.text.bodySmall?.copyWith(
-                        color: isActive
-                            ? context.colors.onSurface
-                            : context.colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: _StopButton(onStop: onStop, enabled: isActive),
-                    ),
+                  Text(amountLabel),
+                  Text(
+                    '参与项目：${window.contributions.map((item) => '${item.sessionId} ${formatMoney(item.amount)}').join('、')}',
                   ),
                 ],
               ),
+            ),
+        ],
       ),
     );
   }

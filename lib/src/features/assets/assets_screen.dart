@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../../api/api_client.dart';
 import '../../api/models.dart';
@@ -2693,6 +2694,16 @@ class _RedeemCodeTile extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Chip(label: Text(_redeemCodeStatusLabel(code, present, now))),
+          IconButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: code.code));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('兑换码已复制。')));
+            },
+            tooltip: '复制兑换码',
+            icon: const Icon(Icons.content_copy_outlined),
+          ),
           if (code.redemptions.isNotEmpty && onOpenPlayer != null)
             TextButton.icon(
               onPressed: () => onOpenPlayer!(code.redemptions.first.playerId),
