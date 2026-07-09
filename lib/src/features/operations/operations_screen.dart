@@ -1375,7 +1375,8 @@ class _SessionRow extends StatelessWidget {
                     ],
                   ),
           ),
-          if (session.pricingSegments.isNotEmpty)
+          if (session.pricingSegments.isNotEmpty ||
+              session.pricingCharges.isNotEmpty)
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
@@ -1405,7 +1406,14 @@ class _SessionPricingSegments extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final segment in segments) _PricingSegmentRow(segment: segment),
+          if (segments.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text('计费明细暂不可用'),
+            )
+          else
+            for (final segment in segments)
+              _PricingSegmentRow(segment: segment),
         ],
       ),
     );
@@ -1419,53 +1427,59 @@ class _PricingSegmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final range = segment.ruleTimeRange;
-    final ruleRange = range == null
-        ? '--'
-        : '${range['start'] ?? '--'} - ${range['end'] ?? '--'}';
+    final durationMinutes = segment.actualEndedAt
+        .difference(segment.actualStartedAt)
+        .inMinutes;
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${segment.planName} · ${segment.ruleLabel}',
-            style: context.text.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${segment.planName} · ${segment.ruleLabel}',
+                  style: context.text.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '实际计费：${formatAdminDateTime(segment.actualStartedAt)} 至 ${formatAdminDateTime(segment.actualEndedAt)} · ${formatDurationMinutes(durationMinutes)}',
+                  style: context.text.bodySmall,
+                ),
+                Text(
+                  '规则时段：${_ruleTimeRangeLabel(segment.ruleTimeRange)}',
+                  style: context.text.bodySmall,
+                ),
+                if (segment.intervalCapReached) ...[
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.colors.secondaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '区间内封顶 ${formatMoney(segment.intervalCap)} · 已达到',
+                      style: context.text.labelSmall,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(height: 3),
           Text(
-            '实际计费：${formatAdminDateTime(segment.actualStartedAt)} 至 ${formatAdminDateTime(segment.actualEndedAt)}',
-            style: context.text.bodySmall,
-          ),
-          Text('规则时段：$ruleRange', style: context.text.bodySmall),
-          Row(
-            children: [
-              Text(
-                _formatChargeAmount(segment.amount),
-                style: context.text.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (segment.intervalCapReached) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.colors.secondaryContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '区间内封顶 ${formatMoney(segment.intervalCap)} · 已达到',
-                    style: context.text.labelSmall,
-                  ),
-                ),
-              ],
-            ],
+            '本段费用 ${formatMoney(segment.amount)}',
+            style: context.text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -1528,9 +1542,12 @@ class _GlobalCapWindowRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountLabel = window.priceCapReached
-        ? '参与金额 ${formatMoney(window.currentAmount)} -> 封顶金额 ${formatMoney(window.priceCap)}'
-        : '参与金额 ${formatMoney(window.currentAmount)} -> 当前计入金额 ${formatMoney(window.amountApplied)}';
+    final title =
+        '${formatAdminDate(window.windowStartedAt)} ${window.ruleLabel}';
+    final range =
+        '${formatAdminDateTime(window.windowStartedAt)} 至 ${formatAdminDateTime(window.windowEndedAt)}';
+    final result =
+        '历史已计入 ${formatMoney(window.paidBefore)} · 本次参与金额 ${formatMoney(window.currentAmount)} · 封顶至 ${formatMoney(window.priceCap)} · 本次计入 ${formatMoney(window.amountApplied)}';
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: context.colors.outlineVariant)),
@@ -1543,7 +1560,14 @@ class _GlobalCapWindowRow extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(window.ruleLabel, textAlign: TextAlign.start),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title),
+                      Text(range, style: context.text.bodySmall),
+                      Text(result, style: context.text.bodySmall),
+                    ],
+                  ),
                 ),
                 Icon(expanded ? Icons.expand_less : Icons.expand_more),
               ],
@@ -1555,10 +1579,6 @@ class _GlobalCapWindowRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '时间：${formatAdminDateTime(window.windowStartedAt)} 至 ${formatAdminDateTime(window.windowEndedAt)}',
-                  ),
-                  Text(amountLabel),
                   Text(
                     '参与项目：${window.contributions.map((item) => '${item.sessionId} ${formatMoney(item.amount)}').join('、')}',
                   ),
@@ -1856,6 +1876,23 @@ String _sessionDurationLabel(LiveSession session) {
 String _formatChargeAmount(num amount) {
   if (amount > 0) return '+${formatMoney(amount)}';
   return formatMoney(amount);
+}
+
+String _ruleTimeRangeLabel(Map<String, dynamic>? range) {
+  final start = range?['start']?.toString();
+  final end = range?['end']?.toString();
+  if (start == null || end == null || start.isEmpty || end.isEmpty) {
+    return '--';
+  }
+  return '$start 至 ${_clockMinutes(end) <= _clockMinutes(start) ? '次日 ' : ''}$end';
+}
+
+int _clockMinutes(String value) {
+  final parts = value.split(':');
+  if (parts.length != 2) return 0;
+  final hour = int.tryParse(parts[0]) ?? 0;
+  final minute = int.tryParse(parts[1]) ?? 0;
+  return hour * 60 + minute;
 }
 
 String _pricingConfigTitle(PricingConfig config) {

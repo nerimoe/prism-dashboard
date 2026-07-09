@@ -210,34 +210,78 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('实际计费：2026-07-09'), findsOneWidget);
+    expect(
+      find.text(
+        '实际计费：${_expectedDateTime('2026-07-09T14:00:00.000Z')} 至 ${_expectedDateTime('2026-07-09T16:00:00.000Z')} · 2 小时',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('规则时段：22:00 至 次日 00:00'), findsOneWidget);
+    expect(find.text('本段费用 ¥100'), findsOneWidget);
     expect(find.text('区间内封顶 ¥100 · 已达到'), findsOneWidget);
     expect(find.text('凌晨方案 · 凌晨'), findsOneWidget);
     expect(find.text('白天方案 · 白天'), findsOneWidget);
     expect(find.text('2026-07-09 夜间'), findsOneWidget);
     expect(find.text('2026-07-10 白天'), findsOneWidget);
+    expect(
+      find.text(
+        '${_expectedDateTime('2026-07-09T14:00:00.000Z')} 至 ${_expectedDateTime('2026-07-09T16:00:00.000Z')}',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('历史已计入 ¥80 · 本次参与金额 ¥50 · 封顶至 ¥100 · 本次计入 ¥20'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('历史已计入 ¥10 · 本次参与金额 ¥30 · 封顶至 ¥120 · 本次计入 ¥30'),
+      findsOneWidget,
+    );
     expect(find.textContaining('区间内封顶 ¥120'), findsNothing);
 
     await tester.ensureVisible(find.text('2026-07-09 夜间'));
     await tester.tap(find.text('2026-07-09 夜间'));
     await tester.pumpAndSettle();
-    expect(
-      find.text(
-        '时间：${_expectedDateTime('2026-07-09T14:00:00.000Z')} 至 ${_expectedDateTime('2026-07-09T16:00:00.000Z')}',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('参与金额 ¥50 -> 封顶金额 ¥100'), findsOneWidget);
+    expect(find.text('参与项目：session-structured ¥20'), findsOneWidget);
 
     await tester.ensureVisible(find.text('2026-07-10 白天'));
     await tester.tap(find.text('2026-07-10 白天'));
     await tester.pumpAndSettle();
-    expect(
-      find.text(
-        '时间：${_expectedDateTime('2026-07-10T01:00:00.000Z')} 至 ${_expectedDateTime('2026-07-10T04:00:00.000Z')}',
+    expect(find.text('参与项目：session-structured ¥30'), findsOneWidget);
+  });
+
+  testWidgets('shows unavailable billing detail for legacy session summaries', (
+    tester,
+  ) async {
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient(
+        (request) async => http.Response(
+          jsonEncode(_livePlayersJson),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
       ),
-      findsOneWidget,
     );
-    expect(find.text('参与金额 ¥30 -> 当前计入金额 ¥30'), findsOneWidget);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: OperationsScreen(api: api),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('查看计费明细').first);
+    await tester.tap(find.text('查看计费明细').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('计费明细暂不可用'), findsOneWidget);
   });
 
   testWidgets('keeps session billing expansion after refresh', (tester) async {
@@ -630,7 +674,7 @@ const Map<String, dynamic> _structuredLivePlayersJson = {
           'key': '2026-07-09-night',
           'capConfigId': 'night-cap',
           'capRuleId': 'night-rule',
-          'ruleLabel': '2026-07-09 夜间',
+          'ruleLabel': '夜间',
           'windowStartedAt': '2026-07-09T14:00:00.000Z',
           'windowEndedAt': '2026-07-09T16:00:00.000Z',
           'priceCap': 100,
@@ -650,7 +694,7 @@ const Map<String, dynamic> _structuredLivePlayersJson = {
           'key': '2026-07-10-day',
           'capConfigId': 'day-cap',
           'capRuleId': 'day-rule',
-          'ruleLabel': '2026-07-10 白天',
+          'ruleLabel': '白天',
           'windowStartedAt': '2026-07-10T01:00:00.000Z',
           'windowEndedAt': '2026-07-10T04:00:00.000Z',
           'priceCap': 120,
