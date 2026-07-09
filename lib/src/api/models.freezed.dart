@@ -837,7 +837,7 @@ as List<LiveSession>,
 /// @nodoc
 mixin _$LiveSession {
 
-@JsonKey(readValue: readSessionId) String get id; String? get label; DateTime get startedAt;@JsonKey(readValue: readElapsedMinutes) int get elapsedMinutes;@JsonKey(readValue: readCurrentImpact) num? get currentImpact; List<LivePricingCharge> get pricingCharges; String get status;
+@JsonKey(readValue: readSessionId) String get id; String? get label; DateTime get startedAt; DateTime? get endedAt;@JsonKey(readValue: readElapsedMinutes) int get elapsedMinutes;@JsonKey(readValue: readCurrentImpact) num? get currentImpact; List<LivePricingCharge> get pricingCharges; String get status;
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -850,16 +850,16 @@ $LiveSessionCopyWith<LiveSession> get copyWith => _$LiveSessionCopyWithImpl<Live
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other.pricingCharges, pricingCharges)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other.pricingCharges, pricingCharges)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,startedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(pricingCharges),status);
+int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(pricingCharges),status);
 
 @override
 String toString() {
-  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
+  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
 }
 
 
@@ -870,7 +870,7 @@ abstract mixin class $LiveSessionCopyWith<$Res>  {
   factory $LiveSessionCopyWith(LiveSession value, $Res Function(LiveSession) _then) = _$LiveSessionCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
 });
 
 
@@ -887,12 +887,13 @@ class _$LiveSessionCopyWithImpl<$Res>
 
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
+as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
 as int,currentImpact: freezed == currentImpact ? _self.currentImpact : currentImpact // ignore: cast_nullable_to_non_nullable
 as num?,pricingCharges: null == pricingCharges ? _self.pricingCharges : pricingCharges // ignore: cast_nullable_to_non_nullable
 as List<LivePricingCharge>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -981,10 +982,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
-return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
   return orElse();
 
 }
@@ -1002,10 +1003,10 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession():
-return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1022,10 +1023,10 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: readSessionId)  String id,  String? label,  DateTime startedAt,  DateTime? endedAt, @JsonKey(readValue: readElapsedMinutes)  int elapsedMinutes, @JsonKey(readValue: readCurrentImpact)  num? currentImpact,  List<LivePricingCharge> pricingCharges,  String status)?  $default,) {final _that = this;
 switch (_that) {
 case _LiveSession() when $default != null:
-return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
+return $default(_that.id,_that.label,_that.startedAt,_that.endedAt,_that.elapsedMinutes,_that.currentImpact,_that.pricingCharges,_that.status);case _:
   return null;
 
 }
@@ -1037,12 +1038,13 @@ return $default(_that.id,_that.label,_that.startedAt,_that.elapsedMinutes,_that.
 @JsonSerializable()
 
 class _LiveSession extends LiveSession {
-  const _LiveSession({@JsonKey(readValue: readSessionId) required this.id, this.label, required this.startedAt, @JsonKey(readValue: readElapsedMinutes) this.elapsedMinutes = 0, @JsonKey(readValue: readCurrentImpact) this.currentImpact, final  List<LivePricingCharge> pricingCharges = const [], this.status = 'closed'}): _pricingCharges = pricingCharges,super._();
+  const _LiveSession({@JsonKey(readValue: readSessionId) required this.id, this.label, required this.startedAt, this.endedAt, @JsonKey(readValue: readElapsedMinutes) this.elapsedMinutes = 0, @JsonKey(readValue: readCurrentImpact) this.currentImpact, final  List<LivePricingCharge> pricingCharges = const [], this.status = 'closed'}): _pricingCharges = pricingCharges,super._();
   factory _LiveSession.fromJson(Map<String, dynamic> json) => _$LiveSessionFromJson(json);
 
 @override@JsonKey(readValue: readSessionId) final  String id;
 @override final  String? label;
 @override final  DateTime startedAt;
+@override final  DateTime? endedAt;
 @override@JsonKey(readValue: readElapsedMinutes) final  int elapsedMinutes;
 @override@JsonKey(readValue: readCurrentImpact) final  num? currentImpact;
  final  List<LivePricingCharge> _pricingCharges;
@@ -1067,16 +1069,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other._pricingCharges, _pricingCharges)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LiveSession&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.elapsedMinutes, elapsedMinutes) || other.elapsedMinutes == elapsedMinutes)&&(identical(other.currentImpact, currentImpact) || other.currentImpact == currentImpact)&&const DeepCollectionEquality().equals(other._pricingCharges, _pricingCharges)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,startedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(_pricingCharges),status);
+int get hashCode => Object.hash(runtimeType,id,label,startedAt,endedAt,elapsedMinutes,currentImpact,const DeepCollectionEquality().hash(_pricingCharges),status);
 
 @override
 String toString() {
-  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
+  return 'LiveSession(id: $id, label: $label, startedAt: $startedAt, endedAt: $endedAt, elapsedMinutes: $elapsedMinutes, currentImpact: $currentImpact, pricingCharges: $pricingCharges, status: $status)';
 }
 
 
@@ -1087,7 +1089,7 @@ abstract mixin class _$LiveSessionCopyWith<$Res> implements $LiveSessionCopyWith
   factory _$LiveSessionCopyWith(_LiveSession value, $Res Function(_LiveSession) _then) = __$LiveSessionCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
+@JsonKey(readValue: readSessionId) String id, String? label, DateTime startedAt, DateTime? endedAt,@JsonKey(readValue: readElapsedMinutes) int elapsedMinutes,@JsonKey(readValue: readCurrentImpact) num? currentImpact, List<LivePricingCharge> pricingCharges, String status
 });
 
 
@@ -1104,12 +1106,13 @@ class __$LiveSessionCopyWithImpl<$Res>
 
 /// Create a copy of LiveSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? elapsedMinutes = null,Object? currentImpact = freezed,Object? pricingCharges = null,Object? status = null,}) {
   return _then(_LiveSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
+as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,elapsedMinutes: null == elapsedMinutes ? _self.elapsedMinutes : elapsedMinutes // ignore: cast_nullable_to_non_nullable
 as int,currentImpact: freezed == currentImpact ? _self.currentImpact : currentImpact // ignore: cast_nullable_to_non_nullable
 as num?,pricingCharges: null == pricingCharges ? _self._pricingCharges : pricingCharges // ignore: cast_nullable_to_non_nullable
 as List<LivePricingCharge>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable

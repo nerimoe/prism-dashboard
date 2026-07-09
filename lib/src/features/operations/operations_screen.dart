@@ -758,7 +758,9 @@ class _PlayerRow extends StatelessWidget {
                       spacing: 12,
                       runSpacing: 6,
                       children: [
-                        Text('${player.activeSessionCount} 项计时中 · ${player.sessionCount} 项费用'),
+                        Text(
+                          '${player.activeSessionCount} 项计时中 · ${player.sessionCount} 项费用',
+                        ),
                         Text(formatDurationMinutes(player.stayDurationMinutes)),
                         Text(formatMoney(player.estimatedTotal)),
                         _PlayerStatusText(player: player),
@@ -1219,7 +1221,14 @@ class _SessionRow extends StatelessWidget {
                     spacing: 12,
                     runSpacing: 6,
                     children: [
-                      Text(formatDurationMinutes(session.elapsedMinutes)),
+                      Text(_sessionDurationLabel(session)),
+                      if (session.endedAt != null)
+                        Text(
+                          '停止 ${formatAdminDateTime(session.endedAt!)}',
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
                       Text(
                         session.pricingSummary,
                         style: context.text.bodySmall?.copyWith(
@@ -1256,7 +1265,7 @@ class _SessionRow extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: Text(
-                      formatDurationMinutes(session.elapsedMinutes),
+                      _sessionDurationLabel(session),
                       textAlign: TextAlign.end,
                       style: context.text.bodySmall,
                     ),
@@ -1391,7 +1400,9 @@ class _SessionName extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          '${formatAdminDateTime(session.startedAt)} 开始',
+          session.endedAt == null
+              ? '${formatAdminDateTime(session.startedAt)} 开始'
+              : '${formatAdminDateTime(session.startedAt)} 开始 · 停止 ${formatAdminDateTime(session.endedAt!)}',
           style: context.text.bodySmall?.copyWith(
             color: context.colors.onSurfaceVariant,
           ),
@@ -1572,6 +1583,10 @@ String _formatSessionImpact(LiveSession session, num impact) {
     return '+${formatMoney(impact)}';
   }
   return formatMoney(impact);
+}
+
+String _sessionDurationLabel(LiveSession session) {
+  return formatDurationMinutes(session.elapsedMinutes);
 }
 
 String _formatChargeAmount(num amount) {

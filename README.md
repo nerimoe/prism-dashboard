@@ -59,7 +59,7 @@ Commonly used UI blocks live in `lib/src/shared/`:
 
 - Dart models accept the current staff RPC view fields, including backend names such as `staffUsers`, `apiTokens`, `assetDefinitions`, `businessItems`, `pricingConfigs`, nested settings, and report `summary` payloads.
 - `ApiToken.token` is treated as a one-time secret: it can be read after creation, but it is omitted from `toJson()` and not printed by model `toString()`.
-- `PrismApiClient` exposes the staff session operations needed by the live desk: preview one timing item, checkout one timing item, preview all, checkout all, stop one timing item, list active timing items, and bulk checkout.
+- `PrismApiClient` exposes the staff session operations needed by the live desk: preview one timing item, checkout one timing item, preview all, checkout all, stop one timing item, list active timing items, and bulk checkout. Live desk session rows read `endedAt` for stopped-but-unpaid timers and show the stop time in the bill, while the duration comes from the backend `elapsedMinutes`.
 - Player list models include `identities`, so migrated QQ/Aime/scan bindings can be shown without a second detail lookup. The player detail panel can remove a single binding through the staff identity delete RPC.
 - Player ledger and timer history rows open secondary detail dialogs. The compact detail panel shows recent rows with full local date and time, while the dialogs expose the full visible list and per-record fields such as linked staff action, transaction batch, duration, and current billing impact.
 - Player redeem records are loaded from `/rpc/staff/players/:playerId/redeem-records` and shown as a normal audit section in the player detail panel, with the gift name, code, and full local redemption time.

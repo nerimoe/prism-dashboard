@@ -99,9 +99,7 @@ void main() {
     expect(single.total, 56);
     expect(
       requests.map((request) => request.url.path),
-      containsAll([
-        '/rpc/staff/players/player-1/checkout/preview',
-      ]),
+      containsAll(['/rpc/staff/players/player-1/checkout/preview']),
     );
   });
 
@@ -142,6 +140,12 @@ void main() {
     expect(
       find.textContaining(_expectedDateTime('2026-07-04T10:35:00.000Z')),
       findsWidgets,
+    );
+    expect(
+      find.textContaining(
+        '停止 ${_expectedDateTime('2026-07-04T12:43:00.000Z')}',
+      ),
+      findsOneWidget,
     );
     expect(find.textContaining('10:35 开始'), findsNothing);
     expect(find.textContaining('最早入场'), findsNothing);
@@ -461,6 +465,7 @@ const Map<String, dynamic> _livePlayersJson = {
           'id': 'session-1',
           'label': '音游区间',
           'startedAt': '2026-07-04T10:35:00.000Z',
+          'endedAt': null,
           'elapsedMinutes': 128,
           'currentImpact': 64,
           'status': 'active',
@@ -477,6 +482,7 @@ const Map<String, dynamic> _livePlayersJson = {
           'id': 'session-2',
           'label': '四口麻将',
           'startedAt': '2026-07-04T11:20:00.000Z',
+          'endedAt': '2026-07-04T12:43:00.000Z',
           'elapsedMinutes': 83,
           'currentImpact': -8,
           'status': 'closed',

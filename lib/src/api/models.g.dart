@@ -65,6 +65,9 @@ _LiveSession _$LiveSessionFromJson(Map<String, dynamic> json) => _LiveSession(
   id: readSessionId(json, 'id') as String,
   label: json['label'] as String?,
   startedAt: DateTime.parse(json['startedAt'] as String),
+  endedAt: json['endedAt'] == null
+      ? null
+      : DateTime.parse(json['endedAt'] as String),
   elapsedMinutes:
       (readElapsedMinutes(json, 'elapsedMinutes') as num?)?.toInt() ?? 0,
   currentImpact: readCurrentImpact(json, 'currentImpact') as num?,
@@ -81,6 +84,7 @@ Map<String, dynamic> _$LiveSessionToJson(_LiveSession instance) =>
       'id': instance.id,
       'label': instance.label,
       'startedAt': instance.startedAt.toIso8601String(),
+      'endedAt': instance.endedAt?.toIso8601String(),
       'elapsedMinutes': instance.elapsedMinutes,
       'currentImpact': instance.currentImpact,
       'pricingCharges': instance.pricingCharges,

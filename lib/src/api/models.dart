@@ -62,6 +62,7 @@ abstract class LiveSession with _$LiveSession {
     @JsonKey(readValue: readSessionId) required String id,
     String? label,
     required DateTime startedAt,
+    DateTime? endedAt,
     @JsonKey(readValue: readElapsedMinutes) @Default(0) int elapsedMinutes,
     @JsonKey(readValue: readCurrentImpact) num? currentImpact,
     @Default([]) List<LivePricingCharge> pricingCharges,
@@ -80,10 +81,7 @@ abstract class LiveSession with _$LiveSession {
       '${entrySource(title)} · ${formatClock(startedAt)}';
   String get pricingSummary => pricingCharges.isEmpty
       ? '暂无计费明细'
-      : pricingCharges
-            .map((charge) => charge.displayName)
-            .toSet()
-            .join('、');
+      : pricingCharges.map((charge) => charge.displayName).toSet().join('、');
 
   factory LiveSession.fromJson(Map<String, dynamic> json) =>
       _$LiveSessionFromJson(json);
