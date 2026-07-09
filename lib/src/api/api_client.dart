@@ -1033,21 +1033,7 @@ class PrismApiClient {
     }
     final pricing = (rule['pricing'] as Map?)?.cast<String, dynamic>();
     return {
-      'id': rule['id'] ?? rule['label'] ?? 'rule',
-      'label': rule['label'] ?? '计费规则',
-      'priority': rule['priority'] ?? 0,
-      'status': rule['status'] ?? 'active',
-      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
-      if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
-        'timeRange':
-            rule['timeRange'] ??
-            {
-              'start': rule['startTime'] ?? '00:00',
-              'end': rule['endTime'] ?? '00:00',
-            },
-      if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
-      if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
-      if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
+      ..._timeRuleScheduleBody(rule, fallbackLabel: '计费规则'),
       'pricing': {
         'unitMinutes': rule['unitMinutes'] ?? pricing?['unitMinutes'] ?? 30,
         'unitPrice': rule['unitPrice'] ?? pricing?['unitPrice'] ?? 0,
@@ -1067,22 +1053,35 @@ class PrismApiClient {
     }
     final pricing = (rule['pricing'] as Map?)?.cast<String, dynamic>();
     return {
+      ..._timeRuleScheduleBody(rule, fallbackLabel: '封顶规则'),
+      'priceCap': rule['priceCap'] ?? pricing?['priceCap'] ?? 0,
+    };
+  }
+
+  Map<String, dynamic> _timeRuleScheduleBody(
+    Map<String, dynamic> rule, {
+    required String fallbackLabel,
+  }) {
+    final dateTimeRange = rule['dateTimeRange'];
+    final timeRange = rule['timeRange'];
+    final specificDates = rule['specificDates'];
+    final specificDate = rule['specificDate'];
+    return {
       'id': rule['id'] ?? rule['label'] ?? 'rule',
-      'label': rule['label'] ?? '封顶规则',
+      'label': rule['label'] ?? fallbackLabel,
       'priority': rule['priority'] ?? 0,
       'status': rule['status'] ?? 'active',
-      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
-      if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
+      if (dateTimeRange != null) 'dateTimeRange': dateTimeRange,
+      if (dateTimeRange == null || timeRange != null)
         'timeRange':
-            rule['timeRange'] ??
+            timeRange ??
             {
               'start': rule['startTime'] ?? '00:00',
               'end': rule['endTime'] ?? '00:00',
             },
       if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
-      if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
-      if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
-      'priceCap': rule['priceCap'] ?? pricing?['priceCap'] ?? 0,
+      if (specificDates != null || specificDate != null)
+        'specificDates': specificDates ?? [specificDate],
     };
   }
 }
