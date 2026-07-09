@@ -411,7 +411,7 @@ class _PricingEditorState extends State<_PricingEditor> {
             LayoutBuilder(
               builder: (context, constraints) {
                 final wide = constraints.maxWidth >= 900;
-                final timeline = _mode == 'time.priority'
+                final timeline = _mode == 'time.priority' || _mode == 'time.cap'
                     ? _TimelinePanel(
                         timelineFuture: _timelineFuture,
                         cachedTimeline: _lastTimeline,
@@ -420,6 +420,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                         onRefresh: _refreshTimeline,
                         onSegmentSelected: _selectSegment,
                         selectedRuleId: selectedRule?.id,
+                        isCapTimeline: _mode == 'time.cap',
                       )
                     : null;
                 final rules = _RuleListPanel(
@@ -479,6 +480,10 @@ class _PricingEditorState extends State<_PricingEditor> {
                       ],
                       const SizedBox(height: 16),
                       rules,
+                      if (capSelector != null) ...[
+                        const SizedBox(height: 16),
+                        capSelector,
+                      ],
                       if (ruleForm != null) ...[
                         const SizedBox(height: 16),
                         ruleForm,
@@ -510,7 +515,7 @@ class _PricingEditorState extends State<_PricingEditor> {
             runSpacing: 8,
             alignment: WrapAlignment.end,
             children: [
-              if (_mode == 'time.priority')
+              if (_mode == 'time.priority' || _mode == 'time.cap')
                 OutlinedButton.icon(
                   onPressed: _refreshTimeline,
                   icon: const Icon(Icons.timeline),
@@ -548,7 +553,7 @@ class _PricingEditorState extends State<_PricingEditor> {
     _selectedRuleIndex = 0;
     _error = null;
     _lastTimeline = null;
-    if (_mode == 'time.priority') _refreshTimeline();
+    if (_mode == 'time.priority' || _mode == 'time.cap') _refreshTimeline();
   }
 
   void _changePreviewDate(DateTime value) {
@@ -573,7 +578,7 @@ class _PricingEditorState extends State<_PricingEditor> {
         _providerId = 'time.${DateTime.now().millisecondsSinceEpoch}';
       }
     });
-    if (value == 'time.priority') _refreshTimeline();
+    if (value == 'time.priority' || value == 'time.cap') _refreshTimeline();
   }
 
   void _addRule() {
@@ -621,13 +626,14 @@ class _PricingEditorState extends State<_PricingEditor> {
   }
 
   void _refreshTimeline() {
-    if (_mode != 'time.priority') return;
+    if (_mode != 'time.priority' && _mode != 'time.cap') return;
     final future = widget.api.previewPricingTimeline(
       name: _name.text.trim().isEmpty ? '草稿' : _name.text.trim(),
-      kind: 'time.priority',
+      kind: _mode,
       providerId: _providerId,
       localDate: _dateText(_previewDate),
       rules: [for (final rule in _rules) rule.toJson()],
+      includedPricingConfigIds: _includedPricingConfigIds,
     );
     setState(() {
       _timelineFuture = future;
@@ -937,6 +943,7 @@ class _TimelinePanel extends StatelessWidget {
     required this.onRefresh,
     required this.onSegmentSelected,
     required this.selectedRuleId,
+    required this.isCapTimeline,
   });
 
   final Future<PricingTimeline>? timelineFuture;
@@ -946,13 +953,16 @@ class _TimelinePanel extends StatelessWidget {
   final VoidCallback onRefresh;
   final ValueChanged<UnitPricing> onSegmentSelected;
   final String? selectedRuleId;
+  final bool isCapTimeline;
 
   @override
   Widget build(BuildContext context) {
     return _InlinePanel(
       icon: Icons.donut_large,
       title: '当天生效圆环',
-      subtitle: '灰色为空档，空档内不能入场；彩色部分按对应时段收费。',
+      subtitle: isCapTimeline
+          ? '灰色为空档；彩色部分按对应时段规则限制选中方案合计。'
+          : '灰色为空档，空档内不能入场；彩色部分按对应时段收费。',
       child: FutureBuilder<PricingTimeline>(
         future: timelineFuture,
         builder: (context, snapshot) {
@@ -1018,7 +1028,10 @@ class _TimelinePanel extends StatelessWidget {
                   onSegmentSelected: onSegmentSelected,
                 ),
                 const SizedBox(height: 12),
-                _TimelineLegend(segments: segments),
+                _TimelineLegend(
+                  segments: segments,
+                  valueLabel: isCapTimeline ? '封顶' : null,
+                ),
               ],
             ],
           );
@@ -1566,9 +1579,10 @@ class RingTimelinePainter extends CustomPainter {
 }
 
 class _TimelineLegend extends StatelessWidget {
-  const _TimelineLegend({required this.segments});
+  const _TimelineLegend({required this.segments, this.valueLabel});
 
   final List<UnitPricing> segments;
+  final String? valueLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1583,12 +1597,18 @@ class _TimelineLegend extends StatelessWidget {
               size: 16,
             ),
             label: Text(
-              '${segment.startTime}-${segment.endTime} ${segment.label ?? '按时计费'}',
+              '${segment.startTime}-${segment.endTime} ${segment.label ?? '按时计费'}'
+              '${valueLabel == null || segment.isClosed ? '' : ' · $valueLabel ${_moneyText(segment.price)}'}',
             ),
           ),
       ],
     );
   }
+}
+
+String _moneyText(num value) {
+  if (value % 1 == 0) return value.toInt().toString();
+  return value.toString();
 }
 
 class _InlinePanel extends StatelessWidget {

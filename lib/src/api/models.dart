@@ -693,6 +693,7 @@ Object? readIncludedPricingConfigIds(Map json, String key) =>
 Object? readTimelinePrice(Map json, String key) =>
     json[key] ??
     json['amount'] ??
+    json['priceCap'] ??
     json['unitPrice'] ??
     nestedValue(json, ['pricing', 'unitPrice']);
 Object? readTimelineSegments(Map json, String key) {

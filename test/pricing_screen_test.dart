@@ -115,6 +115,31 @@ void main() {
     expect(body['provider']['rules'][1]['id'], 'night');
   });
 
+  testWidgets('global cap editor previews cap rules as a timeline', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('全局封顶'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('当天生效圆环'), findsOneWidget);
+    expect(find.text('全局封顶金额'), findsOneWidget);
+
+    final request = requests.lastWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/pricing-timeline/preview',
+    );
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    expect(body['provider']['id'].toString(), startsWith('cap.'));
+    expect(body['provider']['rules'].first['priceCap'], 80);
+    expect(body['provider']['rules'].first.containsKey('pricing'), false);
+  });
+
   testWidgets('migrated date scoped rules stay scoped in preview drafts', (
     tester,
   ) async {

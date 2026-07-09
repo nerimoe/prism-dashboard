@@ -280,6 +280,30 @@ void main() {
       expect(model.timeline.single.price, 10);
     });
 
+    test('PricingTimeline parses global cap segment price caps', () {
+      final json = {
+        'timeline': {
+          'providerId': 'cap.default',
+          'localDate': '2026-07-05',
+          'timeZone': 'Asia/Shanghai',
+          'segments': [
+            {
+              'ruleId': 'day-cap',
+              'label': '日场全局封顶',
+              'startLabel': '10:00',
+              'endLabel': '22:00',
+              'priceCap': 69,
+            },
+          ],
+        },
+      };
+
+      final model = PricingTimeline.fromJson(json);
+
+      expect(model.timeline.single.label, '日场全局封顶');
+      expect(model.timeline.single.price, 69);
+    });
+
     test('BusinessItemOrder parses correctly', () {
       final json = {
         'id': 'order-1',

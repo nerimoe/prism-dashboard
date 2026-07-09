@@ -655,12 +655,19 @@ class PrismApiClient {
     required List<Map<String, dynamic>> rules,
     required String localDate,
     String? providerId,
+    List<String> includedPricingConfigIds = const [],
   }) async {
     final json = await post(
       '/rpc/staff/pricing-timeline/preview',
       body: {
         'localDate': localDate,
-        'provider': _timePricingProvider(rules: rules, providerId: providerId),
+        'provider': kind == 'time.cap'
+            ? _timeCapProvider(
+                rules: rules,
+                providerId: providerId,
+                includedPricingConfigIds: includedPricingConfigIds,
+              )
+            : _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
     return PricingTimeline.fromJson(json);
@@ -1056,6 +1063,7 @@ class PrismApiClient {
         !rule.containsKey('pricing')) {
       return rule;
     }
+    final pricing = (rule['pricing'] as Map?)?.cast<String, dynamic>();
     return {
       'id': rule['id'] ?? rule['label'] ?? 'rule',
       'label': rule['label'] ?? '封顶规则',
@@ -1070,7 +1078,7 @@ class PrismApiClient {
       if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
       if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
       if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
-      'priceCap': rule['priceCap'] ?? 0,
+      'priceCap': rule['priceCap'] ?? pricing?['priceCap'] ?? 0,
     };
   }
 }
