@@ -471,6 +471,40 @@ void main() {
     );
   });
 
+  testWidgets('saving archived pricing config patches the selected config', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests, archived: true));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('归档方案（1）'));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('基础计费').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('保存方案'));
+    await tester.tap(find.text('保存方案'));
+    await tester.pumpAndSettle();
+
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/pricing-configs',
+      ),
+      false,
+    );
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'PATCH' &&
+          request.url.path == '/rpc/staff/pricing-configs/pricing-1',
+    );
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    expect(body['enabled'], false);
+  });
+
   testWidgets('archived pricing configs fold away from active plans', (
     tester,
   ) async {

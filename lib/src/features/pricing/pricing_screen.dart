@@ -653,7 +653,7 @@ class _PricingEditorState extends State<_PricingEditor> {
     }
     try {
       if (_mode == 'charge.fixed') {
-        final saved = widget.selected == null || widget.selected!.isArchived
+        final saved = widget.selected == null
             ? await widget.api.createFixedChargePricingConfig(
                 name: _name.text.trim(),
                 label: _fixedLabel.text.trim().isEmpty
@@ -681,7 +681,7 @@ class _PricingEditorState extends State<_PricingEditor> {
           setState(() => _error = '请选择至少一个参与全局封顶的按时计费方案。');
           return;
         }
-        final saved = widget.selected == null || widget.selected!.isArchived
+        final saved = widget.selected == null
             ? await widget.api.createPricingConfig(
                 name: _name.text.trim(),
                 kind: 'time.cap',
@@ -703,7 +703,7 @@ class _PricingEditorState extends State<_PricingEditor> {
         return;
       }
 
-      final saved = widget.selected == null || widget.selected!.isArchived
+      final saved = widget.selected == null
           ? await widget.api.createPricingConfig(
               name: _name.text.trim(),
               kind: 'time.priority',
