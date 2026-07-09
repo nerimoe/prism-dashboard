@@ -342,9 +342,9 @@ abstract class PriorityTimeRule with _$PriorityTimeRule {
     String? specificDate,
     @JsonKey(readValue: readStartDateTime) String? startDateTime,
     @JsonKey(readValue: readEndDateTime) String? endDateTime,
-    @JsonKey(readValue: readUnitMinutes) required int unitMinutes,
-    @JsonKey(readValue: readUnitPrice) required num unitPrice,
-    @JsonKey(readValue: readGraceMinutes) required int graceMinutes,
+    @JsonKey(readValue: readUnitMinutes) @Default(0) int unitMinutes,
+    @JsonKey(readValue: readUnitPrice) @Default(0) num unitPrice,
+    @JsonKey(readValue: readGraceMinutes) @Default(0) int graceMinutes,
     @JsonKey(readValue: readPriceCap) num? priceCap,
   }) = _PriorityTimeRule;
 
@@ -362,6 +362,9 @@ abstract class PricingConfig with _$PricingConfig {
     @JsonKey(readValue: readProviderId) String? providerId,
     @JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,
     @JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,
+    @JsonKey(readValue: readIncludedPricingConfigIds)
+    @Default([])
+    List<String> includedPricingConfigIds,
     @JsonKey(readValue: readIsArchived) @Default(false) bool isArchived,
     @JsonKey(readValue: readIsActive) @Default(true) bool isActive,
   }) = _PricingConfig;
@@ -685,6 +688,8 @@ Object? readGraceMinutes(Map json, String key) =>
     json[key] ?? nestedValue(json, ['pricing', 'roundGraceMinutes']);
 Object? readPriceCap(Map json, String key) =>
     json[key] ?? nestedValue(json, ['pricing', 'priceCap']);
+Object? readIncludedPricingConfigIds(Map json, String key) =>
+    json[key] ?? nestedValue(json, ['provider', 'includedPricingConfigIds']);
 Object? readTimelinePrice(Map json, String key) =>
     json[key] ??
     json['amount'] ??

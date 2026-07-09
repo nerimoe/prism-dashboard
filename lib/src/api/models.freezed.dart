@@ -5607,7 +5607,7 @@ return $default(_that.id,_that.label,_that.priority,_that.status,_that.hasTimeRa
 @JsonSerializable()
 
 class _PriorityTimeRule implements PriorityTimeRule {
-  const _PriorityTimeRule({this.id = '', required this.label, required this.priority, this.status = 'active', @JsonKey(readValue: readHasTimeRange) this.hasTimeRange = false, @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, final  List<int> weekdays = const [], @JsonKey(readValue: readSpecificDates) final  List<String> specificDates = const [], this.specificDate, @JsonKey(readValue: readStartDateTime) this.startDateTime, @JsonKey(readValue: readEndDateTime) this.endDateTime, @JsonKey(readValue: readUnitMinutes) required this.unitMinutes, @JsonKey(readValue: readUnitPrice) required this.unitPrice, @JsonKey(readValue: readGraceMinutes) required this.graceMinutes, @JsonKey(readValue: readPriceCap) this.priceCap}): _weekdays = weekdays,_specificDates = specificDates;
+  const _PriorityTimeRule({this.id = '', required this.label, required this.priority, this.status = 'active', @JsonKey(readValue: readHasTimeRange) this.hasTimeRange = false, @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, final  List<int> weekdays = const [], @JsonKey(readValue: readSpecificDates) final  List<String> specificDates = const [], this.specificDate, @JsonKey(readValue: readStartDateTime) this.startDateTime, @JsonKey(readValue: readEndDateTime) this.endDateTime, @JsonKey(readValue: readUnitMinutes) this.unitMinutes = 0, @JsonKey(readValue: readUnitPrice) this.unitPrice = 0, @JsonKey(readValue: readGraceMinutes) this.graceMinutes = 0, @JsonKey(readValue: readPriceCap) this.priceCap}): _weekdays = weekdays,_specificDates = specificDates;
   factory _PriorityTimeRule.fromJson(Map<String, dynamic> json) => _$PriorityTimeRuleFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -5718,7 +5718,7 @@ as num?,
 /// @nodoc
 mixin _$PricingConfig {
 
- String get id; String get name; String get kind;@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> get rules;@JsonKey(readValue: readProviderId) String? get providerId;@JsonKey(readValue: readFixedChargeLabel) String? get fixedChargeLabel;@JsonKey(readValue: readFixedChargeAmount) num? get fixedChargeAmount;@JsonKey(readValue: readIsArchived) bool get isArchived;@JsonKey(readValue: readIsActive) bool get isActive;
+ String get id; String get name; String get kind;@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> get rules;@JsonKey(readValue: readProviderId) String? get providerId;@JsonKey(readValue: readFixedChargeLabel) String? get fixedChargeLabel;@JsonKey(readValue: readFixedChargeAmount) num? get fixedChargeAmount;@JsonKey(readValue: readIncludedPricingConfigIds) List<String> get includedPricingConfigIds;@JsonKey(readValue: readIsArchived) bool get isArchived;@JsonKey(readValue: readIsActive) bool get isActive;
 /// Create a copy of PricingConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5731,16 +5731,16 @@ $PricingConfigCopyWith<PricingConfig> get copyWith => _$PricingConfigCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PricingConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.rules, rules)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.fixedChargeLabel, fixedChargeLabel) || other.fixedChargeLabel == fixedChargeLabel)&&(identical(other.fixedChargeAmount, fixedChargeAmount) || other.fixedChargeAmount == fixedChargeAmount)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PricingConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.rules, rules)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.fixedChargeLabel, fixedChargeLabel) || other.fixedChargeLabel == fixedChargeLabel)&&(identical(other.fixedChargeAmount, fixedChargeAmount) || other.fixedChargeAmount == fixedChargeAmount)&&const DeepCollectionEquality().equals(other.includedPricingConfigIds, includedPricingConfigIds)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,const DeepCollectionEquality().hash(rules),providerId,fixedChargeLabel,fixedChargeAmount,isArchived,isActive);
+int get hashCode => Object.hash(runtimeType,id,name,kind,const DeepCollectionEquality().hash(rules),providerId,fixedChargeLabel,fixedChargeAmount,const DeepCollectionEquality().hash(includedPricingConfigIds),isArchived,isActive);
 
 @override
 String toString() {
-  return 'PricingConfig(id: $id, name: $name, kind: $kind, rules: $rules, providerId: $providerId, fixedChargeLabel: $fixedChargeLabel, fixedChargeAmount: $fixedChargeAmount, isArchived: $isArchived, isActive: $isActive)';
+  return 'PricingConfig(id: $id, name: $name, kind: $kind, rules: $rules, providerId: $providerId, fixedChargeLabel: $fixedChargeLabel, fixedChargeAmount: $fixedChargeAmount, includedPricingConfigIds: $includedPricingConfigIds, isArchived: $isArchived, isActive: $isActive)';
 }
 
 
@@ -5751,7 +5751,7 @@ abstract mixin class $PricingConfigCopyWith<$Res>  {
   factory $PricingConfigCopyWith(PricingConfig value, $Res Function(PricingConfig) _then) = _$PricingConfigCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readProviderId) String? providerId,@JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,@JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
+ String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readProviderId) String? providerId,@JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,@JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,@JsonKey(readValue: readIncludedPricingConfigIds) List<String> includedPricingConfigIds,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
 });
 
 
@@ -5768,7 +5768,7 @@ class _$PricingConfigCopyWithImpl<$Res>
 
 /// Create a copy of PricingConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? rules = null,Object? providerId = freezed,Object? fixedChargeLabel = freezed,Object? fixedChargeAmount = freezed,Object? isArchived = null,Object? isActive = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? rules = null,Object? providerId = freezed,Object? fixedChargeLabel = freezed,Object? fixedChargeAmount = freezed,Object? includedPricingConfigIds = null,Object? isArchived = null,Object? isActive = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -5777,7 +5777,8 @@ as String,rules: null == rules ? _self.rules : rules // ignore: cast_nullable_to
 as List<PriorityTimeRule>,providerId: freezed == providerId ? _self.providerId : providerId // ignore: cast_nullable_to_non_nullable
 as String?,fixedChargeLabel: freezed == fixedChargeLabel ? _self.fixedChargeLabel : fixedChargeLabel // ignore: cast_nullable_to_non_nullable
 as String?,fixedChargeAmount: freezed == fixedChargeAmount ? _self.fixedChargeAmount : fixedChargeAmount // ignore: cast_nullable_to_non_nullable
-as num?,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as num?,includedPricingConfigIds: null == includedPricingConfigIds ? _self.includedPricingConfigIds : includedPricingConfigIds // ignore: cast_nullable_to_non_nullable
+as List<String>,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -5864,10 +5865,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIncludedPricingConfigIds)  List<String> includedPricingConfigIds, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PricingConfig() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.isArchived,_that.isActive);case _:
+return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.includedPricingConfigIds,_that.isArchived,_that.isActive);case _:
   return orElse();
 
 }
@@ -5885,10 +5886,10 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIncludedPricingConfigIds)  List<String> includedPricingConfigIds, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _PricingConfig():
-return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.isArchived,_that.isActive);case _:
+return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.includedPricingConfigIds,_that.isArchived,_that.isActive);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5905,10 +5906,10 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String kind, @JsonKey(readValue: readPricingRules)  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId)  String? providerId, @JsonKey(readValue: readFixedChargeLabel)  String? fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount)  num? fixedChargeAmount, @JsonKey(readValue: readIncludedPricingConfigIds)  List<String> includedPricingConfigIds, @JsonKey(readValue: readIsArchived)  bool isArchived, @JsonKey(readValue: readIsActive)  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _PricingConfig() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.isArchived,_that.isActive);case _:
+return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_that.fixedChargeLabel,_that.fixedChargeAmount,_that.includedPricingConfigIds,_that.isArchived,_that.isActive);case _:
   return null;
 
 }
@@ -5920,7 +5921,7 @@ return $default(_that.id,_that.name,_that.kind,_that.rules,_that.providerId,_tha
 @JsonSerializable()
 
 class _PricingConfig implements PricingConfig {
-  const _PricingConfig({required this.id, required this.name, required this.kind, @JsonKey(readValue: readPricingRules) required final  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId) this.providerId, @JsonKey(readValue: readFixedChargeLabel) this.fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount) this.fixedChargeAmount, @JsonKey(readValue: readIsArchived) this.isArchived = false, @JsonKey(readValue: readIsActive) this.isActive = true}): _rules = rules;
+  const _PricingConfig({required this.id, required this.name, required this.kind, @JsonKey(readValue: readPricingRules) required final  List<PriorityTimeRule> rules, @JsonKey(readValue: readProviderId) this.providerId, @JsonKey(readValue: readFixedChargeLabel) this.fixedChargeLabel, @JsonKey(readValue: readFixedChargeAmount) this.fixedChargeAmount, @JsonKey(readValue: readIncludedPricingConfigIds) final  List<String> includedPricingConfigIds = const [], @JsonKey(readValue: readIsArchived) this.isArchived = false, @JsonKey(readValue: readIsActive) this.isActive = true}): _rules = rules,_includedPricingConfigIds = includedPricingConfigIds;
   factory _PricingConfig.fromJson(Map<String, dynamic> json) => _$PricingConfigFromJson(json);
 
 @override final  String id;
@@ -5936,6 +5937,13 @@ class _PricingConfig implements PricingConfig {
 @override@JsonKey(readValue: readProviderId) final  String? providerId;
 @override@JsonKey(readValue: readFixedChargeLabel) final  String? fixedChargeLabel;
 @override@JsonKey(readValue: readFixedChargeAmount) final  num? fixedChargeAmount;
+ final  List<String> _includedPricingConfigIds;
+@override@JsonKey(readValue: readIncludedPricingConfigIds) List<String> get includedPricingConfigIds {
+  if (_includedPricingConfigIds is EqualUnmodifiableListView) return _includedPricingConfigIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_includedPricingConfigIds);
+}
+
 @override@JsonKey(readValue: readIsArchived) final  bool isArchived;
 @override@JsonKey(readValue: readIsActive) final  bool isActive;
 
@@ -5952,16 +5960,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PricingConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other._rules, _rules)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.fixedChargeLabel, fixedChargeLabel) || other.fixedChargeLabel == fixedChargeLabel)&&(identical(other.fixedChargeAmount, fixedChargeAmount) || other.fixedChargeAmount == fixedChargeAmount)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PricingConfig&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other._rules, _rules)&&(identical(other.providerId, providerId) || other.providerId == providerId)&&(identical(other.fixedChargeLabel, fixedChargeLabel) || other.fixedChargeLabel == fixedChargeLabel)&&(identical(other.fixedChargeAmount, fixedChargeAmount) || other.fixedChargeAmount == fixedChargeAmount)&&const DeepCollectionEquality().equals(other._includedPricingConfigIds, _includedPricingConfigIds)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,const DeepCollectionEquality().hash(_rules),providerId,fixedChargeLabel,fixedChargeAmount,isArchived,isActive);
+int get hashCode => Object.hash(runtimeType,id,name,kind,const DeepCollectionEquality().hash(_rules),providerId,fixedChargeLabel,fixedChargeAmount,const DeepCollectionEquality().hash(_includedPricingConfigIds),isArchived,isActive);
 
 @override
 String toString() {
-  return 'PricingConfig(id: $id, name: $name, kind: $kind, rules: $rules, providerId: $providerId, fixedChargeLabel: $fixedChargeLabel, fixedChargeAmount: $fixedChargeAmount, isArchived: $isArchived, isActive: $isActive)';
+  return 'PricingConfig(id: $id, name: $name, kind: $kind, rules: $rules, providerId: $providerId, fixedChargeLabel: $fixedChargeLabel, fixedChargeAmount: $fixedChargeAmount, includedPricingConfigIds: $includedPricingConfigIds, isArchived: $isArchived, isActive: $isActive)';
 }
 
 
@@ -5972,7 +5980,7 @@ abstract mixin class _$PricingConfigCopyWith<$Res> implements $PricingConfigCopy
   factory _$PricingConfigCopyWith(_PricingConfig value, $Res Function(_PricingConfig) _then) = __$PricingConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readProviderId) String? providerId,@JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,@JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
+ String id, String name, String kind,@JsonKey(readValue: readPricingRules) List<PriorityTimeRule> rules,@JsonKey(readValue: readProviderId) String? providerId,@JsonKey(readValue: readFixedChargeLabel) String? fixedChargeLabel,@JsonKey(readValue: readFixedChargeAmount) num? fixedChargeAmount,@JsonKey(readValue: readIncludedPricingConfigIds) List<String> includedPricingConfigIds,@JsonKey(readValue: readIsArchived) bool isArchived,@JsonKey(readValue: readIsActive) bool isActive
 });
 
 
@@ -5989,7 +5997,7 @@ class __$PricingConfigCopyWithImpl<$Res>
 
 /// Create a copy of PricingConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? rules = null,Object? providerId = freezed,Object? fixedChargeLabel = freezed,Object? fixedChargeAmount = freezed,Object? isArchived = null,Object? isActive = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? rules = null,Object? providerId = freezed,Object? fixedChargeLabel = freezed,Object? fixedChargeAmount = freezed,Object? includedPricingConfigIds = null,Object? isArchived = null,Object? isActive = null,}) {
   return _then(_PricingConfig(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -5998,7 +6006,8 @@ as String,rules: null == rules ? _self._rules : rules // ignore: cast_nullable_t
 as List<PriorityTimeRule>,providerId: freezed == providerId ? _self.providerId : providerId // ignore: cast_nullable_to_non_nullable
 as String?,fixedChargeLabel: freezed == fixedChargeLabel ? _self.fixedChargeLabel : fixedChargeLabel // ignore: cast_nullable_to_non_nullable
 as String?,fixedChargeAmount: freezed == fixedChargeAmount ? _self.fixedChargeAmount : fixedChargeAmount // ignore: cast_nullable_to_non_nullable
-as num?,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
+as num?,includedPricingConfigIds: null == includedPricingConfigIds ? _self._includedPricingConfigIds : includedPricingConfigIds // ignore: cast_nullable_to_non_nullable
+as List<String>,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));

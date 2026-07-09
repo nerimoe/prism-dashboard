@@ -481,9 +481,10 @@ _PriorityTimeRule _$PriorityTimeRuleFromJson(Map<String, dynamic> json) =>
       specificDate: json['specificDate'] as String?,
       startDateTime: readStartDateTime(json, 'startDateTime') as String?,
       endDateTime: readEndDateTime(json, 'endDateTime') as String?,
-      unitMinutes: (readUnitMinutes(json, 'unitMinutes') as num).toInt(),
-      unitPrice: readUnitPrice(json, 'unitPrice') as num,
-      graceMinutes: (readGraceMinutes(json, 'graceMinutes') as num).toInt(),
+      unitMinutes: (readUnitMinutes(json, 'unitMinutes') as num?)?.toInt() ?? 0,
+      unitPrice: readUnitPrice(json, 'unitPrice') as num? ?? 0,
+      graceMinutes:
+          (readGraceMinutes(json, 'graceMinutes') as num?)?.toInt() ?? 0,
       priceCap: readPriceCap(json, 'priceCap') as num?,
     );
 
@@ -519,6 +520,12 @@ _PricingConfig _$PricingConfigFromJson(
   providerId: readProviderId(json, 'providerId') as String?,
   fixedChargeLabel: readFixedChargeLabel(json, 'fixedChargeLabel') as String?,
   fixedChargeAmount: readFixedChargeAmount(json, 'fixedChargeAmount') as num?,
+  includedPricingConfigIds:
+      (readIncludedPricingConfigIds(json, 'includedPricingConfigIds')
+              as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   isArchived: readIsArchived(json, 'isArchived') as bool? ?? false,
   isActive: readIsActive(json, 'isActive') as bool? ?? true,
 );
@@ -532,6 +539,7 @@ Map<String, dynamic> _$PricingConfigToJson(_PricingConfig instance) =>
       'providerId': instance.providerId,
       'fixedChargeLabel': instance.fixedChargeLabel,
       'fixedChargeAmount': instance.fixedChargeAmount,
+      'includedPricingConfigIds': instance.includedPricingConfigIds,
       'isArchived': instance.isArchived,
       'isActive': instance.isActive,
     };

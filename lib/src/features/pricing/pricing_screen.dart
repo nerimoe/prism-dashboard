@@ -105,6 +105,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                         _PricingEditor(
                           key: ValueKey(selected?.id ?? 'new'),
                           selected: selected,
+                          configs: data.configs,
                           api: _api,
                           onSaved: (message, savedId) {
                             setState(() {
@@ -318,11 +319,13 @@ class _PricingEditor extends StatefulWidget {
   const _PricingEditor({
     super.key,
     required this.selected,
+    required this.configs,
     required this.api,
     required this.onSaved,
   });
 
   final PricingConfig? selected;
+  final List<PricingConfig> configs;
   final PrismApiClient api;
   final void Function(String message, String? savedId) onSaved;
 
@@ -337,6 +340,7 @@ class _PricingEditorState extends State<_PricingEditor> {
   bool _enabled = true;
   DateTime _previewDate = DateTime(2026, 7, 5);
   String _providerId = 'time.default';
+  List<String> _includedPricingConfigIds = [];
   List<_RuleDraft> _rules = [];
   int _selectedRuleIndex = 0;
   num _fixedAmount = 500;
@@ -368,6 +372,8 @@ class _PricingEditorState extends State<_PricingEditor> {
           : _pricingConfigTitle(widget.selected!),
       subtitle: _mode == 'time.priority'
           ? '编辑一天内实际会生效的时段，圆环来自后端预览结果。'
+          : _mode == 'time.cap'
+          ? '只限制选中计费方案的合计金额，不直接产生费用。'
           : '适合门票、服务费和一次性项目。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -405,15 +411,17 @@ class _PricingEditorState extends State<_PricingEditor> {
             LayoutBuilder(
               builder: (context, constraints) {
                 final wide = constraints.maxWidth >= 900;
-                final timeline = _TimelinePanel(
-                  timelineFuture: _timelineFuture,
-                  cachedTimeline: _lastTimeline,
-                  previewDate: _previewDate,
-                  onDateChanged: _changePreviewDate,
-                  onRefresh: _refreshTimeline,
-                  onSegmentSelected: _selectSegment,
-                  selectedRuleId: selectedRule?.id,
-                );
+                final timeline = _mode == 'time.priority'
+                    ? _TimelinePanel(
+                        timelineFuture: _timelineFuture,
+                        cachedTimeline: _lastTimeline,
+                        previewDate: _previewDate,
+                        onDateChanged: _changePreviewDate,
+                        onRefresh: _refreshTimeline,
+                        onSegmentSelected: _selectSegment,
+                        selectedRuleId: selectedRule?.id,
+                      )
+                    : null;
                 final rules = _RuleListPanel(
                   rules: _rules,
                   selectedIndex: _selectedRuleIndex,
@@ -433,19 +441,42 @@ class _PricingEditorState extends State<_PricingEditor> {
                     ? null
                     : _RuleForm(
                         rule: selectedRule,
+                        isCapRule: _mode == 'time.cap',
                         onChanged: _updateSelectedRule,
                         onDelete: _deleteSelectedRule,
                       );
+                final capSelector = _mode == 'time.cap'
+                    ? _IncludedPricingConfigSelector(
+                        configs: widget.configs,
+                        selectedIds: _includedPricingConfigIds,
+                        currentConfigId: widget.selected?.id,
+                        onChanged: (value) =>
+                            setState(() => _includedPricingConfigIds = value),
+                      )
+                    : null;
                 final edit = _PricingEditColumn(
                   basics: basics,
-                  ruleForm: ruleForm,
+                  ruleForm: capSelector == null
+                      ? ruleForm
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            capSelector,
+                            if (ruleForm != null) ...[
+                              const SizedBox(height: 16),
+                              ruleForm,
+                            ],
+                          ],
+                        ),
                 );
                 if (!wide) {
                   return Column(
                     children: [
                       basics,
-                      const SizedBox(height: 16),
-                      timeline,
+                      if (timeline != null) ...[
+                        const SizedBox(height: 16),
+                        timeline,
+                      ],
                       const SizedBox(height: 16),
                       rules,
                       if (ruleForm != null) ...[
@@ -460,10 +491,12 @@ class _PricingEditorState extends State<_PricingEditor> {
                   children: [
                     SizedBox(
                       width: 420,
-                      child: _TimelineAndRuleList(
-                        timeline: timeline,
-                        rules: rules,
-                      ),
+                      child: timeline == null
+                          ? rules
+                          : _TimelineAndRuleList(
+                              timeline: timeline,
+                              rules: rules,
+                            ),
                     ),
                     const SizedBox(width: 24),
                     Expanded(child: edit),
@@ -503,9 +536,12 @@ class _PricingEditorState extends State<_PricingEditor> {
         config?.providerId ??
         (_mode == 'charge.fixed'
             ? 'fixed.${DateTime.now().millisecondsSinceEpoch}'
+            : _mode == 'time.cap'
+            ? 'cap.${DateTime.now().millisecondsSinceEpoch}'
             : 'time.${DateTime.now().millisecondsSinceEpoch}');
     _fixedLabel.text = config?.fixedChargeLabel ?? '店内固定收费';
     _fixedAmount = config?.fixedChargeAmount ?? 500;
+    _includedPricingConfigIds = config?.includedPricingConfigIds ?? const [];
     _rules = (config?.rules.isEmpty ?? true)
         ? [_RuleDraft.standard()]
         : [for (final rule in config!.rules) _RuleDraft.fromModel(rule)];
@@ -526,7 +562,14 @@ class _PricingEditorState extends State<_PricingEditor> {
       if (value == 'charge.fixed' && _providerId.startsWith('time.')) {
         _providerId = 'fixed.${DateTime.now().millisecondsSinceEpoch}';
       }
-      if (value == 'time.priority' && _providerId.startsWith('fixed.')) {
+      if (value == 'time.cap') {
+        _providerId = _providerId.startsWith('cap.')
+            ? _providerId
+            : 'cap.${DateTime.now().millisecondsSinceEpoch}';
+      }
+      if (value == 'time.priority' &&
+          (_providerId.startsWith('fixed.') ||
+              _providerId.startsWith('cap.'))) {
         _providerId = 'time.${DateTime.now().millisecondsSinceEpoch}';
       }
     });
@@ -625,6 +668,32 @@ class _PricingEditorState extends State<_PricingEditor> {
         widget.onSaved('固定收费方案已保存。', saved.id);
         return;
       }
+      if (_mode == 'time.cap') {
+        if (_includedPricingConfigIds.isEmpty) {
+          setState(() => _error = '请选择至少一个参与全局封顶的按时计费方案。');
+          return;
+        }
+        final saved = widget.selected == null || widget.selected!.isArchived
+            ? await widget.api.createPricingConfig(
+                name: _name.text.trim(),
+                kind: 'time.cap',
+                rules: [for (final rule in _rules) rule.toJson()],
+                enabled: _enabled,
+                providerId: _providerId,
+                includedPricingConfigIds: _includedPricingConfigIds,
+              )
+            : await widget.api.updatePricingConfig(
+                widget.selected!.id,
+                name: _name.text.trim(),
+                rules: [for (final rule in _rules) rule.toJson()],
+                isActive: _enabled,
+                providerId: _providerId,
+                kind: 'time.cap',
+                includedPricingConfigIds: _includedPricingConfigIds,
+              );
+        widget.onSaved('全局封顶时间轴已保存。', saved.id);
+        return;
+      }
 
       final saved = widget.selected == null || widget.selected!.isArchived
           ? await widget.api.createPricingConfig(
@@ -695,6 +764,11 @@ class _PlanBasics extends StatelessWidget {
                 label: Text('按时计费'),
               ),
               ButtonSegment(
+                value: 'time.cap',
+                icon: Icon(Icons.price_check),
+                label: Text('全局封顶'),
+              ),
+              ButtonSegment(
                 value: 'charge.fixed',
                 icon: Icon(Icons.payments_outlined),
                 label: Text('固定收费'),
@@ -715,6 +789,61 @@ class _PlanBasics extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _IncludedPricingConfigSelector extends StatelessWidget {
+  const _IncludedPricingConfigSelector({
+    required this.configs,
+    required this.selectedIds,
+    required this.currentConfigId,
+    required this.onChanged,
+  });
+
+  final List<PricingConfig> configs;
+  final List<String> selectedIds;
+  final String? currentConfigId;
+  final ValueChanged<List<String>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final candidates = configs
+        .where(
+          (config) =>
+              config.kind == 'time.priority' && config.id != currentConfigId,
+        )
+        .toList();
+    return _InlinePanel(
+      icon: Icons.playlist_add_check,
+      title: '参与封顶的计费方案',
+      subtitle: '全局封顶只汇总这里选中的按时计费方案；固定收费和其他全局封顶不能被选中。',
+      child: candidates.isEmpty
+          ? const EmptyState(
+              icon: Icons.playlist_remove,
+              title: '暂无可选方案',
+              message: '请先创建至少一个按时计费方案，再配置全局封顶。',
+            )
+          : Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final config in candidates)
+                  FilterChip(
+                    label: Text(_pricingConfigTitle(config)),
+                    selected: selectedIds.contains(config.id),
+                    onSelected: (selected) {
+                      final next = [...selectedIds];
+                      if (selected) {
+                        next.add(config.id);
+                      } else {
+                        next.remove(config.id);
+                      }
+                      onChanged(next.toSet().toList());
+                    },
+                  ),
+              ],
+            ),
     );
   }
 }
@@ -1049,11 +1178,13 @@ class _RuleListTile extends StatelessWidget {
 class _RuleForm extends StatelessWidget {
   const _RuleForm({
     required this.rule,
+    required this.isCapRule,
     required this.onChanged,
     required this.onDelete,
   });
 
   final _RuleDraft rule;
+  final bool isCapRule;
   final ValueChanged<_RuleDraft> onChanged;
   final VoidCallback onDelete;
 
@@ -1061,8 +1192,10 @@ class _RuleForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return _InlinePanel(
       icon: Icons.edit_calendar,
-      title: '编辑时段',
-      subtitle: '名称可以直接输入；时间和日期用选择器，金额和分钟数用数字控件。',
+      title: isCapRule ? '编辑封顶时段' : '编辑时段',
+      subtitle: isCapRule
+          ? '封顶时段只定义参与方案合计后的最高金额。'
+          : '名称可以直接输入；时间和日期用选择器，金额和分钟数用数字控件。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1177,36 +1310,40 @@ class _RuleForm extends StatelessWidget {
             step: 1,
             onChanged: (value) => onChanged(rule.copyWith(priority: value)),
           ),
-          const SizedBox(height: 12),
-          StepperNumberField(
-            label: '计费单位（分钟）',
-            value: rule.unitMinutes,
-            min: 5,
-            max: 240,
-            step: 5,
-            onChanged: (value) => onChanged(rule.copyWith(unitMinutes: value)),
-          ),
+          if (!isCapRule) ...[
+            const SizedBox(height: 12),
+            StepperNumberField(
+              label: '计费单位（分钟）',
+              value: rule.unitMinutes,
+              min: 5,
+              max: 240,
+              step: 5,
+              onChanged: (value) =>
+                  onChanged(rule.copyWith(unitMinutes: value)),
+            ),
+            const SizedBox(height: 12),
+            DecimalNumberField(
+              label: '每单位金额',
+              value: rule.unitPrice,
+              min: -9999,
+              max: 9999,
+              step: 1,
+              onChanged: (value) => onChanged(rule.copyWith(unitPrice: value)),
+            ),
+            const SizedBox(height: 12),
+            StepperNumberField(
+              label: '宽限分钟',
+              value: rule.graceMinutes,
+              min: 0,
+              max: 120,
+              step: 1,
+              onChanged: (value) =>
+                  onChanged(rule.copyWith(graceMinutes: value)),
+            ),
+          ],
           const SizedBox(height: 12),
           DecimalNumberField(
-            label: '每单位金额',
-            value: rule.unitPrice,
-            min: -9999,
-            max: 9999,
-            step: 1,
-            onChanged: (value) => onChanged(rule.copyWith(unitPrice: value)),
-          ),
-          const SizedBox(height: 12),
-          StepperNumberField(
-            label: '宽限分钟',
-            value: rule.graceMinutes,
-            min: 0,
-            max: 120,
-            step: 1,
-            onChanged: (value) => onChanged(rule.copyWith(graceMinutes: value)),
-          ),
-          const SizedBox(height: 12),
-          DecimalNumberField(
-            label: '本时段封顶',
+            label: isCapRule ? '全局封顶金额' : '方案内封顶',
             value: rule.priceCap,
             min: 0,
             max: 99999,
@@ -1751,6 +1888,9 @@ String _pricingSummary(PricingConfig config) {
   final state = config.isActive ? '正在使用' : '暂未启用';
   if (config.kind == 'charge.fixed') {
     return '固定收费 · ${formatMoney(config.fixedChargeAmount)} · $state';
+  }
+  if (config.kind == 'time.cap') {
+    return '全局封顶 · ${config.includedPricingConfigIds.length} 个参与方案 · $state';
   }
   return '${config.rules.length} 个计费时段 · $state';
 }

@@ -672,6 +672,7 @@ class PrismApiClient {
     required List<Map<String, dynamic>> rules,
     bool enabled = true,
     String? providerId,
+    List<String> includedPricingConfigIds = const [],
   }) async {
     final json = await post(
       '/rpc/staff/pricing-configs',
@@ -679,7 +680,13 @@ class PrismApiClient {
         'name': name,
         'kind': kind,
         'enabled': enabled,
-        'provider': _timePricingProvider(rules: rules, providerId: providerId),
+        'provider': kind == 'time.cap'
+            ? _timeCapProvider(
+                rules: rules,
+                providerId: providerId,
+                includedPricingConfigIds: includedPricingConfigIds,
+              )
+            : _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
     final config = (json['pricingConfig'] ?? json['config']) as Map;
@@ -692,13 +699,21 @@ class PrismApiClient {
     required List<Map<String, dynamic>> rules,
     required bool isActive,
     String? providerId,
+    String kind = 'time.priority',
+    List<String> includedPricingConfigIds = const [],
   }) async {
     final json = await patch(
       '/rpc/staff/pricing-configs/$pricingConfigId',
       body: {
         'name': name,
         'enabled': isActive,
-        'provider': _timePricingProvider(rules: rules, providerId: providerId),
+        'provider': kind == 'time.cap'
+            ? _timeCapProvider(
+                rules: rules,
+                providerId: providerId,
+                includedPricingConfigIds: includedPricingConfigIds,
+              )
+            : _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
     final config = (json['pricingConfig'] ?? json['config']) as Map;
@@ -963,6 +978,18 @@ class PrismApiClient {
     };
   }
 
+  Map<String, dynamic> _timeCapProvider({
+    required List<Map<String, dynamic>> rules,
+    String? providerId,
+    List<String> includedPricingConfigIds = const [],
+  }) {
+    return {
+      'id': providerId ?? 'cap.default',
+      'includedPricingConfigIds': includedPricingConfigIds,
+      'rules': rules.map(_capRuleBody).toList(),
+    };
+  }
+
   SettlementPreview _settlementPreviewFromResponse(
     Map<String, dynamic> json, {
     required String playerId,
@@ -1020,6 +1047,30 @@ class PrismApiClient {
         if (rule['priceCap'] != null || pricing?['priceCap'] != null)
           'priceCap': rule['priceCap'] ?? pricing?['priceCap'],
       },
+    };
+  }
+
+  Map<String, dynamic> _capRuleBody(Map<String, dynamic> rule) {
+    if ((rule.containsKey('timeRange') || rule.containsKey('dateTimeRange')) &&
+        rule.containsKey('priceCap') &&
+        !rule.containsKey('pricing')) {
+      return rule;
+    }
+    return {
+      'id': rule['id'] ?? rule['label'] ?? 'rule',
+      'label': rule['label'] ?? '封顶规则',
+      'priority': rule['priority'] ?? 0,
+      'status': rule['status'] ?? 'active',
+      if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
+      if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
+        'timeRange': {
+          'start': rule['startTime'] ?? '00:00',
+          'end': rule['endTime'] ?? '00:00',
+        },
+      if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
+      if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
+      if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
+      'priceCap': rule['priceCap'] ?? 0,
     };
   }
 }
