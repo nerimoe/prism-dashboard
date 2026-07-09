@@ -215,6 +215,29 @@ void main() {
     expect(find.text('白天方案 · 白天'), findsOneWidget);
     expect(find.text('2026-07-09 夜间'), findsOneWidget);
     expect(find.text('2026-07-10 白天'), findsOneWidget);
+    expect(find.textContaining('区间内封顶 ¥120'), findsNothing);
+
+    await tester.ensureVisible(find.text('2026-07-09 夜间'));
+    await tester.tap(find.text('2026-07-09 夜间'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        '时间：${_expectedDateTime('2026-07-09T14:00:00.000Z')} 至 ${_expectedDateTime('2026-07-09T16:00:00.000Z')}',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('参与金额 ¥50 -> 封顶金额 ¥100'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('2026-07-10 白天'));
+    await tester.tap(find.text('2026-07-10 白天'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        '时间：${_expectedDateTime('2026-07-10T01:00:00.000Z')} 至 ${_expectedDateTime('2026-07-10T04:00:00.000Z')}',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('参与金额 ¥30 -> 当前计入金额 ¥30'), findsOneWidget);
   });
 
   testWidgets('keeps session billing expansion after refresh', (tester) async {
