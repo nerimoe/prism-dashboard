@@ -123,6 +123,8 @@ void main() {
     await tester.pumpAndSettle();
     requests.clear();
 
+    await tester.tap(find.text('新建方案'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('全局封顶'));
     await tester.pumpAndSettle();
 
@@ -138,6 +140,61 @@ void main() {
     expect(body['provider']['id'].toString(), startsWith('cap.'));
     expect(body['provider']['rules'].first['priceCap'], 80);
     expect(body['provider']['rules'].first.containsKey('pricing'), false);
+  });
+
+  testWidgets('existing pricing configs keep their original kind', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('全局封顶'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('全局封顶金额'), findsNothing);
+    expect(find.text('计费单位（分钟）'), findsOneWidget);
+    expect(
+      find.textContaining('已有方案不能直接切换类型'),
+      findsOneWidget,
+    );
+    expect(
+      requests.where(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/pricing-timeline/preview',
+      ),
+      isEmpty,
+    );
+  });
+
+  testWidgets('saved global cap config reloads with cap timeline values', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests, includeCap: true));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('日场全局封顶'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('当天生效圆环'), findsOneWidget);
+    expect(find.text('全局封顶金额'), findsOneWidget);
+    expect(find.text('计费单位（分钟）'), findsNothing);
+
+    final request = requests.lastWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/pricing-timeline/preview',
+    );
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    final rules = ((body['provider'] as Map<String, dynamic>)['rules'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(body['provider']['id'], 'cap.day');
+    expect(rules.first['priceCap'], 69);
+    expect(rules.first.containsKey('pricing'), false);
   });
 
   testWidgets('migrated date scoped rules stay scoped in preview drafts', (
@@ -439,6 +496,7 @@ Widget _buildPricingScreen(
   bool archived = false,
   String configName = '基础计费',
   bool includeFixed = false,
+  bool includeCap = false,
   bool scopedRules = false,
   bool decimalPricing = false,
 }) {
@@ -454,6 +512,7 @@ Widget _buildPricingScreen(
             archived: archived,
             configName: configName,
             includeFixed: includeFixed,
+            includeCap: includeCap,
             scopedRules: scopedRules,
             decimalPricing: decimalPricing,
           ),
@@ -480,6 +539,7 @@ Map<String, dynamic> _responseFor(
   required bool archived,
   String configName = '基础计费',
   bool includeFixed = false,
+  bool includeCap = false,
   bool scopedRules = false,
   bool decimalPricing = false,
 }) {
@@ -495,6 +555,7 @@ Map<String, dynamic> _responseFor(
             decimalPricing: decimalPricing,
           ),
         if (includeFixed) _fixedPricingConfigJson(),
+        if (includeCap) _capPricingConfigJson(),
       ],
     };
   }
@@ -549,6 +610,31 @@ Map<String, dynamic> _fixedPricingConfigJson() {
     'enabled': true,
     'status': 'active',
     'provider': {'id': 'cover-charge', 'label': '入场费', 'amount': 300},
+    'createdAt': '2026-07-05T00:00:00.000Z',
+    'updatedAt': '2026-07-05T00:00:00.000Z',
+  };
+}
+
+Map<String, dynamic> _capPricingConfigJson() {
+  return {
+    'id': 'pricing-cap',
+    'kind': 'time.cap',
+    'name': '日场全局封顶',
+    'enabled': true,
+    'status': 'active',
+    'provider': {
+      'id': 'cap.day',
+      'includedPricingConfigIds': ['pricing-1'],
+      'rules': [
+        {
+          'id': 'day-cap',
+          'label': '日场封顶',
+          'priority': 10,
+          'timeRange': {'start': '10:00', 'end': '22:00'},
+          'priceCap': 69,
+        },
+      ],
+    },
     'createdAt': '2026-07-05T00:00:00.000Z',
     'updatedAt': '2026-07-05T00:00:00.000Z',
   };

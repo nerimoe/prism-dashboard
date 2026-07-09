@@ -395,6 +395,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                   name: _name,
                   mode: _mode,
                   enabled: _enabled,
+                  canChangeMode: widget.selected == null,
                   onModeChanged: _changeMode,
                   onEnabledChanged: (value) => setState(() => _enabled = value),
                 ),
@@ -435,6 +436,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                   name: _name,
                   mode: _mode,
                   enabled: _enabled,
+                  canChangeMode: widget.selected == null,
                   onModeChanged: _changeMode,
                   onEnabledChanged: (value) => setState(() => _enabled = value),
                 );
@@ -733,6 +735,7 @@ class _PlanBasics extends StatelessWidget {
     required this.name,
     required this.mode,
     required this.enabled,
+    required this.canChangeMode,
     required this.onModeChanged,
     required this.onEnabledChanged,
   });
@@ -741,6 +744,7 @@ class _PlanBasics extends StatelessWidget {
   final TextEditingController name;
   final String mode;
   final bool enabled;
+  final bool canChangeMode;
   final ValueChanged<String> onModeChanged;
   final ValueChanged<bool> onEnabledChanged;
 
@@ -763,26 +767,38 @@ class _PlanBasics extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           SegmentedButton<String>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: 'time.priority',
-                icon: Icon(Icons.timer),
-                label: Text('按时计费'),
+                icon: const Icon(Icons.timer),
+                label: const Text('按时计费'),
+                enabled: canChangeMode || mode == 'time.priority',
               ),
               ButtonSegment(
                 value: 'time.cap',
-                icon: Icon(Icons.price_check),
-                label: Text('全局封顶'),
+                icon: const Icon(Icons.price_check),
+                label: const Text('全局封顶'),
+                enabled: canChangeMode || mode == 'time.cap',
               ),
               ButtonSegment(
                 value: 'charge.fixed',
-                icon: Icon(Icons.payments_outlined),
-                label: Text('固定收费'),
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('固定收费'),
+                enabled: canChangeMode || mode == 'charge.fixed',
               ),
             ],
             selected: {mode},
             onSelectionChanged: (value) => onModeChanged(value.first),
           ),
+          if (!canChangeMode) ...[
+            const SizedBox(height: 8),
+            Text(
+              '已有方案不能直接切换类型；要添加全局封顶请点击「新建方案」。',
+              style: context.text.bodySmall?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Material(
             color: Colors.transparent,
