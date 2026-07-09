@@ -1039,10 +1039,12 @@ class PrismApiClient {
       'status': rule['status'] ?? 'active',
       if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
       if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
-        'timeRange': {
-          'start': rule['startTime'] ?? '00:00',
-          'end': rule['endTime'] ?? '00:00',
-        },
+        'timeRange':
+            rule['timeRange'] ??
+            {
+              'start': rule['startTime'] ?? '00:00',
+              'end': rule['endTime'] ?? '00:00',
+            },
       if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
       if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
       if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],
@@ -1071,10 +1073,12 @@ class PrismApiClient {
       'status': rule['status'] ?? 'active',
       if (rule['dateTimeRange'] != null) 'dateTimeRange': rule['dateTimeRange'],
       if (rule['dateTimeRange'] == null || rule['timeRange'] != null)
-        'timeRange': {
-          'start': rule['startTime'] ?? '00:00',
-          'end': rule['endTime'] ?? '00:00',
-        },
+        'timeRange':
+            rule['timeRange'] ??
+            {
+              'start': rule['startTime'] ?? '00:00',
+              'end': rule['endTime'] ?? '00:00',
+            },
       if (rule['weekdays'] != null) 'weekdays': rule['weekdays'],
       if (rule['specificDates'] != null) 'specificDates': rule['specificDates'],
       if (rule['specificDate'] != null) 'specificDates': [rule['specificDate']],

@@ -139,6 +139,10 @@ void main() {
     final body = jsonDecode(request.body) as Map<String, dynamic>;
     expect(body['provider']['id'].toString(), startsWith('cap.'));
     expect(body['provider']['rules'].first['priceCap'], 80);
+    expect(body['provider']['rules'].first['timeRange'], {
+      'start': '10:00',
+      'end': '22:00',
+    });
     expect(body['provider']['rules'].first.containsKey('pricing'), false);
   });
 
@@ -194,6 +198,34 @@ void main() {
         .cast<Map<String, dynamic>>();
     expect(body['provider']['id'], 'cap.day');
     expect(rules.first['priceCap'], 69);
+    expect(rules.first['timeRange'], {'start': '10:00', 'end': '22:00'});
+    expect(rules.first.containsKey('pricing'), false);
+  });
+
+  testWidgets('saving global cap config preserves cap rule time ranges', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests, includeCap: true));
+    await tester.pumpAndSettle();
+    requests.clear();
+
+    await tester.tap(find.text('日场全局封顶'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('保存方案'));
+    await tester.tap(find.text('保存方案'));
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'PATCH' &&
+          request.url.path == '/rpc/staff/pricing-configs/pricing-cap',
+    );
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    final rules = ((body['provider'] as Map<String, dynamic>)['rules'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(rules.first['priceCap'], 69);
+    expect(rules.first['timeRange'], {'start': '10:00', 'end': '22:00'});
     expect(rules.first.containsKey('pricing'), false);
   });
 
