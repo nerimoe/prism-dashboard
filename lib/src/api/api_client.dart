@@ -366,6 +366,17 @@ class PrismApiClient {
     );
   }
 
+  Future<void> adjustWallet(
+    String playerId, {
+    required num amount,
+    required String reason,
+  }) async {
+    await post(
+      '/rpc/staff/players/$playerId/wallet/adjustment',
+      body: {'amount': amount, 'reason': reason},
+    );
+  }
+
   Future<PlayerAssets> getPlayerAssets(String playerId) async {
     final json = await get('/rpc/staff/players/$playerId/assets');
     return PlayerAssets.fromJson(json);
