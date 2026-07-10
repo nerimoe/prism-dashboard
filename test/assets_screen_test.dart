@@ -86,6 +86,7 @@ void main() {
     await tester.tap(find.text('添加资产'));
     await tester.pumpAndSettle();
     expect(find.text('资产类别'), findsOneWidget);
+    expect(find.text('CUSTOM（自定义类别）'), findsOneWidget);
     expect(find.text('资产类型'), findsNothing);
     await tester.enterText(find.widgetWithText(TextField, '店内编号'), 'coupon');
     await tester.enterText(find.widgetWithText(TextField, '资产名称'), '优惠券');

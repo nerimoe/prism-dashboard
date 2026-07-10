@@ -1658,8 +1658,10 @@ class _AssetDefinitionEditor extends StatefulWidget {
 }
 
 class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
+  static const _customAssetType = '__custom__';
   late final TextEditingController _code;
   late final TextEditingController _name;
+  late final TextEditingController _customType;
   late String _type;
   late bool _stackable;
   String? _pricingEffectId;
@@ -1672,9 +1674,13 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
   void initState() {
     super.initState();
     final definition = widget.definition;
-    _type = definition?.type ?? 'currency';
+    final initialType = definition?.type ?? 'currency';
+    _type = _isPresetType(initialType) ? initialType : _customAssetType;
     _code = TextEditingController(text: definition?.code ?? '');
     _name = TextEditingController(text: definition?.displayName ?? '');
+    _customType = TextEditingController(
+      text: _type == _customAssetType ? initialType : '',
+    );
     _stackable = definition?.stackable ?? true;
     _pricingEffectId =
         definition?.pricingEffectId ?? definition?.pricingEffect?.id;
@@ -1686,6 +1692,7 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
   void dispose() {
     _code.dispose();
     _name.dispose();
+    _customType.dispose();
     super.dispose();
   }
 
@@ -1719,6 +1726,10 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
               DropdownMenuItem(value: 'ticket', child: Text('券')),
               DropdownMenuItem(value: 'pass', child: Text('通行权益')),
               DropdownMenuItem(value: 'benefit', child: Text('店内权益')),
+              const DropdownMenuItem(
+                value: _customAssetType,
+                child: Text('CUSTOM（自定义类别）'),
+              ),
             ],
             onChanged: _isNew
                 ? (value) {
@@ -1727,6 +1738,17 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
                   }
                 : null,
           ),
+          if (_type == _customAssetType) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _customType,
+              enabled: _isNew,
+              decoration: const InputDecoration(
+                labelText: '自定义资产类别',
+                hintText: '例如 drink、membership',
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           TextField(
             controller: _code,
@@ -1775,9 +1797,13 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
           const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: () {
+              final type = _type == _customAssetType
+                  ? _customType.text.trim()
+                  : _type;
+              if (type.isEmpty) return;
               widget.onSave(
                 _AssetDefinitionDraft(
-                  type: _type,
+                  type: type,
                   code: _code.text.trim(),
                   displayName: _name.text.trim(),
                   stackable: _stackable,
@@ -1807,6 +1833,9 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
     );
   }
 }
+
+bool _isPresetType(String type) =>
+    const {'currency', 'ticket', 'pass', 'benefit'}.contains(type);
 
 AssetDefinition? _selectedAssetDefinition(
   List<AssetDefinition> definitions,
