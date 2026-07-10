@@ -49,7 +49,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return Scaffold(
         appBar: AppBar(
           title: Text(_destination.title),
-          actions: [_StaffMenu(staff: widget.appState.staff!)],
+          actions: [
+            _StaffMenu(
+              staff: widget.appState.staff!,
+              onLogout: _logout,
+            ),
+          ],
         ),
         body: content,
         bottomNavigationBar: NavigationBar(
@@ -83,6 +88,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               _GroupedSidebar(
                 selected: _destination,
                 onSelected: (value) => setState(() => _destination = value),
+                staff: widget.appState.staff!,
+                onLogout: _logout,
               ),
               Expanded(child: content),
             ],
@@ -113,13 +120,24 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ),
     };
   }
+
+  void _logout() {
+    ref.read(appControllerProvider.notifier).logout();
+  }
 }
 
 class _GroupedSidebar extends StatelessWidget {
-  const _GroupedSidebar({required this.selected, required this.onSelected});
+  const _GroupedSidebar({
+    required this.selected,
+    required this.onSelected,
+    required this.staff,
+    required this.onLogout,
+  });
 
   final DashboardDestination selected;
   final ValueChanged<DashboardDestination> onSelected;
+  final CurrentStaff staff;
+  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +240,11 @@ class _GroupedSidebar extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            const _SidebarSeparator(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: _StaffMenu(staff: staff, onLogout: onLogout),
             ),
           ],
         ),
@@ -335,18 +358,19 @@ class _SidebarSeparator extends StatelessWidget {
   }
 }
 
-class _StaffMenu extends ConsumerWidget {
-  const _StaffMenu({required this.staff});
+class _StaffMenu extends StatelessWidget {
+  const _StaffMenu({required this.staff, required this.onLogout});
 
   final CurrentStaff staff;
+  final VoidCallback onLogout;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       tooltip: '账号菜单',
       onSelected: (value) {
         if (value == 'logout') {
-          ref.read(appControllerProvider.notifier).logout();
+          onLogout();
         }
       },
       itemBuilder: (context) => const [

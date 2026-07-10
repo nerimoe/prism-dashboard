@@ -199,6 +199,11 @@ void main() {
     expect(find.text('店铺设置'), findsWidgets);
     expect(find.text('PRiSM 店铺'), findsOneWidget);
     _expectSingleSidebarSelection();
+
+    // 12. The desktop sidebar exposes the account menu and its logout action.
+    await tester.tap(find.byTooltip('账号菜单'));
+    await tester.pumpAndSettle();
+    expect(find.text('退出登录'), findsOneWidget);
   });
 }
 
