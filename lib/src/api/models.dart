@@ -264,10 +264,16 @@ abstract class AssetHolding with _$AssetHolding {
     @JsonKey(readValue: readAmount) required num amount,
     DateTime? activeAt,
     DateTime? expiresAt,
+    @Default('available') String availability,
+    @Default([]) List<String> unavailableReasons,
   }) = _AssetHolding;
 
   factory AssetHolding.fromJson(Map<String, dynamic> json) =>
       _$AssetHoldingFromJson(json);
+}
+
+extension AssetHoldingAvailability on AssetHolding {
+  bool get isAvailable => availability == 'available';
 }
 
 @freezed

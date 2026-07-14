@@ -372,6 +372,12 @@ _AssetHolding _$AssetHoldingFromJson(Map<String, dynamic> json) =>
       expiresAt: json['expiresAt'] == null
           ? null
           : DateTime.parse(json['expiresAt'] as String),
+      availability: json['availability'] as String? ?? 'available',
+      unavailableReasons:
+          (json['unavailableReasons'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
@@ -382,6 +388,8 @@ Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
       'amount': instance.amount,
       'activeAt': instance.activeAt?.toIso8601String(),
       'expiresAt': instance.expiresAt?.toIso8601String(),
+      'availability': instance.availability,
+      'unavailableReasons': instance.unavailableReasons,
     };
 
 _AssetLedgerEntry _$AssetLedgerEntryFromJson(Map<String, dynamic> json) =>

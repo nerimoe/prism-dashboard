@@ -25,13 +25,16 @@ void main() {
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
     expect(find.text('实存余额'), findsWidgets);
-    expect(find.textContaining('已过期'), findsOneWidget);
+    expect(find.text('无效（1）'), findsOneWidget);
+    expect(find.text('过期活动券'), findsNothing);
     expect(find.textContaining('2026-07-05'), findsWidgets);
     await tester.ensureVisible(find.text('资产流水'));
     expect(find.textContaining('迁移记录'), findsOneWidget);
     expect(find.textContaining('2026-07-05'), findsWidgets);
     expect(find.textContaining('legacy.UPDATE'), findsNothing);
     expect(find.text('QQ 826225045'), findsWidgets);
+    await tester.ensureVisible(find.text('月饼礼物'));
+    await tester.pumpAndSettle();
     expect(find.text('兑换记录'), findsOneWidget);
     expect(find.text('月饼礼物'), findsOneWidget);
     expect(find.textContaining('WELCOME-USED'), findsOneWidget);
@@ -40,6 +43,36 @@ void main() {
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
     expect(find.text('2 项'), findsOneWidget);
+  });
+
+  testWidgets('filters current holdings by backend asset availability', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.pumpAndSettle();
+
+    expect(find.text('实存余额'), findsWidgets);
+    expect(find.text('过期活动券'), findsNothing);
+
+    final unavailableFilter = find.byKey(
+      const ValueKey('asset-filter-unavailable'),
+    );
+    await tester.ensureVisible(unavailableFilter);
+    await tester.tap(unavailableFilter);
+    await tester.pumpAndSettle();
+
+    expect(find.text('实存余额'), findsOneWidget);
+    expect(find.text('过期活动券'), findsOneWidget);
+    expect(find.textContaining('持有记录已过期'), findsOneWidget);
+    expect(find.text('无效'), findsOneWidget);
+
+    final allFilter = find.byKey(const ValueKey('asset-filter-all'));
+    await tester.ensureVisible(allFilter);
+    await tester.tap(allFilter);
+    await tester.pumpAndSettle();
+    expect(find.text('过期活动券'), findsOneWidget);
+    expect(find.text('实存余额'), findsWidgets);
   });
 
   testWidgets('opens ledger and session record detail pages', (tester) async {
@@ -285,9 +318,23 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'assetCode': 'paid',
           'assetName': '实存余额',
           'quantity': 120,
+          'activeAt': null,
+          'expiresAt': null,
+          'metadata': null,
+          'availability': 'available',
+          'unavailableReasons': [],
+        },
+        {
+          'id': 'holding-expired',
+          'assetType': 'ticket',
+          'assetCode': 'event.old',
+          'assetName': '过期活动券',
+          'quantity': 1,
           'activeAt': '2026-07-01T00:00:00.000Z',
           'expiresAt': '2026-07-04T23:59:00.000Z',
           'metadata': null,
+          'availability': 'unavailable',
+          'unavailableReasons': ['holding_expired'],
         },
       ],
       'ledgerEntries': [

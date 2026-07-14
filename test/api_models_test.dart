@@ -68,7 +68,13 @@ void main() {
       final json = {
         'playerId': 'player-1',
         'holdings': [
-          {'assetType': 'currency', 'assetCode': 'paid', 'quantity': 100.0},
+          {
+            'assetType': 'currency',
+            'assetCode': 'paid',
+            'quantity': 100.0,
+            'availability': 'unavailable',
+            'unavailableReasons': ['definition_archived'],
+          },
         ],
         'ledgerEntries': [
           {
@@ -84,6 +90,8 @@ void main() {
       final model = PlayerAssets.fromJson(json);
       expect(model.playerId, 'player-1');
       expect(model.holdings.first.assetCode, 'paid');
+      expect(model.holdings.first.isAvailable, false);
+      expect(model.holdings.first.unavailableReasons, ['definition_archived']);
       expect(model.ledger.first.reason, '充值');
     });
 

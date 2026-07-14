@@ -730,6 +730,7 @@ class _PlayerDetail extends StatefulWidget {
 }
 
 class _PlayerDetailState extends State<_PlayerDetail> {
+  _AssetAvailabilityFilter _assetFilter = _AssetAvailabilityFilter.available;
   late Future<
     ({
       PlayerAssets assets,
@@ -847,6 +848,9 @@ class _PlayerDetailState extends State<_PlayerDetail> {
                       )
                     : _AssetList(
                         assets: data?.assets,
+                        filter: _assetFilter,
+                        onFilterChanged: (filter) =>
+                            setState(() => _assetFilter = filter),
                         onAdjust: widget.onAdjustAsset,
                       ),
               ),
@@ -1114,35 +1118,98 @@ class _DetailSection extends StatelessWidget {
   }
 }
 
+enum _AssetAvailabilityFilter { available, unavailable, all }
+
 class _AssetList extends StatelessWidget {
-  const _AssetList({required this.assets, required this.onAdjust});
+  const _AssetList({
+    required this.assets,
+    required this.filter,
+    required this.onFilterChanged,
+    required this.onAdjust,
+  });
 
   final PlayerAssets? assets;
+  final _AssetAvailabilityFilter filter;
+  final ValueChanged<_AssetAvailabilityFilter> onFilterChanged;
   final ValueChanged<AssetHolding> onAdjust;
 
   @override
   Widget build(BuildContext context) {
     final holdings = assets?.holdings ?? const <AssetHolding>[];
-    if (holdings.isEmpty) {
-      return const EmptyState(
-        icon: Icons.account_balance_wallet,
-        title: '暂无可用资产',
-        message: '发放余额、券或通行权益后，会显示在这里。',
-      );
-    }
+    final availableCount = holdings
+        .where((holding) => holding.isAvailable)
+        .length;
+    final unavailableCount = holdings.length - availableCount;
+    final filteredHoldings = switch (filter) {
+      _AssetAvailabilityFilter.available =>
+        holdings.where((holding) => holding.isAvailable).toList(),
+      _AssetAvailabilityFilter.unavailable =>
+        holdings.where((holding) => !holding.isAvailable).toList(),
+      _AssetAvailabilityFilter.all => holdings,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var index = 0; index < holdings.length; index++) ...[
-          _AssetHoldingTile(
-            holding: holdings[index],
-            onAdjust: () => onAdjust(holdings[index]),
-          ),
-          if (index != holdings.length - 1) const SizedBox(height: 8),
-        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              key: const ValueKey('asset-filter-available'),
+              label: Text('可用（$availableCount）'),
+              selected: filter == _AssetAvailabilityFilter.available,
+              onSelected: (_) =>
+                  onFilterChanged(_AssetAvailabilityFilter.available),
+            ),
+            ChoiceChip(
+              key: const ValueKey('asset-filter-unavailable'),
+              label: Text('无效（$unavailableCount）'),
+              selected: filter == _AssetAvailabilityFilter.unavailable,
+              onSelected: (_) =>
+                  onFilterChanged(_AssetAvailabilityFilter.unavailable),
+            ),
+            ChoiceChip(
+              key: const ValueKey('asset-filter-all'),
+              label: Text('全部（${holdings.length}）'),
+              selected: filter == _AssetAvailabilityFilter.all,
+              onSelected: (_) => onFilterChanged(_AssetAvailabilityFilter.all),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (filteredHoldings.isEmpty)
+          _assetFilterEmptyState(filter)
+        else
+          for (var index = 0; index < filteredHoldings.length; index++) ...[
+            _AssetHoldingTile(
+              holding: filteredHoldings[index],
+              onAdjust: () => onAdjust(filteredHoldings[index]),
+            ),
+            if (index != filteredHoldings.length - 1) const SizedBox(height: 8),
+          ],
       ],
     );
   }
+}
+
+Widget _assetFilterEmptyState(_AssetAvailabilityFilter filter) {
+  return switch (filter) {
+    _AssetAvailabilityFilter.available => const EmptyState(
+      icon: Icons.account_balance_wallet,
+      title: '暂无可用资产',
+      message: '可以切换到无效或全部，查看未生效、过期和归档资产。',
+    ),
+    _AssetAvailabilityFilter.unavailable => const EmptyState(
+      icon: Icons.check_circle_outline,
+      title: '暂无无效资产',
+      message: '当前持有记录都可以正常使用。',
+    ),
+    _AssetAvailabilityFilter.all => const EmptyState(
+      icon: Icons.account_balance_wallet,
+      title: '暂无资产',
+      message: '发放余额、券或通行权益后，会显示在这里。',
+    ),
+  };
 }
 
 class _IdentityList extends StatelessWidget {
@@ -1504,16 +1571,18 @@ class _AssetHoldingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final subtitle = [
       _assetTypeLabel(holding.assetType),
+      _assetAvailabilityDetail(holding),
       _assetHoldingWindowLabel(holding),
     ].join(' · ');
     return _InfoTile(
       icon: _assetIcon(holding.assetType),
-      title: holding.assetName ?? _assetTypeLabel(holding.assetType),
+      title: _assetHoldingName(holding),
       subtitle: subtitle,
       trailing: Wrap(
         spacing: 10,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
+          _SmallStatusPill(label: holding.isAvailable ? '可用' : '无效'),
           Text(
             holding.amount.toString(),
             style: context.text.titleMedium?.copyWith(
@@ -1879,22 +1948,39 @@ String _ledgerReasonLabel(String reason) {
 }
 
 String _assetHoldingWindowLabel(AssetHolding holding) {
-  final now = DateTime.now();
   final activeAt = holding.activeAt;
   final expiresAt = holding.expiresAt;
-  final status = activeAt != null && now.isBefore(activeAt)
-      ? '未生效'
-      : expiresAt != null && !now.isBefore(expiresAt)
-      ? '已过期'
-      : '可使用';
   final start = activeAt == null
       ? '立即生效'
       : '${formatAdminDateTime(activeAt)} 生效';
   final end = expiresAt == null
       ? '长期有效'
       : '${formatAdminDateTime(expiresAt)} 过期';
-  return '$status · $start · $end';
+  return '$start · $end';
 }
+
+String _assetHoldingName(AssetHolding holding) {
+  final name = holding.assetName?.trim();
+  return name == null || name.isEmpty ? '未找到的资产' : name;
+}
+
+String _assetAvailabilityDetail(AssetHolding holding) {
+  if (holding.isAvailable) return '当前可用';
+  if (holding.unavailableReasons.isEmpty) return '当前不可用';
+  return holding.unavailableReasons.map(_assetUnavailableReasonLabel).join('、');
+}
+
+String _assetUnavailableReasonLabel(String reason) => switch (reason) {
+  'quantity_not_positive' => '持有数量为零',
+  'holding_not_active' => '持有记录尚未生效',
+  'holding_expired' => '持有记录已过期',
+  'definition_missing' => '资产定义不存在',
+  'definition_archived' => '资产定义已归档',
+  'definition_not_active' => '资产定义尚未生效',
+  'definition_expired' => '资产定义已过期',
+  'hidden_from_player' => '不向玩家展示',
+  _ => '当前不可用',
+};
 
 class _MessageBanner extends StatelessWidget {
   const _MessageBanner({required this.message, required this.onClose});
