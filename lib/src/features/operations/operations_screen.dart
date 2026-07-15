@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,9 +12,10 @@ import '../../shared/widgets.dart';
 import '../../theme.dart';
 
 class OperationsScreen extends ConsumerStatefulWidget {
-  const OperationsScreen({super.key, this.api});
+  const OperationsScreen({super.key, this.api, this.canWrite = true});
 
   final PrismApiClient? api;
+  final bool canWrite;
 
   @override
   ConsumerState<OperationsScreen> createState() => _OperationsScreenState();
@@ -25,6 +28,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   DateTime? _loadedAt;
   final Set<String> _expandedSessionIds = {};
   final Set<String> _expandedGlobalCapWindowIds = {};
+  Timer? _refreshTimer;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -32,6 +36,16 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
   void initState() {
     super.initState();
     _future = _load();
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) => mounted ? _refresh() : null,
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -82,15 +96,16 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
               onToggleSession: _toggleSession,
               expandedGlobalCapWindowIds: _expandedGlobalCapWindowIds,
               onToggleGlobalCapWindow: _toggleGlobalCapWindow,
+              canWrite: widget.canWrite,
             );
             final topContent = <Widget>[
               _OperationsHeader(
                 players: players,
-                selected: selected,
                 loadedAt: _loadedAt,
                 onRefresh: _refresh,
                 onStartSession: _showStartSessionDialog,
                 onBulkCheckout: _confirmBulkCheckout,
+                canWrite: widget.canWrite,
               ),
               const SizedBox(height: 16),
               _MetricRow(players: players),
@@ -160,6 +175,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
                                       _expandedGlobalCapWindowIds,
                                   onToggleGlobalCapWindow:
                                       _toggleGlobalCapWindow,
+                                  canWrite: widget.canWrite,
                                 ),
                           ),
                         ),
@@ -214,16 +230,26 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
     });
   }
 
-  Future<void> _showStartSessionDialog(LivePlayer? player) async {
-    final value = player;
-    if (value == null) {
-      setState(() => _message = '请先选择一名在场玩家。');
+  Future<void> _showStartSessionDialog() async {
+    final results = await Future.wait<Object>([
+      _api.listPlayers(),
+      _api.listPricingConfigs(),
+    ]);
+    final players = (results[0] as List<Player>)
+        .where((player) => player.status == 'active')
+        .toList(growable: false);
+    final pricingConfigs = (results[1] as List<PricingConfig>)
+        .where((config) => !config.isArchived)
+        .toList(growable: false);
+    if (!mounted) return;
+    if (players.isEmpty) {
+      setState(() => _message = '还没有可开始计时的玩家。');
       return;
     }
-    final pricingConfigs = (await _api.listPricingConfigs())
-        .where((config) => !config.isArchived)
-        .toList();
-    if (!mounted) return;
+    var selectedPlayer = players.firstWhere(
+      (player) => player.id == _selectedPlayerId,
+      orElse: () => players.first,
+    );
     final labelController = TextEditingController(text: '现场加开');
     final selectedPricingConfigIds = <String>{
       for (final config
@@ -236,11 +262,27 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('给 ${value.displayName} 加开计时'),
+          title: Text('给 ${selectedPlayer.displayName} 开始计时'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                DropdownButtonFormField<Player>(
+                  initialValue: selectedPlayer,
+                  decoration: const InputDecoration(labelText: '选择玩家'),
+                  items: [
+                    for (final player in players)
+                      DropdownMenuItem(
+                        value: player,
+                        child: Text(player.displayName),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setDialogState(() => selectedPlayer = value);
+                  },
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: labelController,
                   decoration: const InputDecoration(
@@ -303,14 +345,16 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
       ),
     );
     if (confirmed != true) return;
+    final player = selectedPlayer;
+    final label = labelController.text.trim();
     try {
       await _api.startPlayerSession(
-        value.playerId,
-        label: labelController.text.trim(),
+        player.id,
+        label: label,
         pricingConfigIds: selectedPricingConfigIds.toList(),
       );
       setState(() {
-        _message = '${value.displayName} 已加开计时。';
+        _message = '${player.displayName} 已开始计时。';
         _future = _load();
       });
     } catch (error) {
@@ -497,19 +541,19 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
 class _OperationsHeader extends StatelessWidget {
   const _OperationsHeader({
     required this.players,
-    required this.selected,
     required this.loadedAt,
     required this.onRefresh,
     required this.onStartSession,
     required this.onBulkCheckout,
+    required this.canWrite,
   });
 
   final List<LivePlayer> players;
-  final LivePlayer? selected;
   final DateTime? loadedAt;
   final VoidCallback onRefresh;
-  final ValueChanged<LivePlayer?> onStartSession;
+  final VoidCallback onStartSession;
   final VoidCallback onBulkCheckout;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -551,13 +595,11 @@ class _OperationsHeader extends StatelessWidget {
               icon: const Icon(Icons.refresh),
             ),
             FilledButton(
-              onPressed: selected == null
-                  ? null
-                  : () => onStartSession(selected),
+              onPressed: canWrite ? onStartSession : null,
               child: const Text('给玩家加开计时'),
             ),
             OutlinedButton(
-              onPressed: players.isEmpty ? null : onBulkCheckout,
+              onPressed: !canWrite || players.isEmpty ? null : onBulkCheckout,
               child: const Text('闭店统一结账'),
             ),
           ],
@@ -924,6 +966,7 @@ class _PlayerSessionDetail extends StatelessWidget {
     required this.onToggleSession,
     required this.expandedGlobalCapWindowIds,
     required this.onToggleGlobalCapWindow,
+    required this.canWrite,
     this.maxHeight,
   });
 
@@ -935,6 +978,7 @@ class _PlayerSessionDetail extends StatelessWidget {
   final ValueChanged<String> onToggleSession;
   final Set<String> expandedGlobalCapWindowIds;
   final ValueChanged<String> onToggleGlobalCapWindow;
+  final bool canWrite;
   final double? maxHeight;
 
   @override
@@ -1029,6 +1073,7 @@ class _PlayerSessionDetail extends StatelessWidget {
                     _SessionTable(
                       sessions: value.sessions,
                       onStop: (session) => onStopSession(value, session),
+                      canStop: canWrite,
                       expandedSessionIds: expandedSessionIds,
                       onToggleSession: onToggleSession,
                     ),
@@ -1039,6 +1084,7 @@ class _PlayerSessionDetail extends StatelessWidget {
                     ),
                     _BillBlock(
                       player: value,
+                      canWrite: canWrite,
                       onCheckoutAll: () => onCheckoutAll(value),
                       onManualAdjust: () => onManualAdjust(value),
                     ),
@@ -1172,12 +1218,14 @@ class _SessionTable extends StatelessWidget {
     required this.onStop,
     required this.expandedSessionIds,
     required this.onToggleSession,
+    required this.canStop,
   });
 
   final List<LiveSession> sessions;
   final ValueChanged<LiveSession> onStop;
   final Set<String> expandedSessionIds;
   final ValueChanged<String> onToggleSession;
+  final bool canStop;
 
   @override
   Widget build(BuildContext context) {
@@ -1246,6 +1294,7 @@ class _SessionTable extends StatelessWidget {
           _SessionRow(
             session: session,
             onStop: () => onStop(session),
+            canStop: canStop,
             expanded: expandedSessionIds.contains(session.id),
             onToggleDetails: () => onToggleSession(session.id),
           ),
@@ -1260,12 +1309,14 @@ class _SessionRow extends StatelessWidget {
     required this.onStop,
     required this.expanded,
     required this.onToggleDetails,
+    required this.canStop,
   });
 
   final LiveSession session;
   final VoidCallback onStop;
   final bool expanded;
   final VoidCallback onToggleDetails;
+  final bool canStop;
 
   @override
   Widget build(BuildContext context) {
@@ -1369,7 +1420,10 @@ class _SessionRow extends StatelessWidget {
                         flex: 2,
                         child: Align(
                           alignment: Alignment.centerRight,
-                          child: _StopButton(onStop: onStop, enabled: isActive),
+                          child: _StopButton(
+                            onStop: onStop,
+                            enabled: isActive && canStop,
+                          ),
                         ),
                       ),
                     ],
@@ -1736,11 +1790,13 @@ class _BillBlock extends StatelessWidget {
     required this.player,
     required this.onCheckoutAll,
     required this.onManualAdjust,
+    required this.canWrite,
   });
 
   final LivePlayer player;
   final VoidCallback onCheckoutAll;
   final VoidCallback onManualAdjust;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -1782,14 +1838,16 @@ class _BillBlock extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton(
-                  onPressed: player.sessions.isEmpty ? null : onCheckoutAll,
+                  onPressed: !canWrite || player.sessions.isEmpty
+                      ? null
+                      : onCheckoutAll,
                   child: Text('给 ${player.displayName} 结账'),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onManualAdjust,
+                  onPressed: canWrite ? onManualAdjust : null,
                   child: const Text('现场改价'),
                 ),
               ),

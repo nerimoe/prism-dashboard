@@ -7,14 +7,16 @@ import '../../app_state.dart';
 import '../../context_extensions.dart';
 import '../../shared/admin_forms.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/admin_time_zone.dart';
 import '../../shared/token_role_labels.dart';
 import '../../shared/widgets.dart';
 
 class SystemScreen extends ConsumerStatefulWidget {
-  const SystemScreen({super.key, this.api, this.canWrite});
+  const SystemScreen({super.key, this.api, this.canWrite, this.role});
 
   final PrismApiClient? api;
   final bool? canWrite;
+  final StaffRole? role;
 
   @override
   ConsumerState<SystemScreen> createState() => _SystemScreenState();
@@ -48,6 +50,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   int _coinCooldownMs = 1000;
   bool _settingsAdopted = false;
   String? _message;
+  Map<String, dynamic> _rawSettings = const {};
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
@@ -55,6 +58,13 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
       widget.canWrite ??
       ref.watch(appControllerProvider).value?.staff?.canWrite ??
       true;
+
+  StaffRole get _role =>
+      widget.role ??
+      ref.read(appControllerProvider).value?.staff?.role ??
+      StaffRole.owner;
+
+  bool get _isOwner => _role == StaffRole.owner;
 
   @override
   void initState() {
@@ -153,14 +163,16 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                             ),
                             _StaffTab(
                               users: data.staffUsers,
-                              canWrite: _canWrite,
+                              canView: _isOwner,
+                              canWrite: _isOwner,
                               onCreate: _showCreateStaffDialog,
                               onEdit: _showEditStaffDialog,
                               onResetPassword: _showResetPasswordDialog,
                             ),
                             _TokensTab(
                               tokens: data.apiTokens,
-                              canWrite: _canWrite,
+                              canView: _isOwner,
+                              canWrite: _isOwner,
                               onCreate: _showCreateTokenDialog,
                               onRevoke: _revokeToken,
                             ),
@@ -180,8 +192,14 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   Future<_SystemData> _load() async {
     final results = await Future.wait<Object>([
       _api.getRawSettings(),
-      _api.listStaffUsers(),
-      _api.listApiTokens(),
+      if (_isOwner)
+        _api.listStaffUsers()
+      else
+        Future<List<StaffUser>>.value(const []),
+      if (_isOwner)
+        _api.listApiTokens()
+      else
+        Future<List<ApiToken>>.value(const []),
     ]);
     final rawSettings = results[0] as Map<String, dynamic>;
     return _SystemData(
@@ -193,6 +211,8 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   }
 
   void _adoptSettings(_SystemData data) {
+    _rawSettings = Map<String, dynamic>.from(data.rawSettings);
+    setAdminTimeZone(data.settings.timeZone);
     _storeNameController.text = data.settings.storeName;
     _timeZoneController.text = data.settings.timeZone;
     _coinCooldownMs = data.settings.coinCooldownMs;
@@ -242,14 +262,14 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
     }).toList();
 
     try {
-      await _api.updateRawSettings({
-        'store': {
+      final updatedSettings = Map<String, dynamic>.from(_rawSettings)
+        ..['store'] = {
           'name': _storeNameController.text.trim(),
           'timeZone': _timeZoneController.text.trim(),
-        },
-        'operations': {'coinCooldownMs': _coinCooldownMs},
-        'homeAssistantDevices': haDevicesJson,
-      });
+        }
+        ..['operations'] = {'coinCooldownMs': _coinCooldownMs}
+        ..['homeAssistantDevices'] = haDevicesJson;
+      await _api.updateRawSettings(updatedSettings);
       setState(() {
         _message = '店铺设置已保存。';
         _settingsAdopted = false;
@@ -265,7 +285,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   Future<void> _showCreateStaffDialog() async {
     final username = TextEditingController();
     final displayName = TextEditingController();
-    final password = TextEditingController(text: 'password123');
+    final password = TextEditingController();
     var role = StaffRole.viewer;
     await showDialog<void>(
       context: context,
@@ -285,6 +305,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
               ),
               TextField(
                 controller: password,
+                obscureText: true,
                 decoration: const InputDecoration(labelText: '初始密码'),
               ),
               DropdownButtonFormField<StaffRole>(
@@ -397,13 +418,14 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   }
 
   Future<void> _showResetPasswordDialog(StaffUser user) async {
-    final password = TextEditingController(text: 'password123');
+    final password = TextEditingController();
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('重置 ${user.displayName} 的密码'),
         content: TextField(
           controller: password,
+          obscureText: true,
           decoration: const InputDecoration(labelText: '新密码'),
         ),
         actions: [
@@ -726,6 +748,7 @@ class _SettingsTab extends StatelessWidget {
 class _StaffTab extends StatelessWidget {
   const _StaffTab({
     required this.users,
+    required this.canView,
     required this.canWrite,
     required this.onCreate,
     required this.onEdit,
@@ -733,6 +756,7 @@ class _StaffTab extends StatelessWidget {
   });
 
   final List<StaffUser> users;
+  final bool canView;
   final bool canWrite;
   final VoidCallback onCreate;
   final ValueChanged<StaffUser> onEdit;
@@ -744,11 +768,17 @@ class _StaffTab extends StatelessWidget {
       title: '员工权限',
       subtitle: '维护店主、店长和店员账号。',
       trailing: FilledButton.icon(
-        onPressed: canWrite ? onCreate : null,
+        onPressed: canView && canWrite ? onCreate : null,
         icon: const Icon(Icons.person_add),
         label: const Text('添加员工'),
       ),
-      child: users.isEmpty
+      child: !canView
+          ? const EmptyState(
+              icon: Icons.admin_panel_settings_outlined,
+              title: '仅店主可管理员工',
+              message: '店长和只读员工仍可使用其有权访问的店铺设置与接入密钥。',
+            )
+          : users.isEmpty
           ? const EmptyState(
               icon: Icons.group,
               title: '还没有员工账号',
@@ -791,12 +821,14 @@ class _StaffTab extends StatelessWidget {
 class _TokensTab extends StatelessWidget {
   const _TokensTab({
     required this.tokens,
+    required this.canView,
     required this.canWrite,
     required this.onCreate,
     required this.onRevoke,
   });
 
   final List<ApiToken> tokens;
+  final bool canView;
   final bool canWrite;
   final VoidCallback onCreate;
   final ValueChanged<ApiToken> onRevoke;
@@ -807,11 +839,17 @@ class _TokensTab extends StatelessWidget {
       title: '接入密钥',
       subtitle: '给设备网关或外部服务使用，创建后密钥只显示一次。',
       trailing: FilledButton.icon(
-        onPressed: canWrite ? onCreate : null,
+        onPressed: canView && canWrite ? onCreate : null,
         icon: const Icon(Icons.add),
         label: const Text('新建密钥'),
       ),
-      child: tokens.isEmpty
+      child: !canView
+          ? const EmptyState(
+              icon: Icons.key_outlined,
+              title: '仅店主可管理接入密钥',
+              message: '接入密钥可以控制机器人入口和机器软件，请联系店主创建或撤销。',
+            )
+          : tokens.isEmpty
           ? const EmptyState(
               icon: Icons.key,
               title: '还没有接入密钥',
@@ -855,7 +893,7 @@ class _PermissionNotice extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          '当前账号只能查看设置，需要店主权限才能修改。',
+          '当前账号只能查看设置，需要店长或店主权限才能修改。',
           style: context.text.bodyMedium?.copyWith(
             color: context.colors.onSecondaryContainer,
           ),

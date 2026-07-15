@@ -76,6 +76,10 @@ class PrismApiClient {
     );
   }
 
+  Future<void> logout() async {
+    await post('/rpc/admin/logout');
+  }
+
   Future<CurrentStaff> me() async {
     final json = await get('/rpc/staff/me');
     return CurrentStaff.fromJson(
@@ -346,6 +350,7 @@ class PrismApiClient {
 
   Future<void> adjustAssets(
     String playerId, {
+    required String holdingId,
     required String assetType,
     required String assetCode,
     required num amount,
@@ -356,6 +361,7 @@ class PrismApiClient {
       body: {
         'adjustments': [
           {
+            'holdingId': holdingId,
             'assetType': assetType,
             'assetCode': assetCode,
             'quantityDelta': amount,
@@ -535,6 +541,14 @@ class PrismApiClient {
         'config': config,
       },
     );
+  }
+
+  Future<void> archivePricingEffect(String effectId) async {
+    await post('/rpc/staff/pricing-effects/$effectId/archive');
+  }
+
+  Future<void> restorePricingEffect(String effectId) async {
+    await post('/rpc/staff/pricing-effects/$effectId/restore');
   }
 
   Future<void> saveAssetDefinition(
@@ -842,26 +856,50 @@ class PrismApiClient {
     return ReportSummary.fromJson((summary as Map).cast<String, dynamic>());
   }
 
-  Future<List<SettlementReportRow>> reportSettlements({
+  Future<ReportPage<SettlementReportRow>> reportSettlements({
     String? start,
     String? end,
+    int limit = 50,
+    int offset = 0,
   }) async {
     final json = await get(
       '/rpc/staff/reports/settlements',
-      query: {if (start != null) 'from': start, if (end != null) 'to': end},
+      query: {
+        if (start != null) 'from': start,
+        if (end != null) 'to': end,
+        'limit': '$limit',
+        'offset': '$offset',
+      },
     );
-    return listOf(json['settlements'], SettlementReportRow.fromJson);
+    final items = listOf(json['settlements'], SettlementReportRow.fromJson);
+    final page = json['page'];
+    return ReportPage(
+      items: items,
+      hasMore: page is Map ? page['hasMore'] == true : items.length >= limit,
+    );
   }
 
-  Future<List<PlayerReportRow>> reportPlayers({
+  Future<ReportPage<PlayerReportRow>> reportPlayers({
     String? start,
     String? end,
+    int limit = 20,
+    int offset = 0,
   }) async {
     final json = await get(
       '/rpc/staff/reports/players',
-      query: {if (start != null) 'from': start, if (end != null) 'to': end},
+      query: {
+        if (start != null) 'from': start,
+        if (end != null) 'to': end,
+        'limit': '$limit',
+        'offset': '$offset',
+      },
     );
-    return listOf(json['players'], PlayerReportRow.fromJson);
+    final items = listOf(json['players'], PlayerReportRow.fromJson);
+    final page = json['page'];
+    return ReportPage(
+      items: items,
+      hasMore: page is Map ? page['hasMore'] == true : items.length >= limit,
+    );
   }
 
   Future<Map<String, dynamic>> get(

@@ -11,6 +11,54 @@ import 'package:prism_dashboard/src/features/assets/assets_screen.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
+  testWidgets('read-only staff can browse assets without write actions', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildAssetsScreen(requests, canWrite: false));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '添加资产'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '保存修改'))
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('计费效果'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '添加计费效果'))
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('礼物'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '新建礼物'))
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('兑换码'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '生成兑换码'))
+          .onPressed,
+      isNull,
+    );
+  });
+
   testWidgets('renders asset definitions, presents, and redeem codes tabs', (
     tester,
   ) async {
@@ -86,7 +134,13 @@ void main() {
     await tester.tap(find.text('添加资产'));
     await tester.pumpAndSettle();
     expect(find.text('资产类别'), findsOneWidget);
+    final assetType = find.byType(DropdownButtonFormField<String>).first;
+    await tester.ensureVisible(assetType);
+    await tester.tap(assetType);
+    await tester.pumpAndSettle();
     expect(find.text('CUSTOM（自定义类别）'), findsOneWidget);
+    await tester.tap(find.text('余额资产').last);
+    await tester.pumpAndSettle();
     expect(find.text('资产类型'), findsNothing);
     await tester.enterText(find.widgetWithText(TextField, '店内编号'), 'coupon');
     await tester.enterText(find.widgetWithText(TextField, '资产名称'), '优惠券');
@@ -164,6 +218,9 @@ void main() {
     expect(find.text('发放资产代码'), findsNothing);
     await tester.enterText(find.widgetWithText(TextField, '礼物名称'), '周末礼物');
     await tester.enterText(find.widgetWithText(TextField, '数量'), '20');
+    final oncePerPlayer = find.widgetWithText(SwitchListTile, '每名玩家只能兑换一次');
+    await tester.ensureVisible(oncePerPlayer);
+    await tester.tap(oncePerPlayer);
     await tester.ensureVisible(find.text('保存'));
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
@@ -174,9 +231,45 @@ void main() {
     );
     final body = jsonDecode(request.body) as Map<String, dynamic>;
     expect(body['name'], '周末礼物');
-    expect(body['oncePerPlayer'], false);
+    expect(body['oncePerPlayer'], true);
     expect(body['grants'].first['mergeStrategy'], 'stack');
     expect(body['grants'].first['amount'], 20);
+  });
+
+  testWidgets('extend-time present grants include a positive duration', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildAssetsScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('礼物'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('新建礼物'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '礼物名称'), '月卡延期');
+
+    await tester.ensureVisible(find.text('叠加数量'));
+    await tester.tap(find.text('叠加数量'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('延长有效期').last);
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextField, '延长天数'), findsOneWidget);
+    expect(find.text('内容过期时间'), findsNothing);
+    await tester.enterText(find.widgetWithText(TextField, '延长天数'), '45');
+    await tester.ensureVisible(find.text('保存'));
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'POST' && request.url.path == '/rpc/staff/presents',
+    );
+    final grant = (jsonDecode(request.body)['grants'] as List).first;
+    expect(grant['mergeStrategy'], 'extend-time');
+    expect(grant['durationMs'], 45 * Duration.millisecondsPerDay);
+    expect(grant['expiresAt'], isNull);
   });
 
   testWidgets('redeem code creation and revoke use presentId and maxUseCount', (
@@ -381,6 +474,9 @@ void main() {
       'expiresAt': null,
       'maxUseCount': 3,
     });
+    expect(find.text('上次批量生成结果'), findsOneWidget);
+    expect(find.text('SUMMER-001'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '复制全部'), findsOneWidget);
   });
 
   testWidgets('pricing effect can target timer names and pricing rules', (
@@ -395,7 +491,7 @@ void main() {
     await tester.tap(find.text('添加计费效果'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('计费效果草稿'), findsOneWidget);
+    expect(find.text('新建计费效果'), findsOneWidget);
 
     expect(find.text('只对这些计时名称生效'), findsOneWidget);
     expect(find.text('只对这些计费方案生效'), findsOneWidget);
@@ -431,11 +527,67 @@ void main() {
       'applicableRuleIds': ['rule-day'],
     });
   });
+
+  testWidgets('pricing effects can be edited, archived, and restored', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildAssetsScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('计费效果'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '编辑').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('编辑计费效果'), findsOneWidget);
+    final idField = tester.widget<TextField>(
+      find.widgetWithText(TextField, '效果编号'),
+    );
+    expect(idField.enabled, false);
+    await tester.enterText(find.widgetWithText(TextField, '显示名称'), '月卡免全部时费');
+    await tester.ensureVisible(find.text('保存计费效果'));
+    await tester.tap(find.text('保存计费效果'));
+    await tester.pumpAndSettle();
+
+    final update = requests.singleWhere(
+      (request) =>
+          request.method == 'PUT' &&
+          request.url.path == '/rpc/staff/pricing-effects/effect-monthly',
+    );
+    expect(jsonDecode(update.body)['name'], '月卡免全部时费');
+
+    await tester.tap(find.widgetWithText(TextButton, '归档').first);
+    await tester.pumpAndSettle();
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path ==
+                '/rpc/staff/pricing-effects/effect-monthly/archive',
+      ),
+      true,
+    );
+
+    await tester.tap(find.text('归档计费效果（1）'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '恢复'));
+    await tester.pumpAndSettle();
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/pricing-effects/effect-old/restore',
+      ),
+      true,
+    );
+  });
 }
 
 Widget _buildAssetsScreen(
   List<http.Request> requests, {
   ValueChanged<String>? onOpenPlayer,
+  bool canWrite = true,
 }) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
@@ -456,7 +608,9 @@ Widget _buildAssetsScreen(
       theme: buildPrismDashboardTheme(
         ColorScheme.fromSeed(seedColor: prismSeedColor),
       ),
-      home: Scaffold(body: AssetsScreen(onOpenPlayer: onOpenPlayer)),
+      home: Scaffold(
+        body: AssetsScreen(onOpenPlayer: onOpenPlayer, canWrite: canWrite),
+      ),
     ),
   );
 }
@@ -507,6 +661,22 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'activeAt': null,
           'expiresAt': null,
           'status': 'active',
+          'config': {
+            'applicableSessionLabels': ['音游区间'],
+            'applicablePricingConfigIds': ['pricing-music'],
+          },
+        },
+        {
+          'id': 'effect-old',
+          'name': '旧抵扣券',
+          'type': 'discount',
+          'scope': 'session',
+          'value': 10,
+          'consumable': true,
+          'limitPerDay': 1,
+          'activeAt': null,
+          'expiresAt': null,
+          'status': 'archived',
         },
       ],
     };
@@ -542,19 +712,38 @@ Map<String, dynamic> _responseFor(http.Request request) {
     };
   }
   if (path.startsWith('/rpc/staff/pricing-effects/')) {
+    final effectId = path.split('/')[4];
+    if (request.method == 'POST') {
+      return {
+        'pricingEffect': {
+          'id': effectId,
+          'name': '计费效果',
+          'type': 'free',
+          'scope': 'session',
+          'value': null,
+          'consumable': false,
+          'limitPerDay': null,
+          'activeAt': null,
+          'expiresAt': null,
+          'status': path.endsWith('/archive') ? 'archived' : 'active',
+          'config': null,
+        },
+      };
+    }
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
     return {
       'pricingEffect': {
-        'id': path.split('/').last,
-        'name': jsonDecode(request.body)['name'],
-        'type': jsonDecode(request.body)['type'],
-        'scope': jsonDecode(request.body)['scope'],
-        'value': jsonDecode(request.body)['value'],
-        'consumable': jsonDecode(request.body)['consumable'],
-        'limitPerDay': jsonDecode(request.body)['limitPerDay'],
+        'id': effectId,
+        'name': body['name'],
+        'type': body['type'],
+        'scope': body['scope'],
+        'value': body['value'],
+        'consumable': body['consumable'],
+        'limitPerDay': body['limitPerDay'],
         'activeAt': null,
         'expiresAt': null,
         'status': 'active',
-        'config': jsonDecode(request.body)['config'],
+        'config': body['config'],
       },
     };
   }
@@ -564,7 +753,7 @@ Map<String, dynamic> _responseFor(http.Request request) {
         'present': {
           'id': 'present-new',
           'name': jsonDecode(request.body)['name'],
-          'oncePerPlayer': false,
+          'oncePerPlayer': jsonDecode(request.body)['oncePerPlayer'],
           'status': 'active',
           'grants': jsonDecode(request.body)['grants'],
         },

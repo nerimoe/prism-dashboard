@@ -9,6 +9,7 @@ import 'package:prism_dashboard/src/api/api_client.dart';
 import 'package:prism_dashboard/src/api/models.dart';
 import 'package:prism_dashboard/src/features/operations/operations_screen.dart';
 import 'package:prism_dashboard/src/features/pricing/pricing_screen.dart';
+import 'package:prism_dashboard/src/shared/admin_time_zone.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
@@ -488,6 +489,22 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
+        if (request.url.path == '/rpc/staff/players') {
+          return http.Response(
+            jsonEncode({
+              'players': [
+                {
+                  'id': 'player-1',
+                  'displayName': 'A',
+                  'status': 'active',
+                  'walletTotal': 132,
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           '{}',
           200,
@@ -539,6 +556,116 @@ void main() {
             request.url.path == '/rpc/staff/sessions/active/checkout',
       ),
       isTrue,
+    );
+  });
+
+  testWidgets('read-only staff cannot change live operations', (tester) async {
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        return http.Response(
+          jsonEncode(
+            request.url.path == '/rpc/staff/live-players'
+                ? _livePlayersJson
+                : <String, Object>{},
+          ),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: OperationsScreen(api: api, canWrite: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '给玩家加开计时'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, '闭店统一结账'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '给 A 结账'))
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('live header can start the first timer for an off-site player', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        requests.add(request);
+        final body = switch (request.url.path) {
+          '/rpc/staff/live-players' => {'players': <Object>[]},
+          '/rpc/staff/players' => {
+            'players': [
+              {
+                'id': 'player-new',
+                'displayName': 'B',
+                'status': 'active',
+                'walletTotal': 0,
+              },
+            ],
+          },
+          '/rpc/staff/pricing-configs' => _pricingConfigsJson,
+          _ => <String, Object>{},
+        };
+        return http.Response(
+          jsonEncode(body),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: OperationsScreen(api: api),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('给玩家加开计时'));
+    await tester.pumpAndSettle();
+    expect(find.text('选择玩家'), findsOneWidget);
+    expect(find.text('B'), findsWidgets);
+    await tester.tap(find.text('开始计时'));
+    await tester.pumpAndSettle();
+
+    expect(
+      requests.any(
+        (request) =>
+            request.method == 'POST' &&
+            request.url.path == '/rpc/staff/players/player-new/session/start',
+      ),
+      true,
     );
   });
 
@@ -803,7 +930,7 @@ const Map<String, dynamic> _checkoutResultJson = {
 };
 
 String _expectedDateTime(String iso) {
-  final local = DateTime.parse(iso).toLocal();
+  final local = toAdminTime(DateTime.parse(iso));
   String two(int value) => value.toString().padLeft(2, '0');
   return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
 }

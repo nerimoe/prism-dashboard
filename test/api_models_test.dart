@@ -69,6 +69,7 @@ void main() {
         'playerId': 'player-1',
         'holdings': [
           {
+            'id': 'holding-1',
             'assetType': 'currency',
             'assetCode': 'paid',
             'quantity': 100.0,
@@ -89,6 +90,7 @@ void main() {
       };
       final model = PlayerAssets.fromJson(json);
       expect(model.playerId, 'player-1');
+      expect(model.holdings.first.id, 'holding-1');
       expect(model.holdings.first.assetCode, 'paid');
       expect(model.holdings.first.isAvailable, false);
       expect(model.holdings.first.unavailableReasons, ['definition_archived']);
@@ -286,6 +288,28 @@ void main() {
       expect(model.timeline.single.startTime, '10:00');
       expect(model.timeline.single.endTime, '22:00');
       expect(model.timeline.single.price, 10);
+    });
+
+    test('PricingTimeline treats closed segments without pricing as zero', () {
+      final model = PricingTimeline.fromJson({
+        'timeline': {
+          'providerId': 'time.default',
+          'segments': [
+            {
+              'ruleId': '__closed__',
+              'label': '非营业',
+              'startMinute': 0,
+              'endMinute': 600,
+              'startLabel': '00:00',
+              'endLabel': '10:00',
+              'isClosed': true,
+            },
+          ],
+        },
+      });
+
+      expect(model.timeline.single.isClosed, isTrue);
+      expect(model.timeline.single.price, 0);
     });
 
     test('PricingTimeline parses global cap segment price caps', () {

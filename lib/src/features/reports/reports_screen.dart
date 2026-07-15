@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/admin_time_zone.dart';
 import '../../shared/widgets.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -20,13 +21,16 @@ class ReportsScreen extends ConsumerStatefulWidget {
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   late DateTimeRange _range;
   late Future<_ReportData> _future;
+  bool _loadingMoreSettlements = false;
+  bool _loadingMorePlayers = false;
+  String? _paginationError;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
   @override
   void initState() {
     super.initState();
-    final today = _dateOnly(widget.initialToday ?? DateTime.now());
+    final today = _dateOnly(widget.initialToday ?? adminNow());
     _range = DateTimeRange(start: today, end: today);
     _future = _load();
   }
@@ -102,10 +106,27 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _SummaryGrid(summary: data.summary),
+        if (_paginationError != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _paginationError!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
         const SizedBox(height: 16),
-        _SettlementTable(rows: data.settlements),
+        _SettlementTable(
+          rows: data.settlements,
+          hasMore: data.hasMoreSettlements,
+          isLoadingMore: _loadingMoreSettlements,
+          onLoadMore: () => _loadMoreSettlements(data),
+        ),
         const SizedBox(height: 16),
-        _PlayerRankingTable(rows: data.players),
+        _PlayerRankingTable(
+          rows: data.players,
+          hasMore: data.hasMorePlayers,
+          isLoadingMore: _loadingMorePlayers,
+          onLoadMore: () => _loadMorePlayers(data),
+        ),
       ],
     );
   }
@@ -120,9 +141,70 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     ]);
     return _ReportData(
       summary: results[0] as ReportSummary,
-      settlements: results[1] as List<SettlementReportRow>,
-      players: results[2] as List<PlayerReportRow>,
+      settlements: (results[1] as ReportPage<SettlementReportRow>).items,
+      hasMoreSettlements:
+          (results[1] as ReportPage<SettlementReportRow>).hasMore,
+      players: (results[2] as ReportPage<PlayerReportRow>).items,
+      hasMorePlayers: (results[2] as ReportPage<PlayerReportRow>).hasMore,
     );
+  }
+
+  Future<void> _loadMoreSettlements(_ReportData data) async {
+    setState(() {
+      _loadingMoreSettlements = true;
+      _paginationError = null;
+    });
+    try {
+      final page = await _api.reportSettlements(
+        start: _startIso(_range.start),
+        end: _endIso(_range.end),
+        offset: data.settlements.length,
+      );
+      if (!mounted) return;
+      final updated = data.copyWith(
+        settlements: [...data.settlements, ...page.items],
+        hasMoreSettlements: page.hasMore,
+      );
+      setState(() {
+        _loadingMoreSettlements = false;
+        _future = Future.value(updated);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingMoreSettlements = false;
+        _paginationError = error.toString();
+      });
+    }
+  }
+
+  Future<void> _loadMorePlayers(_ReportData data) async {
+    setState(() {
+      _loadingMorePlayers = true;
+      _paginationError = null;
+    });
+    try {
+      final page = await _api.reportPlayers(
+        start: _startIso(_range.start),
+        end: _endIso(_range.end),
+        offset: data.players.length,
+      );
+      if (!mounted) return;
+      final updated = data.copyWith(
+        players: [...data.players, ...page.items],
+        hasMorePlayers: page.hasMore,
+      );
+      setState(() {
+        _loadingMorePlayers = false;
+        _future = Future.value(updated);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingMorePlayers = false;
+        _paginationError = error.toString();
+      });
+    }
   }
 
   void _refresh() {
@@ -147,7 +229,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   void _applyPreset(_RangePreset preset) {
-    final today = _dateOnly(widget.initialToday ?? DateTime.now());
+    final today = _dateOnly(widget.initialToday ?? adminNow());
     setState(() {
       _range = switch (preset) {
         _RangePreset.today => DateTimeRange(start: today, end: today),
@@ -161,7 +243,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   _RangePreset get _selectedPreset {
-    final today = _dateOnly(widget.initialToday ?? DateTime.now());
+    final today = _dateOnly(widget.initialToday ?? adminNow());
     if (_range.start == today && _range.end == today) {
       return _RangePreset.today;
     }
@@ -192,7 +274,7 @@ class _SummaryGrid extends StatelessWidget {
         icon: Icons.receipt_long,
       ),
       MetricTile(
-        label: '资产发放',
+        label: '资产入账笔数',
         value: summary.assetGrantsCount.toString(),
         icon: Icons.card_giftcard,
       ),
@@ -226,9 +308,17 @@ class _SummaryGrid extends StatelessWidget {
 }
 
 class _SettlementTable extends StatelessWidget {
-  const _SettlementTable({required this.rows});
+  const _SettlementTable({
+    required this.rows,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
 
   final List<SettlementReportRow> rows;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -241,38 +331,65 @@ class _SettlementTable extends StatelessWidget {
               title: '还没有结算记录',
               message: '这个日期范围内还没有玩家结账。',
             )
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('玩家')),
-                  DataColumn(label: Text('游玩时长')),
-                  DataColumn(label: Text('原价')),
-                  DataColumn(label: Text('实收')),
-                  DataColumn(label: Text('结算时间')),
-                ],
-                rows: [
-                  for (final row in rows)
-                    DataRow(
-                      cells: [
-                        DataCell(Text(row.displayName)),
-                        DataCell(Text(_durationLabel(row.durationMinutes))),
-                        DataCell(MoneyText(value: row.subtotal)),
-                        DataCell(MoneyText(value: row.total)),
-                        DataCell(DateTimeText(value: row.settledAt)),
-                      ],
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('玩家')),
+                      DataColumn(label: Text('游玩时长')),
+                      DataColumn(label: Text('原价')),
+                      DataColumn(label: Text('实收')),
+                      DataColumn(label: Text('结算时间')),
+                    ],
+                    rows: [
+                      for (final row in rows)
+                        DataRow(
+                          cells: [
+                            DataCell(Text(row.displayName)),
+                            DataCell(Text(_durationLabel(row.durationMinutes))),
+                            DataCell(MoneyText(value: row.subtotal)),
+                            DataCell(MoneyText(value: row.total)),
+                            DataCell(DateTimeText(value: row.settledAt)),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                if (hasMore)
+                  Align(
+                    alignment: Alignment.center,
+                    child: TextButton.icon(
+                      onPressed: isLoadingMore ? null : onLoadMore,
+                      icon: isLoadingMore
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.expand_more),
+                      label: const Text('加载更多结算'),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
     );
   }
 }
 
 class _PlayerRankingTable extends StatelessWidget {
-  const _PlayerRankingTable({required this.rows});
+  const _PlayerRankingTable({
+    required this.rows,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
 
   final List<PlayerReportRow> rows;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -285,31 +402,50 @@ class _PlayerRankingTable extends StatelessWidget {
               title: '还没有玩家排行',
               message: '这个日期范围内还没有可统计的玩家。',
             )
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('玩家')),
-                  DataColumn(label: Text('结算次数')),
-                  DataColumn(label: Text('累计时长')),
-                  DataColumn(label: Text('实收')),
-                  DataColumn(label: Text('最近结算')),
-                ],
-                rows: [
-                  for (final row in rows)
-                    DataRow(
-                      cells: [
-                        DataCell(Text(row.displayName)),
-                        DataCell(Text('${row.settlementCount} 次')),
-                        DataCell(
-                          Text(_durationLabel(row.totalDurationMinutes)),
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('玩家')),
+                      DataColumn(label: Text('结算次数')),
+                      DataColumn(label: Text('累计时长')),
+                      DataColumn(label: Text('实收')),
+                      DataColumn(label: Text('最近结算')),
+                    ],
+                    rows: [
+                      for (final row in rows)
+                        DataRow(
+                          cells: [
+                            DataCell(Text(row.displayName)),
+                            DataCell(Text('${row.settlementCount} 次')),
+                            DataCell(
+                              Text(_durationLabel(row.totalDurationMinutes)),
+                            ),
+                            DataCell(MoneyText(value: row.revenue)),
+                            DataCell(DateTimeText(value: row.lastSettledAt)),
+                          ],
                         ),
-                        DataCell(MoneyText(value: row.revenue)),
-                        DataCell(DateTimeText(value: row.lastSettledAt)),
-                      ],
+                    ],
+                  ),
+                ),
+                if (hasMore)
+                  Align(
+                    alignment: Alignment.center,
+                    child: TextButton.icon(
+                      onPressed: isLoadingMore ? null : onLoadMore,
+                      icon: isLoadingMore
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.expand_more),
+                      label: const Text('加载更多玩家'),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
     );
   }
@@ -319,12 +455,31 @@ class _ReportData {
   const _ReportData({
     required this.summary,
     required this.settlements,
+    required this.hasMoreSettlements,
     required this.players,
+    required this.hasMorePlayers,
   });
 
   final ReportSummary summary;
   final List<SettlementReportRow> settlements;
+  final bool hasMoreSettlements;
   final List<PlayerReportRow> players;
+  final bool hasMorePlayers;
+
+  _ReportData copyWith({
+    List<SettlementReportRow>? settlements,
+    bool? hasMoreSettlements,
+    List<PlayerReportRow>? players,
+    bool? hasMorePlayers,
+  }) {
+    return _ReportData(
+      summary: summary,
+      settlements: settlements ?? this.settlements,
+      hasMoreSettlements: hasMoreSettlements ?? this.hasMoreSettlements,
+      players: players ?? this.players,
+      hasMorePlayers: hasMorePlayers ?? this.hasMorePlayers,
+    );
+  }
 }
 
 enum _RangePreset { today, sevenDays }
@@ -332,10 +487,12 @@ enum _RangePreset { today, sevenDays }
 DateTime _dateOnly(DateTime value) =>
     DateTime(value.year, value.month, value.day);
 
-String _startIso(DateTime date) => _dateOnly(date).toUtc().toIso8601String();
+String _startIso(DateTime date) =>
+    adminLocalDateTimeToUtc(_dateOnly(date)).toIso8601String();
 
-String _endIso(DateTime date) =>
-    _dateOnly(date).add(const Duration(days: 1)).toUtc().toIso8601String();
+String _endIso(DateTime date) => adminLocalDateTimeToUtc(
+  _dateOnly(date).add(const Duration(days: 1)),
+).toIso8601String();
 
 String _rangeLabel(DateTimeRange range) {
   final start = _dateLabel(range.start);

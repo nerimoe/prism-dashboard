@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,9 +12,10 @@ import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 class DevicesScreen extends ConsumerStatefulWidget {
-  const DevicesScreen({super.key, this.api});
+  const DevicesScreen({super.key, this.api, this.canWrite});
 
   final PrismApiClient? api;
+  final bool? canWrite;
 
   @override
   ConsumerState<DevicesScreen> createState() => _DevicesScreenState();
@@ -22,11 +24,14 @@ class DevicesScreen extends ConsumerStatefulWidget {
 class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   late Future<_DevicesData> _future;
   final Set<String> _busyDeviceIds = <String>{};
+  Timer? _refreshTimer;
 
   PrismApiClient get _api => widget.api ?? ref.read(apiClientProvider);
 
   bool get _canWrite =>
-      ref.watch(appControllerProvider).value?.staff?.canWrite ?? true;
+      widget.canWrite ??
+      ref.watch(appControllerProvider).value?.staff?.canWrite ??
+      true;
 
   Future<void> _showConfigureHaDevices(BuildContext context) async {
     try {
@@ -53,6 +58,15 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   void initState() {
     super.initState();
     _future = _load();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted && _busyDeviceIds.isEmpty) _refresh();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -103,6 +117,8 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         canControl: _canWrite,
                         busyDeviceIds: _busyDeviceIds,
                         onPower: _requestPower,
+                        onTrigger: _requestFacilityAction,
+                        onSetTemperature: _showTemperatureDialog,
                         trailing: _canWrite
                             ? IconButton(
                                 tooltip: '配置设备映射',
@@ -118,6 +134,9 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         subtitle: '投币、Aime 和机器软件连接状态。',
                         icon: Icons.sports_esports_outlined,
                         machines: data.gameMachines,
+                        canControl: _canWrite,
+                        busyDeviceIds: _busyDeviceIds,
+                        onMachineAction: _requestMachineAction,
                         emptyTitle: '暂无机器连接',
                         emptyMessage: '机器软件连接 WebSocket 后，会在这里显示在线状态和最近心跳。',
                       ),
@@ -169,35 +188,115 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   }
 
   Future<void> _requestPower(DeviceState device, bool turnOn) async {
-    if (!_canWrite || _busyDeviceIds.contains(device.deviceId)) return;
-    setState(() => _busyDeviceIds.add(device.deviceId));
+    await _requestAction(
+      busyKey: device.deviceId,
+      label: device.label,
+      type: turnOn ? 'power.on' : 'power.off',
+      targetKind: device.targetKind,
+      deviceId: device.deviceId,
+      payload: {'state': turnOn ? 'on' : 'off'},
+      successLabel: turnOn ? '开机指令已发送' : '关机指令已发送',
+    );
+  }
+
+  Future<void> _requestFacilityAction(DeviceState device) async {
+    await _requestAction(
+      busyKey: device.deviceId,
+      label: device.label,
+      type: device.type,
+      targetKind: device.targetKind,
+      deviceId: device.deviceId,
+      successLabel: device.type == 'door.open' ? '开门指令已发送' : '指令已发送',
+    );
+  }
+
+  Future<void> _showTemperatureDialog(DeviceState device) async {
+    final controller = TextEditingController(text: '24');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('设置 ${device.label} 温度'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: '目标温度（°C）'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('发送指令'),
+          ),
+        ],
+      ),
+    );
+    final temperature = num.tryParse(controller.text.trim());
+    if (confirmed != true || temperature == null) return;
+    await _requestAction(
+      busyKey: device.deviceId,
+      label: device.label,
+      type: 'ac.set_temperature',
+      targetKind: device.targetKind,
+      deviceId: device.deviceId,
+      payload: {'temperature': temperature},
+      successLabel: '温度设置指令已发送',
+    );
+  }
+
+  Future<void> _requestMachineAction(
+    MachineConnection machine,
+    String capability,
+  ) async {
+    await _requestAction(
+      busyKey: machine.machineId,
+      label: machine.machineId,
+      type: capability,
+      targetKind: 'game_machine',
+      deviceId: machine.machineId,
+      payload: capability == 'coin' ? {'count': 1} : null,
+      successLabel: capability == 'coin' ? '投币指令已发送' : 'Aime 读卡指令已发送',
+    );
+  }
+
+  Future<void> _requestAction({
+    required String busyKey,
+    required String label,
+    required String type,
+    required String targetKind,
+    required String deviceId,
+    required String successLabel,
+    Map<String, dynamic>? payload,
+  }) async {
+    if (!_canWrite || _busyDeviceIds.contains(busyKey)) return;
+    setState(() => _busyDeviceIds.add(busyKey));
     try {
       final command = await _api.requestStaffDeviceAction(
-        type: turnOn ? 'power.on' : 'power.off',
-        targetKind: device.targetKind,
-        deviceId: device.deviceId,
-        payload: {'state': turnOn ? 'on' : 'off'},
+        type: type,
+        targetKind: targetKind,
+        deviceId: deviceId,
+        payload: payload,
       );
       if (!mounted) return;
       final failure = commandFailureLabel(command);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            failure == null
-                ? '${device.label} ${turnOn ? '开机' : '关机'}指令已发送'
-                : '${device.label} 操作失败：$failure',
+            failure == null ? '$label $successLabel' : '$label 操作失败：$failure',
           ),
         ),
       );
       _refresh();
-    } catch (e) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${device.label} 操作失败：$e')));
+        ).showSnackBar(SnackBar(content: Text('$label 操作失败：$error')));
       }
     } finally {
-      if (mounted) setState(() => _busyDeviceIds.remove(device.deviceId));
+      if (mounted) setState(() => _busyDeviceIds.remove(busyKey));
     }
   }
 
@@ -280,6 +379,9 @@ class _DeviceGroupPanel extends StatelessWidget {
     this.canControl = false,
     this.busyDeviceIds = const <String>{},
     this.onPower,
+    this.onTrigger,
+    this.onSetTemperature,
+    this.onMachineAction,
     this.trailing,
   });
 
@@ -293,6 +395,10 @@ class _DeviceGroupPanel extends StatelessWidget {
   final bool canControl;
   final Set<String> busyDeviceIds;
   final Future<void> Function(DeviceState device, bool turnOn)? onPower;
+  final Future<void> Function(DeviceState device)? onTrigger;
+  final Future<void> Function(DeviceState device)? onSetTemperature;
+  final Future<void> Function(MachineConnection machine, String capability)?
+  onMachineAction;
   final Widget? trailing;
 
   @override
@@ -318,12 +424,19 @@ class _DeviceGroupPanel extends StatelessWidget {
               canControl: canControl,
               busy: busyDeviceIds.contains(device.deviceId),
               onPower: onPower,
+              onTrigger: onTrigger,
+              onSetTemperature: onSetTemperature,
             ),
             if (device != devices.last || machines.isNotEmpty)
               const SizedBox(height: 12),
           ],
           for (final machine in machines) ...[
-            _MachineCard(machine: machine),
+            _MachineCard(
+              machine: machine,
+              canControl: canControl,
+              busy: busyDeviceIds.contains(machine.machineId),
+              onAction: onMachineAction,
+            ),
             if (machine != machines.last) const SizedBox(height: 12),
           ],
         ],
@@ -333,9 +446,18 @@ class _DeviceGroupPanel extends StatelessWidget {
 }
 
 class _MachineCard extends StatelessWidget {
-  const _MachineCard({required this.machine});
+  const _MachineCard({
+    required this.machine,
+    required this.canControl,
+    required this.busy,
+    required this.onAction,
+  });
 
   final MachineConnection machine;
+  final bool canControl;
+  final bool busy;
+  final Future<void> Function(MachineConnection machine, String capability)?
+  onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -403,6 +525,29 @@ class _MachineCard extends StatelessWidget {
                 ),
             ],
           ),
+          if (canControl && onAction != null && machine.status == 'online') ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (machine.capabilities.contains('coin'))
+                  FilledButton.tonalIcon(
+                    onPressed: busy ? null : () => onAction!(machine, 'coin'),
+                    icon: const Icon(Icons.toll),
+                    label: const Text('投币'),
+                  ),
+                if (machine.capabilities.contains('aime.scan'))
+                  OutlinedButton.icon(
+                    onPressed: busy
+                        ? null
+                        : () => onAction!(machine, 'aime.scan'),
+                    icon: const Icon(Icons.contactless_outlined),
+                    label: const Text('读取 Aime'),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -415,12 +560,16 @@ class _DeviceCard extends StatelessWidget {
     required this.canControl,
     required this.busy,
     required this.onPower,
+    required this.onTrigger,
+    required this.onSetTemperature,
   });
 
   final DeviceState device;
   final bool canControl;
   final bool busy;
   final Future<void> Function(DeviceState device, bool turnOn)? onPower;
+  final Future<void> Function(DeviceState device)? onTrigger;
+  final Future<void> Function(DeviceState device)? onSetTemperature;
 
   @override
   Widget build(BuildContext context) {
@@ -509,6 +658,26 @@ class _DeviceCard extends StatelessWidget {
               busy: busy,
               onTurnOn: () => onPower!(device, true),
               onTurnOff: () => onPower!(device, false),
+            ),
+          ],
+          if (canControl &&
+              device.type == 'door.open' &&
+              onTrigger != null) ...[
+            const SizedBox(width: 12),
+            FilledButton.tonalIcon(
+              onPressed: busy ? null : () => onTrigger!(device),
+              icon: const Icon(Icons.door_front_door_outlined),
+              label: const Text('开门'),
+            ),
+          ],
+          if (canControl &&
+              device.type == 'ac.set_temperature' &&
+              onSetTemperature != null) ...[
+            const SizedBox(width: 12),
+            OutlinedButton.icon(
+              onPressed: busy ? null : () => onSetTemperature!(device),
+              icon: const Icon(Icons.thermostat),
+              label: const Text('设置温度'),
             ),
           ],
         ],

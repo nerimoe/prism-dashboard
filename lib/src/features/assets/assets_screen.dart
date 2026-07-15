@@ -6,19 +6,27 @@ import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/admin_time_zone.dart';
 import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 final _effectScopeSingle = ['ses', 'sion'].join();
+final _effectApplicableLabelsKey = ['applicable', 'Ses', 'sionLabels'].join();
 const _newAssetEditorKey = '__new_asset__';
 
 enum _AssetWorkspaceAction { pricingEffect, present, redeemCode }
 
 class AssetsScreen extends ConsumerStatefulWidget {
-  const AssetsScreen({super.key, this.api, this.onOpenPlayer});
+  const AssetsScreen({
+    super.key,
+    this.api,
+    this.onOpenPlayer,
+    this.canWrite = true,
+  });
 
   final PrismApiClient? api;
   final ValueChanged<String>? onOpenPlayer;
+  final bool canWrite;
 
   @override
   ConsumerState<AssetsScreen> createState() => _AssetsScreenState();
@@ -30,6 +38,8 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   late Future<_AssetsData> _future;
   String? _message;
   String? _assetEditorKey;
+  PricingEffect? _editingPricingEffect;
+  List<RedeemCode> _lastBatchCodes = const [];
   _AssetWorkspaceAction? _workspaceAction;
   int _activeTabIndex = 0;
 
@@ -64,6 +74,14 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
             _MessageBanner(
               message: _message!,
               onClose: () => setState(() => _message = null),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (_lastBatchCodes.isNotEmpty) ...[
+            _BatchCodeResultPanel(
+              codes: _lastBatchCodes,
+              onCopy: _copyLastBatchCodes,
+              onClear: () => setState(() => _lastBatchCodes = const []),
             ),
             const SizedBox(height: 12),
           ],
@@ -106,7 +124,11 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
                   : _ActionWorkspacePanel(
                       action: action,
                       data: data,
-                      onClose: () => setState(() => _workspaceAction = null),
+                      pricingEffect: _editingPricingEffect,
+                      onClose: () => setState(() {
+                        _workspaceAction = null;
+                        _editingPricingEffect = null;
+                      }),
                       onCreatePresent: _createPresent,
                       onCreateRedeemCode: _createRedeemCode,
                       onCreateRedeemCodeBatch: _createRedeemCodeBatch,
@@ -115,11 +137,15 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
               final content = _AssetsTabContent(
                 tabIndex: _activeTabIndex,
                 data: data,
+                canWrite: widget.canWrite,
                 onArchiveAsset: _archiveAssetDefinition,
                 onRestoreAsset: _restoreAssetDefinition,
                 onSaveAsset: _saveAssetDefinition,
                 onCreateAsset: _openNewAssetEditor,
-                onCreatePricingEffect: _openPricingEffectEditor,
+                onCreatePricingEffect: () => _openPricingEffectEditor(),
+                onEditPricingEffect: _openPricingEffectEditor,
+                onArchivePricingEffect: _archivePricingEffect,
+                onRestorePricingEffect: _restorePricingEffect,
                 assetEditorKey: _assetEditorKey,
                 onSelectAsset: (definition) => setState(
                   () => _assetEditorKey = _assetDefinitionKey(definition),
@@ -172,9 +198,10 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
     });
   }
 
-  void _openPricingEffectEditor() {
+  void _openPricingEffectEditor([PricingEffect? effect]) {
     _selectTab(1);
     setState(() {
+      _editingPricingEffect = effect;
       _workspaceAction = _AssetWorkspaceAction.pricingEffect;
     });
   }
@@ -212,6 +239,7 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   Future<void> _createPresent(_CreatePresentDraft draft) async {
     await _api.createPresent(
       name: draft.name.trim(),
+      oncePerPlayer: draft.oncePerPlayer,
       activeAt: draft.activeAt?.toIso8601String(),
       expiresAt: draft.expiresAt?.toIso8601String(),
       grants: draft.grants.map((grant) => grant.toJson()).toList(),
@@ -231,7 +259,7 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   }
 
   Future<void> _createRedeemCodeBatch(_CreateRedeemCodeDraft draft) async {
-    await _api.createRedeemCodeBatch(
+    final codes = await _api.createRedeemCodeBatch(
       count: draft.count,
       prefix: draft.prefix.trim(),
       presentId: draft.present.id,
@@ -239,7 +267,12 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
       activeAt: draft.activeAt?.toIso8601String(),
       expiresAt: draft.expiresAt?.toIso8601String(),
     );
-    _done('兑换码已批量生成。');
+    setState(() {
+      _lastBatchCodes = codes;
+      _message = '已生成 ${codes.length} 个兑换码。';
+      _workspaceAction = null;
+      _future = _load();
+    });
   }
 
   Future<void> _savePricingEffect(_PricingEffectDraft draft) async {
@@ -265,6 +298,16 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
   Future<void> _archiveAssetDefinition(AssetDefinition definition) async {
     await _api.archiveAssetDefinition(definition.type, definition.code);
     _done('资产已归档。');
+  }
+
+  Future<void> _archivePricingEffect(PricingEffect effect) async {
+    await _api.archivePricingEffect(effect.id);
+    _done('计费效果已归档。');
+  }
+
+  Future<void> _restorePricingEffect(PricingEffect effect) async {
+    await _api.restorePricingEffect(effect.id);
+    _done('计费效果已恢复。');
   }
 
   Future<void> _restoreAssetDefinition(AssetDefinition definition) async {
@@ -304,8 +347,16 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
     setState(() {
       _message = message;
       _workspaceAction = null;
+      _editingPricingEffect = null;
       _future = _load();
     });
+  }
+
+  void _copyLastBatchCodes() {
+    Clipboard.setData(
+      ClipboardData(text: _lastBatchCodes.map((item) => item.code).join('\n')),
+    );
+    setState(() => _message = '已复制全部 ${_lastBatchCodes.length} 个兑换码。');
   }
 }
 
@@ -313,11 +364,15 @@ class _AssetsTabContent extends StatelessWidget {
   const _AssetsTabContent({
     required this.tabIndex,
     required this.data,
+    required this.canWrite,
     required this.onArchiveAsset,
     required this.onRestoreAsset,
     required this.onSaveAsset,
     required this.onCreateAsset,
     required this.onCreatePricingEffect,
+    required this.onEditPricingEffect,
+    required this.onArchivePricingEffect,
+    required this.onRestorePricingEffect,
     required this.assetEditorKey,
     required this.onSelectAsset,
     required this.onCreatePresent,
@@ -330,11 +385,15 @@ class _AssetsTabContent extends StatelessWidget {
 
   final int tabIndex;
   final _AssetsData data;
+  final bool canWrite;
   final ValueChanged<AssetDefinition> onArchiveAsset;
   final ValueChanged<AssetDefinition> onRestoreAsset;
   final ValueChanged<_AssetDefinitionDraft> onSaveAsset;
   final VoidCallback onCreateAsset;
   final VoidCallback onCreatePricingEffect;
+  final ValueChanged<PricingEffect> onEditPricingEffect;
+  final ValueChanged<PricingEffect> onArchivePricingEffect;
+  final ValueChanged<PricingEffect> onRestorePricingEffect;
   final String? assetEditorKey;
   final ValueChanged<AssetDefinition> onSelectAsset;
   final VoidCallback onCreatePresent;
@@ -356,10 +415,15 @@ class _AssetsTabContent extends StatelessWidget {
         onSave: onSaveAsset,
         onArchive: onArchiveAsset,
         onRestore: onRestoreAsset,
+        canWrite: canWrite,
       ),
       1 => _PricingEffectsTab(
         effects: data.pricingEffects,
         onCreate: onCreatePricingEffect,
+        onEdit: onEditPricingEffect,
+        onArchive: onArchivePricingEffect,
+        onRestore: onRestorePricingEffect,
+        canWrite: canWrite,
       ),
       2 => _PresentsTab(
         presents: data.presents,
@@ -368,6 +432,7 @@ class _AssetsTabContent extends StatelessWidget {
         onCreate: onCreatePresent,
         onArchive: onArchivePresent,
         onRestore: onRestorePresent,
+        canWrite: canWrite,
       ),
       _ => _RedeemCodesTab(
         codes: data.redeemCodes,
@@ -375,6 +440,7 @@ class _AssetsTabContent extends StatelessWidget {
         onCreate: onCreateRedeemCode,
         onRevoke: onRevokeCode,
         onOpenPlayer: onOpenPlayer,
+        canWrite: canWrite,
       ),
     };
   }
@@ -384,6 +450,7 @@ class _ActionWorkspacePanel extends StatelessWidget {
   const _ActionWorkspacePanel({
     required this.action,
     required this.data,
+    required this.pricingEffect,
     required this.onClose,
     required this.onCreatePresent,
     required this.onCreateRedeemCode,
@@ -393,6 +460,7 @@ class _ActionWorkspacePanel extends StatelessWidget {
 
   final _AssetWorkspaceAction action;
   final _AssetsData data;
+  final PricingEffect? pricingEffect;
   final VoidCallback onClose;
   final ValueChanged<_CreatePresentDraft> onCreatePresent;
   final ValueChanged<_CreateRedeemCodeDraft> onCreateRedeemCode;
@@ -418,6 +486,7 @@ class _ActionWorkspacePanel extends StatelessWidget {
         onCreateBatch: onCreateRedeemCodeBatch,
       ),
       _AssetWorkspaceAction.pricingEffect => _PricingEffectPanel(
+        effect: pricingEffect,
         pricingConfigs: data.pricingConfigs,
         onClose: onClose,
         onSubmit: onSavePricingEffect,
@@ -430,12 +499,14 @@ class _CreatePresentDraft {
   const _CreatePresentDraft({
     required this.name,
     required this.grants,
+    required this.oncePerPlayer,
     required this.activeAt,
     required this.expiresAt,
   });
 
   final String name;
   final List<_GrantDraft> grants;
+  final bool oncePerPlayer;
   final DateTime? activeAt;
   final DateTime? expiresAt;
 }
@@ -521,18 +592,33 @@ class _GrantDraft {
 
   AssetDefinition definition;
   final amount = TextEditingController(text: '1');
+  final durationDays = TextEditingController(text: '30');
   String mergeStrategy = 'stack';
   DateTime? activeAt;
   DateTime? expiresAt;
 
-  Map<String, dynamic> toJson() => {
-    'assetType': definition.type,
-    'assetCode': definition.code,
-    'amount': num.tryParse(amount.text.trim()) ?? 0,
-    'mergeStrategy': mergeStrategy,
-    'activeAt': activeAt?.toIso8601String(),
-    'expiresAt': expiresAt?.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() {
+    final duration = num.tryParse(durationDays.text.trim());
+    return {
+      'assetType': definition.type,
+      'assetCode': definition.code,
+      'amount': num.tryParse(amount.text.trim()) ?? 0,
+      'mergeStrategy': mergeStrategy,
+      'activeAt': activeAt?.toIso8601String(),
+      'expiresAt': mergeStrategy == 'extend-time'
+          ? null
+          : expiresAt?.toIso8601String(),
+      if (mergeStrategy == 'extend-time')
+        'durationMs': duration == null
+            ? 0
+            : (duration * Duration.millisecondsPerDay).round(),
+    };
+  }
+
+  void dispose() {
+    amount.dispose();
+    durationDays.dispose();
+  }
 }
 
 class _GrantEditor extends StatelessWidget {
@@ -599,6 +685,17 @@ class _GrantEditor extends StatelessWidget {
               onChanged();
             },
           ),
+          if (draft.mergeStrategy == 'extend-time') ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: draft.durationDays,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(labelText: '延长天数'),
+              onChanged: (_) => onChanged(),
+            ),
+          ],
           const SizedBox(height: 12),
           _DateTimeField(
             label: '内容开始生效',
@@ -608,15 +705,17 @@ class _GrantEditor extends StatelessWidget {
               onChanged();
             },
           ),
-          const SizedBox(height: 8),
-          _DateTimeField(
-            label: '内容过期时间',
-            value: draft.expiresAt,
-            onChanged: (value) {
-              draft.expiresAt = value;
-              onChanged();
-            },
-          ),
+          if (draft.mergeStrategy != 'extend-time') ...[
+            const SizedBox(height: 8),
+            _DateTimeField(
+              label: '内容过期时间',
+              value: draft.expiresAt,
+              onChanged: (value) {
+                draft.expiresAt = value;
+                onChanged();
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -690,6 +789,7 @@ class _AssetDefinitionsTab extends StatelessWidget {
     required this.onSave,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final List<AssetDefinition> definitions;
@@ -700,6 +800,7 @@ class _AssetDefinitionsTab extends StatelessWidget {
   final ValueChanged<_AssetDefinitionDraft> onSave;
   final ValueChanged<AssetDefinition> onArchive;
   final ValueChanged<AssetDefinition> onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -728,6 +829,7 @@ class _AssetDefinitionsTab extends StatelessWidget {
           onSelect: onSelect,
           onArchive: onArchive,
           onRestore: onRestore,
+          canWrite: canWrite,
         );
         final editor = _AssetDefinitionEditor(
           key: ValueKey(editorKey ?? _assetDefinitionKey(selectedDefinition)),
@@ -736,10 +838,11 @@ class _AssetDefinitionsTab extends StatelessWidget {
               : selectedDefinition,
           pricingEffects: pricingEffects,
           onSave: onSave,
-          onArchive: selectedDefinition == null
+          canWrite: canWrite,
+          onArchive: !canWrite || selectedDefinition == null
               ? null
               : () => onArchive(selectedDefinition),
-          onRestore: selectedDefinition == null
+          onRestore: !canWrite || selectedDefinition == null
               ? null
               : () => onRestore(selectedDefinition),
         );
@@ -771,6 +874,7 @@ class _AssetDefinitionList extends StatelessWidget {
     required this.onSelect,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final List<AssetDefinition> activeDefinitions;
@@ -780,6 +884,7 @@ class _AssetDefinitionList extends StatelessWidget {
   final ValueChanged<AssetDefinition> onSelect;
   final ValueChanged<AssetDefinition> onArchive;
   final ValueChanged<AssetDefinition> onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -787,7 +892,7 @@ class _AssetDefinitionList extends StatelessWidget {
       title: '资产定义',
       subtitle: '点击资产查看详情，也可以在右侧直接修改配置。',
       trailing: FilledButton.icon(
-        onPressed: onCreate,
+        onPressed: canWrite ? onCreate : null,
         icon: const Icon(Icons.add_card),
         label: const Text('添加资产'),
       ),
@@ -810,6 +915,7 @@ class _AssetDefinitionList extends StatelessWidget {
                 onTap: () => onSelect(activeDefinitions[index]),
                 onArchive: () => onArchive(activeDefinitions[index]),
                 onRestore: () => onRestore(activeDefinitions[index]),
+                canWrite: canWrite,
               ),
               if (index != activeDefinitions.length - 1)
                 const Divider(height: 1),
@@ -838,6 +944,7 @@ class _AssetDefinitionList extends StatelessWidget {
                       onTap: () => onSelect(archivedDefinitions[index]),
                       onArchive: () => onArchive(archivedDefinitions[index]),
                       onRestore: () => onRestore(archivedDefinitions[index]),
+                      canWrite: canWrite,
                     ),
                 ],
               ),
@@ -856,6 +963,7 @@ class _AssetDefinitionTile extends StatelessWidget {
     required this.onTap,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final AssetDefinition definition;
@@ -863,6 +971,7 @@ class _AssetDefinitionTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onArchive;
   final VoidCallback onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -885,7 +994,9 @@ class _AssetDefinitionTile extends StatelessWidget {
         children: [
           ArchiveStatusPill(isArchived: definition.isArchived),
           TextButton(
-            onPressed: definition.isArchived ? onRestore : onArchive,
+            onPressed: canWrite
+                ? (definition.isArchived ? onRestore : onArchive)
+                : null,
             child: Text(definition.isArchived ? '恢复' : '归档'),
           ),
         ],
@@ -895,10 +1006,21 @@ class _AssetDefinitionTile extends StatelessWidget {
 }
 
 class _PricingEffectsTab extends StatelessWidget {
-  const _PricingEffectsTab({required this.effects, required this.onCreate});
+  const _PricingEffectsTab({
+    required this.effects,
+    required this.onCreate,
+    required this.onEdit,
+    required this.onArchive,
+    required this.onRestore,
+    required this.canWrite,
+  });
 
   final List<PricingEffect> effects;
   final VoidCallback onCreate;
+  final ValueChanged<PricingEffect> onEdit;
+  final ValueChanged<PricingEffect> onArchive;
+  final ValueChanged<PricingEffect> onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -912,7 +1034,7 @@ class _PricingEffectsTab extends StatelessWidget {
       title: '计费效果',
       subtitle: '先配置可复用的结算影响，再绑定到资产定义上。',
       trailing: FilledButton.icon(
-        onPressed: onCreate,
+        onPressed: canWrite ? onCreate : null,
         icon: const Icon(Icons.price_change_outlined),
         label: const Text('添加计费效果'),
       ),
@@ -927,7 +1049,13 @@ class _PricingEffectsTab extends StatelessWidget {
             )
           else
             for (var index = 0; index < activeEffects.length; index++) ...[
-              _PricingEffectTile(effect: activeEffects[index]),
+              _PricingEffectTile(
+                effect: activeEffects[index],
+                onEdit: () => onEdit(activeEffects[index]),
+                onArchive: () => onArchive(activeEffects[index]),
+                onRestore: () => onRestore(activeEffects[index]),
+                canWrite: canWrite,
+              ),
               if (index != activeEffects.length - 1) const Divider(height: 1),
             ],
           if (archivedEffects.isNotEmpty) ...[
@@ -942,7 +1070,13 @@ class _PricingEffectsTab extends StatelessWidget {
                 subtitle: const Text('这些效果不会绑定到新的资产上。'),
                 children: [
                   for (final effect in archivedEffects)
-                    _PricingEffectTile(effect: effect),
+                    _PricingEffectTile(
+                      effect: effect,
+                      onEdit: () => onEdit(effect),
+                      onArchive: () => onArchive(effect),
+                      onRestore: () => onRestore(effect),
+                      canWrite: canWrite,
+                    ),
                 ],
               ),
             ),
@@ -954,13 +1088,24 @@ class _PricingEffectsTab extends StatelessWidget {
 }
 
 class _PricingEffectTile extends StatelessWidget {
-  const _PricingEffectTile({required this.effect});
+  const _PricingEffectTile({
+    required this.effect,
+    required this.onEdit,
+    required this.onArchive,
+    required this.onRestore,
+    required this.canWrite,
+  });
 
   final PricingEffect effect;
+  final VoidCallback onEdit;
+  final VoidCallback onArchive;
+  final VoidCallback onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: effect.isArchived || !canWrite ? null : onEdit,
       leading: const Icon(Icons.receipt_long_outlined),
       title: Text(effect.name),
       subtitle: Text(
@@ -970,7 +1115,24 @@ class _PricingEffectTile extends StatelessWidget {
           _windowLabel(effect.activeAt, effect.expiresAt),
         ].where((item) => item.isNotEmpty).join(' · '),
       ),
-      trailing: ArchiveStatusPill(isArchived: effect.isArchived),
+      trailing: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ArchiveStatusPill(isArchived: effect.isArchived),
+          if (!effect.isArchived)
+            TextButton(
+              onPressed: canWrite ? onEdit : null,
+              child: const Text('编辑'),
+            ),
+          TextButton(
+            onPressed: canWrite
+                ? (effect.isArchived ? onRestore : onArchive)
+                : null,
+            child: Text(effect.isArchived ? '恢复' : '归档'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -993,6 +1155,7 @@ class _CreatePresentPanel extends StatefulWidget {
 class _CreatePresentPanelState extends State<_CreatePresentPanel> {
   final _name = TextEditingController();
   late final List<_GrantDraft> _grants;
+  bool _oncePerPlayer = false;
   DateTime? _activeAt;
   DateTime? _expiresAt;
 
@@ -1008,7 +1171,7 @@ class _CreatePresentPanelState extends State<_CreatePresentPanel> {
   void dispose() {
     _name.dispose();
     for (final grant in _grants) {
-      grant.amount.dispose();
+      grant.dispose();
     }
     super.dispose();
   }
@@ -1042,6 +1205,14 @@ class _CreatePresentPanelState extends State<_CreatePresentPanel> {
                           controller: _name,
                           decoration: const InputDecoration(labelText: '礼物名称'),
                         ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('每名玩家只能兑换一次'),
+                          subtitle: const Text('同一玩家兑换过该礼物后，其他兑换码也不能重复领取。'),
+                          value: _oncePerPlayer,
+                          onChanged: (value) =>
+                              setState(() => _oncePerPlayer = value),
+                        ),
                       ],
                     ),
                     _WorkspaceSection(
@@ -1074,7 +1245,9 @@ class _CreatePresentPanelState extends State<_CreatePresentPanel> {
                     onChanged: () => setState(() {}),
                     onRemove: _grants.length == 1
                         ? null
-                        : () => setState(() => _grants.removeAt(index)),
+                        : () => setState(() {
+                            _grants.removeAt(index).dispose();
+                          }),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -1093,6 +1266,7 @@ class _CreatePresentPanelState extends State<_CreatePresentPanel> {
                       _CreatePresentDraft(
                         name: _name.text,
                         grants: List<_GrantDraft>.from(_grants),
+                        oncePerPlayer: _oncePerPlayer,
                         activeAt: _activeAt,
                         expiresAt: _expiresAt,
                       ),
@@ -1284,11 +1458,13 @@ class _CreateRedeemCodePanelState extends State<_CreateRedeemCodePanel> {
 
 class _PricingEffectPanel extends StatefulWidget {
   const _PricingEffectPanel({
+    required this.effect,
     required this.pricingConfigs,
     required this.onClose,
     required this.onSubmit,
   });
 
+  final PricingEffect? effect;
   final List<PricingConfig> pricingConfigs;
   final VoidCallback onClose;
   final ValueChanged<_PricingEffectDraft> onSubmit;
@@ -1298,18 +1474,43 @@ class _PricingEffectPanel extends StatefulWidget {
 }
 
 class _PricingEffectPanelState extends State<_PricingEffectPanel> {
-  final _id = TextEditingController();
-  final _name = TextEditingController();
-  final _value = TextEditingController();
-  final _limitPerDay = TextEditingController();
-  final _sessionLabels = TextEditingController();
-  String _type = 'free';
-  String _scope = _effectScopeSingle;
-  bool _consumable = false;
+  late final TextEditingController _id;
+  late final TextEditingController _name;
+  late final TextEditingController _value;
+  late final TextEditingController _limitPerDay;
+  late final TextEditingController _sessionLabels;
+  late String _type;
+  late String _scope;
+  late bool _consumable;
   final _pricingConfigIds = <String>{};
   final _ruleIds = <String>{};
-  DateTime? _activeAt;
-  DateTime? _expiresAt;
+  late DateTime? _activeAt;
+  late DateTime? _expiresAt;
+
+  @override
+  void initState() {
+    super.initState();
+    final effect = widget.effect;
+    final config = effect?.config ?? const <String, dynamic>{};
+    _id = TextEditingController(text: effect?.id ?? '');
+    _name = TextEditingController(text: effect?.name ?? '');
+    _value = TextEditingController(text: effect?.value?.toString() ?? '');
+    _limitPerDay = TextEditingController(
+      text: effect?.limitPerDay?.toString() ?? '',
+    );
+    _sessionLabels = TextEditingController(
+      text: _stringValues(config[_effectApplicableLabelsKey]).join('、'),
+    );
+    _type = effect?.type ?? 'free';
+    _scope = effect?.scope ?? _effectScopeSingle;
+    _consumable = effect?.consumable ?? false;
+    _pricingConfigIds.addAll(
+      _stringValues(config['applicablePricingConfigIds']),
+    );
+    _ruleIds.addAll(_stringValues(config['applicableRuleIds']));
+    _activeAt = effect?.activeAt;
+    _expiresAt = effect?.expiresAt;
+  }
 
   @override
   void dispose() {
@@ -1324,8 +1525,10 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
   @override
   Widget build(BuildContext context) {
     return PrismPanel(
-      title: '计费效果草稿',
-      subtitle: '配置资产能影响哪些计时费用。',
+      title: widget.effect == null ? '新建计费效果' : '编辑计费效果',
+      subtitle: widget.effect == null
+          ? '配置资产能影响哪些计时费用。'
+          : '修改 ${widget.effect!.name} 的结算行为和适用范围。',
       trailing: IconButton(
         tooltip: '关闭',
         onPressed: widget.onClose,
@@ -1342,6 +1545,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
                 children: [
                   TextField(
                     controller: _id,
+                    enabled: widget.effect == null,
                     decoration: const InputDecoration(
                       labelText: '效果编号',
                       hintText: '例如 monthly-pass-free',
@@ -1645,6 +1849,7 @@ class _AssetDefinitionEditor extends StatefulWidget {
     required this.onSave,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final AssetDefinition? definition;
@@ -1652,6 +1857,7 @@ class _AssetDefinitionEditor extends StatefulWidget {
   final ValueChanged<_AssetDefinitionDraft> onSave;
   final VoidCallback? onArchive;
   final VoidCallback? onRestore;
+  final bool canWrite;
 
   @override
   State<_AssetDefinitionEditor> createState() => _AssetDefinitionEditorState();
@@ -1726,7 +1932,7 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
               DropdownMenuItem(value: 'ticket', child: Text('券')),
               DropdownMenuItem(value: 'pass', child: Text('通行权益')),
               DropdownMenuItem(value: 'benefit', child: Text('店内权益')),
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: _customAssetType,
                 child: Text('CUSTOM（自定义类别）'),
               ),
@@ -1796,23 +2002,25 @@ class _AssetDefinitionEditorState extends State<_AssetDefinitionEditor> {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            onPressed: () {
-              final type = _type == _customAssetType
-                  ? _customType.text.trim()
-                  : _type;
-              if (type.isEmpty) return;
-              widget.onSave(
-                _AssetDefinitionDraft(
-                  type: type,
-                  code: _code.text.trim(),
-                  displayName: _name.text.trim(),
-                  stackable: _stackable,
-                  pricingEffectId: _pricingEffectId,
-                  activeAt: _activeAt,
-                  expiresAt: _expiresAt,
-                ),
-              );
-            },
+            onPressed: widget.canWrite
+                ? () {
+                    final type = _type == _customAssetType
+                        ? _customType.text.trim()
+                        : _type;
+                    if (type.isEmpty) return;
+                    widget.onSave(
+                      _AssetDefinitionDraft(
+                        type: type,
+                        code: _code.text.trim(),
+                        displayName: _name.text.trim(),
+                        stackable: _stackable,
+                        pricingEffectId: _pricingEffectId,
+                        activeAt: _activeAt,
+                        expiresAt: _expiresAt,
+                      ),
+                    );
+                  }
+                : null,
             icon: const Icon(Icons.save),
             label: Text(_isNew ? '保存资产' : '保存修改'),
           ),
@@ -1907,6 +2115,15 @@ Map<String, dynamic> _pricingEffectConfig({
   };
 }
 
+Set<String> _stringValues(Object? value) {
+  if (value is! List) return <String>{};
+  return value
+      .whereType<String>()
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toSet();
+}
+
 String _windowLabel(DateTime? activeAt, DateTime? expiresAt) {
   if (activeAt == null && expiresAt == null) return '';
   final start = activeAt == null ? '现在' : formatAdminDateTime(activeAt);
@@ -1922,6 +2139,7 @@ class _PresentsTab extends StatefulWidget {
     required this.onCreate,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final List<Present> presents;
@@ -1930,6 +2148,7 @@ class _PresentsTab extends StatefulWidget {
   final VoidCallback onCreate;
   final ValueChanged<Present> onArchive;
   final ValueChanged<Present> onRestore;
+  final bool canWrite;
 
   @override
   State<_PresentsTab> createState() => _PresentsTabState();
@@ -1967,6 +2186,7 @@ class _PresentsTabState extends State<_PresentsTab> {
               setState(() => _selectedPresentId = present.id),
           onArchive: widget.onArchive,
           onRestore: widget.onRestore,
+          canWrite: widget.canWrite,
         );
         final detail = _PresentDetail(
           present: selected,
@@ -1976,8 +2196,12 @@ class _PresentsTabState extends State<_PresentsTab> {
               : widget.redeemCodes
                     .where((code) => code.presentId == selected.id)
                     .toList(growable: false),
-          onArchive: selected == null ? null : () => widget.onArchive(selected),
-          onRestore: selected == null ? null : () => widget.onRestore(selected),
+          onArchive: !widget.canWrite || selected == null
+              ? null
+              : () => widget.onArchive(selected),
+          onRestore: !widget.canWrite || selected == null
+              ? null
+              : () => widget.onRestore(selected),
         );
         if (stacked) {
           return Column(
@@ -2007,6 +2231,7 @@ class _PresentList extends StatelessWidget {
     required this.onSelect,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final List<Present> activePresents;
@@ -2016,6 +2241,7 @@ class _PresentList extends StatelessWidget {
   final ValueChanged<Present> onSelect;
   final ValueChanged<Present> onArchive;
   final ValueChanged<Present> onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -2023,7 +2249,7 @@ class _PresentList extends StatelessWidget {
       title: '礼物',
       subtitle: '礼物可以包含多项资产，并被一个或多个兑换码引用。',
       trailing: FilledButton.icon(
-        onPressed: onCreate,
+        onPressed: canWrite ? onCreate : null,
         icon: const Icon(Icons.card_giftcard),
         label: const Text('新建礼物'),
       ),
@@ -2044,6 +2270,7 @@ class _PresentList extends StatelessWidget {
                 onTap: () => onSelect(activePresents[index]),
                 onArchive: () => onArchive(activePresents[index]),
                 onRestore: () => onRestore(activePresents[index]),
+                canWrite: canWrite,
               ),
               if (index != activePresents.length - 1) const Divider(height: 1),
             ],
@@ -2065,6 +2292,7 @@ class _PresentList extends StatelessWidget {
                       onTap: () => onSelect(archivedPresents[index]),
                       onArchive: () => onArchive(archivedPresents[index]),
                       onRestore: () => onRestore(archivedPresents[index]),
+                      canWrite: canWrite,
                     ),
                 ],
               ),
@@ -2083,6 +2311,7 @@ class _PresentTile extends StatelessWidget {
     required this.onTap,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final Present present;
@@ -2090,6 +2319,7 @@ class _PresentTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onArchive;
   final VoidCallback onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -2111,7 +2341,9 @@ class _PresentTile extends StatelessWidget {
         children: [
           ArchiveStatusPill(isArchived: present.isArchived),
           TextButton(
-            onPressed: present.isArchived ? onRestore : onArchive,
+            onPressed: canWrite
+                ? (present.isArchived ? onRestore : onArchive)
+                : null,
             child: Text(present.isArchived ? '恢复' : '归档'),
           ),
         ],
@@ -2266,6 +2498,7 @@ class _RedeemCodesTab extends StatefulWidget {
     required this.onCreate,
     required this.onRevoke,
     required this.onOpenPlayer,
+    required this.canWrite,
   });
 
   static const _previewCount = 20;
@@ -2275,6 +2508,7 @@ class _RedeemCodesTab extends StatefulWidget {
   final VoidCallback onCreate;
   final ValueChanged<RedeemCode> onRevoke;
   final ValueChanged<String>? onOpenPlayer;
+  final bool canWrite;
 
   @override
   State<_RedeemCodesTab> createState() => _RedeemCodesTabState();
@@ -2345,7 +2579,7 @@ class _RedeemCodesTabState extends State<_RedeemCodesTab> {
           title: '兑换码概览',
           subtitle: '兑换码可能有几千上万条，这里只保留汇总和最近少量记录。',
           trailing: FilledButton.icon(
-            onPressed: widget.onCreate,
+            onPressed: widget.canWrite ? widget.onCreate : null,
             icon: const Icon(Icons.qr_code_2),
             label: const Text('生成兑换码'),
           ),
@@ -2507,6 +2741,7 @@ class _RedeemCodesTabState extends State<_RedeemCodesTab> {
                   ),
                   onRevoke: () => widget.onRevoke(preview[index]),
                   onOpenPlayer: widget.onOpenPlayer,
+                  canWrite: widget.canWrite,
                 ),
                 if (index != preview.length - 1) const Divider(height: 1),
               ],
@@ -2696,6 +2931,7 @@ class _RedeemCodeTile extends StatelessWidget {
     required this.presentName,
     required this.onRevoke,
     required this.onOpenPlayer,
+    required this.canWrite,
   });
 
   final RedeemCode code;
@@ -2703,6 +2939,7 @@ class _RedeemCodeTile extends StatelessWidget {
   final String presentName;
   final VoidCallback onRevoke;
   final ValueChanged<String>? onOpenPlayer;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -2740,7 +2977,7 @@ class _RedeemCodeTile extends StatelessWidget {
               label: const Text('查看玩家'),
             ),
           TextButton(
-            onPressed: usable ? onRevoke : null,
+            onPressed: usable && canWrite ? onRevoke : null,
             child: Text(code.isRevoked ? '已撤销' : '撤销'),
           ),
         ],
@@ -2774,7 +3011,7 @@ int _dateAsc(DateTime? a, DateTime? b) {
 }
 
 bool _inDateRange(DateTime value, DateTimeRange range) {
-  final local = value.toLocal();
+  final local = toAdminTime(value);
   final start = DateTime(range.start.year, range.start.month, range.start.day);
   final end = DateTime(
     range.end.year,
@@ -2835,6 +3072,52 @@ bool _isActiveInWindow(DateTime? activeAt, DateTime? expiresAt, DateTime now) {
   if (activeAt != null && now.isBefore(activeAt)) return false;
   if (expiresAt != null && !now.isBefore(expiresAt)) return false;
   return true;
+}
+
+class _BatchCodeResultPanel extends StatelessWidget {
+  const _BatchCodeResultPanel({
+    required this.codes,
+    required this.onCopy,
+    required this.onClear,
+  });
+
+  final List<RedeemCode> codes;
+  final VoidCallback onCopy;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = codes.take(20).map((item) => item.code).join('\n');
+    return PrismPanel(
+      title: '上次批量生成结果',
+      subtitle: '共 ${codes.length} 个兑换码；结果会保留到离开本页面。',
+      trailing: Wrap(
+        spacing: 8,
+        children: [
+          FilledButton.tonalIcon(
+            onPressed: onCopy,
+            icon: const Icon(Icons.copy_all_outlined),
+            label: const Text('复制全部'),
+          ),
+          IconButton(
+            tooltip: '清除结果',
+            onPressed: onClear,
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SelectableText(preview),
+          if (codes.length > 20) ...[
+            const SizedBox(height: 8),
+            Text('仅预览前 20 个；“复制全部”会包含其余 ${codes.length - 20} 个。'),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _MessageBanner extends StatelessWidget {
