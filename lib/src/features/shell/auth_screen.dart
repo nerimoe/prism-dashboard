@@ -20,6 +20,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _password = TextEditingController();
   final _storeName = TextEditingController(text: 'PRiSM Store');
   final _displayName = TextEditingController(text: '店主');
+  final _timeZone = TextEditingController(text: 'Asia/Shanghai');
   bool _busy = false;
   String? _error;
 
@@ -37,6 +38,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _password.dispose();
     _storeName.dispose();
     _displayName.dispose();
+    _timeZone.dispose();
     super.dispose();
   }
 
@@ -97,6 +99,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       decoration: const InputDecoration(
                         labelText: '管理员显示名',
                         prefixIcon: Icon(Icons.badge),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _timeZone,
+                      decoration: const InputDecoration(
+                        labelText: '营业时区',
+                        hintText: '例如 Asia/Shanghai',
+                        prefixIcon: Icon(Icons.public),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -167,7 +178,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           .read(appControllerProvider.notifier)
           .install(
             storeName: _storeName.text.trim(),
-            timeZone: 'Asia/Shanghai',
+            timeZone: _timeZone.text.trim(),
             username: _username.text.trim(),
             displayName: _displayName.text.trim(),
             password: _password.text,

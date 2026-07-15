@@ -13,9 +13,10 @@ import '../../shared/admin_layout.dart';
 import '../../shared/widgets.dart';
 
 class PricingScreen extends ConsumerStatefulWidget {
-  const PricingScreen({super.key, this.api});
+  const PricingScreen({super.key, this.api, this.canWrite = true});
 
   final PrismApiClient? api;
+  final bool canWrite;
 
   @override
   ConsumerState<PricingScreen> createState() => _PricingScreenState();
@@ -48,10 +49,12 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
           subtitle: '管理入场计时、店内附加收费和每天的营业计费时段。',
           actions: [
             OutlinedButton.icon(
-              onPressed: () => setState(() {
-                _creatingDraft = true;
-                _selectedId = null;
-              }),
+              onPressed: widget.canWrite
+                  ? () => setState(() {
+                      _creatingDraft = true;
+                      _selectedId = null;
+                    })
+                  : null,
               icon: const Icon(Icons.add),
               label: const Text('新建方案'),
             ),
@@ -100,6 +103,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                           }),
                           onArchive: _archiveConfig,
                           onRestore: _restoreConfig,
+                          canWrite: widget.canWrite,
                         ),
                         const SizedBox(height: 16),
                         _PricingEditor(
@@ -107,6 +111,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                           selected: selected,
                           configs: data.configs,
                           api: _api,
+                          canWrite: widget.canWrite,
                           onSaved: (message, savedId) {
                             setState(() {
                               _message = message;
@@ -193,6 +198,7 @@ class _PricingList extends StatelessWidget {
     required this.onSelect,
     required this.onArchive,
     required this.onRestore,
+    required this.canWrite,
   });
 
   final List<PricingConfig> configs;
@@ -201,6 +207,7 @@ class _PricingList extends StatelessWidget {
   final ValueChanged<PricingConfig> onSelect;
   final ValueChanged<PricingConfig> onArchive;
   final ValueChanged<PricingConfig> onRestore;
+  final bool canWrite;
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +242,7 @@ class _PricingList extends StatelessWidget {
                       selected: config.id == selectedId,
                       onSelect: () => onSelect(config),
                       actionLabel: '归档',
-                      onAction: () => onArchive(config),
+                      onAction: canWrite ? () => onArchive(config) : null,
                     ),
                 if (archivedConfigs.isNotEmpty) ...[
                   const SizedBox(height: 8),
@@ -254,7 +261,7 @@ class _PricingList extends StatelessWidget {
                             selected: config.id == selectedId,
                             onSelect: () => onSelect(config),
                             actionLabel: '恢复',
-                            onAction: () => onRestore(config),
+                            onAction: canWrite ? () => onRestore(config) : null,
                           ),
                       ],
                     ),
@@ -279,7 +286,7 @@ class _PricingConfigTile extends StatelessWidget {
   final bool selected;
   final VoidCallback onSelect;
   final String actionLabel;
-  final VoidCallback onAction;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -321,12 +328,14 @@ class _PricingEditor extends StatefulWidget {
     required this.selected,
     required this.configs,
     required this.api,
+    required this.canWrite,
     required this.onSaved,
   });
 
   final PricingConfig? selected;
   final List<PricingConfig> configs;
   final PrismApiClient api;
+  final bool canWrite;
   final void Function(String message, String? savedId) onSaved;
 
   @override
@@ -524,7 +533,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                   label: const Text('预览草稿'),
                 ),
               FilledButton.icon(
-                onPressed: _save,
+                onPressed: widget.canWrite ? _save : null,
                 icon: const Icon(Icons.save),
                 label: const Text('保存方案'),
               ),

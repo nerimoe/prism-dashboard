@@ -22,7 +22,7 @@ void main() {
     expect(find.text('营业收入'), findsOneWidget);
     expect(find.text('¥248'), findsOneWidget);
     expect(find.text('已结账单'), findsOneWidget);
-    expect(find.text('资产发放'), findsOneWidget);
+    expect(find.text('资产入账笔数'), findsOneWidget);
     expect(find.text('投币指令'), findsOneWidget);
     expect(find.text('结算明细'), findsOneWidget);
     expect(find.text('玩家排行'), findsOneWidget);
@@ -61,16 +61,53 @@ void main() {
       ]),
     );
   });
+
+  testWidgets('report dates use the configured store timezone', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildReportsScreen(requests));
+    await tester.pumpAndSettle();
+
+    final summary = requests.firstWhere(
+      (request) => request.url.path == '/rpc/staff/reports/summary',
+    );
+    expect(summary.url.queryParameters['from'], '2026-07-03T16:00:00.000Z');
+    expect(summary.url.queryParameters['to'], '2026-07-04T16:00:00.000Z');
+  });
+
+  testWidgets('settlement report can load the next page', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(
+      _buildReportsScreen(requests, paginatedSettlements: true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('加载更多结算'));
+    await tester.pumpAndSettle();
+
+    final nextPage = requests.singleWhere(
+      (request) =>
+          request.url.path == '/rpc/staff/reports/settlements' &&
+          request.url.queryParameters['offset'] == '2',
+    );
+    expect(nextPage.url.queryParameters['limit'], '50');
+    expect(find.text('C'), findsOneWidget);
+    expect(find.text('加载更多结算'), findsNothing);
+  });
 }
 
-Widget _buildReportsScreen(List<http.Request> requests) {
+Widget _buildReportsScreen(
+  List<http.Request> requests, {
+  bool paginatedSettlements = false,
+}) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
     token: 'staff-token',
     httpClient: MockClient((request) async {
       requests.add(request);
       return http.Response(
-        jsonEncode(_responseFor(request)),
+        jsonEncode(
+          _responseFor(request, paginatedSettlements: paginatedSettlements),
+        ),
         200,
         headers: {'content-type': 'application/json'},
       );
@@ -88,7 +125,10 @@ Widget _buildReportsScreen(List<http.Request> requests) {
   );
 }
 
-Map<String, dynamic> _responseFor(http.Request request) {
+Map<String, dynamic> _responseFor(
+  http.Request request, {
+  bool paginatedSettlements = false,
+}) {
   final path = request.url.path;
   if (path == '/rpc/staff/reports/summary') {
     return {
@@ -103,6 +143,25 @@ Map<String, dynamic> _responseFor(http.Request request) {
     };
   }
   if (path == '/rpc/staff/reports/settlements') {
+    if (paginatedSettlements && request.url.queryParameters['offset'] == '2') {
+      return {
+        'settlements': [
+          {
+            'settlementId': 'settlement-3',
+            'sessionId': 'session-3',
+            'playerId': 'player-3',
+            'playerDisplayName': 'C',
+            'startedAt': '2026-07-04T12:00:00.000Z',
+            'endedAt': '2026-07-04T13:00:00.000Z',
+            'settledAt': '2026-07-04T13:05:00.000Z',
+            'durationMinutes': 60,
+            'subtotal': 50,
+            'total': 50,
+          },
+        ],
+        'page': {'limit': 50, 'offset': 2, 'hasMore': false},
+      };
+    }
     return {
       'settlements': [
         {
@@ -130,6 +189,7 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'total': 88,
         },
       ],
+      'page': {'limit': 50, 'offset': 0, 'hasMore': paginatedSettlements},
     };
   }
   if (path == '/rpc/staff/reports/players') {

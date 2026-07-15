@@ -11,6 +11,31 @@ import 'package:prism_dashboard/src/features/players/players_screen.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
+  testWidgets('read-only staff cannot mutate player data', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests, canWrite: false));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '添加玩家'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '发放资产'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, '调整钱包'))
+          .onPressed,
+      isNull,
+    );
+  });
+
   testWidgets('renders player list and selected player detail', (tester) async {
     final requests = <http.Request>[];
     await tester.pumpWidget(_buildPlayersScreen(requests));
@@ -25,13 +50,16 @@ void main() {
     expect(find.text('离店'), findsOneWidget);
     expect(find.text('钱包资产'), findsOneWidget);
     expect(find.text('实存余额'), findsWidgets);
-    expect(find.textContaining('已过期'), findsOneWidget);
+    expect(find.text('无效（1）'), findsOneWidget);
+    expect(find.text('过期活动券'), findsNothing);
     expect(find.textContaining('2026-07-05'), findsWidgets);
     await tester.ensureVisible(find.text('资产流水'));
     expect(find.textContaining('迁移记录'), findsOneWidget);
     expect(find.textContaining('2026-07-05'), findsWidgets);
     expect(find.textContaining('legacy.UPDATE'), findsNothing);
     expect(find.text('QQ 826225045'), findsWidgets);
+    await tester.ensureVisible(find.text('月饼礼物'));
+    await tester.pumpAndSettle();
     expect(find.text('兑换记录'), findsOneWidget);
     expect(find.text('月饼礼物'), findsOneWidget);
     expect(find.textContaining('WELCOME-USED'), findsOneWidget);
@@ -40,6 +68,36 @@ void main() {
     expect(find.text('音游区间'), findsWidgets);
     expect(find.text('四口麻将'), findsWidgets);
     expect(find.text('2 项'), findsOneWidget);
+  });
+
+  testWidgets('filters current holdings by backend asset availability', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.pumpAndSettle();
+
+    expect(find.text('实存余额'), findsWidgets);
+    expect(find.text('过期活动券'), findsNothing);
+
+    final unavailableFilter = find.byKey(
+      const ValueKey('asset-filter-unavailable'),
+    );
+    await tester.ensureVisible(unavailableFilter);
+    await tester.tap(unavailableFilter);
+    await tester.pumpAndSettle();
+
+    expect(find.text('实存余额'), findsOneWidget);
+    expect(find.text('过期活动券'), findsOneWidget);
+    expect(find.textContaining('持有记录已过期'), findsOneWidget);
+    expect(find.text('无效'), findsOneWidget);
+
+    final allFilter = find.byKey(const ValueKey('asset-filter-all'));
+    await tester.ensureVisible(allFilter);
+    await tester.tap(allFilter);
+    await tester.pumpAndSettle();
+    expect(find.text('过期活动券'), findsOneWidget);
+    expect(find.text('实存余额'), findsWidgets);
   });
 
   testWidgets('opens ledger and session record detail pages', (tester) async {
@@ -62,6 +120,15 @@ void main() {
     expect(find.text('计时详情'), findsOneWidget);
     expect(find.text('计时时长'), findsOneWidget);
     expect(find.text('45 分钟'), findsOneWidget);
+    expect(find.text('音游计时费'), findsOneWidget);
+    expect(
+      requests.any(
+        (request) =>
+            request.url.path ==
+            '/rpc/staff/players/player-a/sessions/session-1/history',
+      ),
+      true,
+    );
   });
 
   testWidgets('filters player list by migrated QQ binding', (tester) async {
@@ -196,11 +263,42 @@ void main() {
         jsonDecode(adjustment.body)['adjustments'].first['quantityDelta'],
         -1,
       );
+      expect(
+        jsonDecode(adjustment.body)['adjustments'].first['holdingId'],
+        'holding-1',
+      );
     },
   );
+
+  testWidgets('wallet can be adjusted through the dedicated endpoint', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPlayersScreen(requests));
+    await tester.pumpAndSettle();
+
+    final button = find.widgetWithText(OutlinedButton, '调整钱包');
+    await tester.ensureVisible(button);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '变动金额'), '-20');
+    await tester.enterText(find.widgetWithText(TextField, '处理原因'), '退款冲正');
+    await tester.tap(find.text('确认调整'));
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/players/player-a/wallet/adjustment',
+    );
+    expect(jsonDecode(request.body), {'amount': -20, 'reason': '退款冲正'});
+  });
 }
 
-Widget _buildPlayersScreen(List<http.Request> requests) {
+Widget _buildPlayersScreen(
+  List<http.Request> requests, {
+  bool canWrite = true,
+}) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
     token: 'staff-token',
@@ -220,7 +318,7 @@ Widget _buildPlayersScreen(List<http.Request> requests) {
       theme: buildPrismDashboardTheme(
         ColorScheme.fromSeed(seedColor: prismSeedColor),
       ),
-      home: const Scaffold(body: PlayersScreen()),
+      home: Scaffold(body: PlayersScreen(canWrite: canWrite)),
     ),
   );
 }
@@ -285,9 +383,23 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'assetCode': 'paid',
           'assetName': '实存余额',
           'quantity': 120,
+          'activeAt': null,
+          'expiresAt': null,
+          'metadata': null,
+          'availability': 'available',
+          'unavailableReasons': [],
+        },
+        {
+          'id': 'holding-expired',
+          'assetType': 'ticket',
+          'assetCode': 'event.old',
+          'assetName': '过期活动券',
+          'quantity': 1,
           'activeAt': '2026-07-01T00:00:00.000Z',
           'expiresAt': '2026-07-04T23:59:00.000Z',
           'metadata': null,
+          'availability': 'unavailable',
+          'unavailableReasons': ['holding_expired'],
         },
       ],
       'ledgerEntries': [
@@ -331,6 +443,31 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'settledAt': null,
         },
       ],
+    };
+  }
+  if (path == '/rpc/staff/players/player-a/sessions/session-1/history') {
+    return {
+      'session': {
+        'sessionId': 'session-1',
+        'startedAt': '2026-07-05T10:00:00.000Z',
+        'endedAt': null,
+        'durationMinutes': 45,
+        'subtotal': 30,
+        'total': 25,
+        'status': 'active',
+        'settledAt': null,
+        'chargeItems': [
+          {
+            'id': 'charge-1',
+            'source': 'pricing-music',
+            'label': '音游计时费',
+            'amount': 30,
+          },
+        ],
+        'adjustments': [
+          {'id': 'adjust-1', 'source': 'coupon', 'label': '抵扣券', 'amount': -5},
+        ],
+      },
     };
   }
   if (path == '/rpc/staff/players/player-a/redeem-records') {

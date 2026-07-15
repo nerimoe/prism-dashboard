@@ -12,6 +12,33 @@ import 'package:prism_dashboard/src/features/pricing/pricing_screen.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
+  testWidgets('read-only staff cannot save or archive pricing configs', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildPricingScreen(requests, canWrite: false));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, '新建方案'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '保存方案'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, '归档'))
+          .onPressed,
+      isNull,
+    );
+  });
+
   testWidgets('renders pricing config editor with structured controls', (
     tester,
   ) async {
@@ -159,10 +186,7 @@ void main() {
 
     expect(find.text('全局封顶金额'), findsNothing);
     expect(find.text('计费单位（分钟）'), findsOneWidget);
-    expect(
-      find.textContaining('已有方案不能直接切换类型'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('已有方案不能直接切换类型'), findsOneWidget);
     expect(
       requests.where(
         (request) =>
@@ -565,6 +589,7 @@ Widget _buildPricingScreen(
   bool includeCap = false,
   bool scopedRules = false,
   bool decimalPricing = false,
+  bool canWrite = true,
 }) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
@@ -595,7 +620,7 @@ Widget _buildPricingScreen(
       theme: buildPrismDashboardTheme(
         ColorScheme.fromSeed(seedColor: prismSeedColor),
       ),
-      home: const Scaffold(body: PricingScreen()),
+      home: Scaffold(body: PricingScreen(canWrite: canWrite)),
     ),
   );
 }

@@ -208,11 +208,7 @@ void main() {
       testWidgets('DateTimeText formats date correctly', (tester) async {
         final date = DateTime.utc(2026, 7, 4, 12, 30);
         await tester.pumpWidget(buildTestableWidget(DateTimeText(value: date)));
-        // Generates local formatted string
-        final local = date.toLocal();
-        final text =
-            '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-        expect(find.text(text), findsOneWidget);
+        expect(find.text('2026-07-04 20:30'), findsOneWidget);
       });
     });
 

@@ -362,6 +362,7 @@ Map<String, dynamic> _$AssetDefinitionToJson(_AssetDefinition instance) =>
 
 _AssetHolding _$AssetHoldingFromJson(Map<String, dynamic> json) =>
     _AssetHolding(
+      id: json['id'] as String,
       assetType: json['assetType'] as String,
       assetCode: json['assetCode'] as String,
       assetName: json['assetName'] as String?,
@@ -372,16 +373,25 @@ _AssetHolding _$AssetHoldingFromJson(Map<String, dynamic> json) =>
       expiresAt: json['expiresAt'] == null
           ? null
           : DateTime.parse(json['expiresAt'] as String),
+      availability: json['availability'] as String? ?? 'available',
+      unavailableReasons:
+          (json['unavailableReasons'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$AssetHoldingToJson(_AssetHolding instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'assetType': instance.assetType,
       'assetCode': instance.assetCode,
       'assetName': instance.assetName,
       'amount': instance.amount,
       'activeAt': instance.activeAt?.toIso8601String(),
       'expiresAt': instance.expiresAt?.toIso8601String(),
+      'availability': instance.availability,
+      'unavailableReasons': instance.unavailableReasons,
     };
 
 _AssetLedgerEntry _$AssetLedgerEntryFromJson(Map<String, dynamic> json) =>
@@ -649,7 +659,7 @@ _UnitPricing _$UnitPricingFromJson(Map<String, dynamic> json) => _UnitPricing(
   endMinute: (json['endMinute'] as num?)?.toInt() ?? 0,
   startTime: readStartTime(json, 'startTime') as String,
   endTime: readEndTime(json, 'endTime') as String,
-  price: readTimelinePrice(json, 'price') as num,
+  price: readTimelinePrice(json, 'price') as num? ?? 0,
   isClosed: json['isClosed'] as bool? ?? false,
   label: json['label'] as String?,
 );

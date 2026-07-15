@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api_client.dart';
 import 'api/models.dart';
+import 'shared/admin_time_zone.dart';
 
 const _baseUrlKey = 'prism.dashboard.api.baseurl';
 const _tokenKey = 'prism.dashboard.admin.token';
@@ -33,12 +34,14 @@ class AppState {
     required this.token,
     required this.setupStatus,
     required this.staff,
+    this.oneTimeApiTokens = const [],
   });
 
   final String baseUrl;
   final String? token;
   final SetupStatus? setupStatus;
   final CurrentStaff? staff;
+  final List<ApiToken> oneTimeApiTokens;
 
   bool get isInstalled => setupStatus?.installed ?? true;
   bool get isAuthenticated => staff != null && token != null;
@@ -50,12 +53,17 @@ class AppState {
     SetupStatus? setupStatus,
     CurrentStaff? staff,
     bool clearStaff = false,
+    List<ApiToken>? oneTimeApiTokens,
+    bool clearOneTimeApiTokens = false,
   }) {
     return AppState(
       baseUrl: baseUrl ?? this.baseUrl,
       token: clearToken ? null : token ?? this.token,
       setupStatus: setupStatus ?? this.setupStatus,
       staff: clearStaff ? null : staff ?? this.staff,
+      oneTimeApiTokens: clearOneTimeApiTokens
+          ? const []
+          : oneTimeApiTokens ?? this.oneTimeApiTokens,
     );
   }
 }
@@ -79,6 +87,13 @@ class AppController extends AsyncNotifier<AppState> {
       if (token != null) await _prefs.remove(_tokenKey);
     } catch (_) {
       setupStatus = null;
+    }
+    if (staff != null) {
+      try {
+        setAdminTimeZone((await client.getSettings()).timeZone);
+      } catch (_) {
+        setAdminTimeZone(defaultAdminTimeZone);
+      }
     }
 
     return AppState(
@@ -122,18 +137,30 @@ class AppController extends AsyncNotifier<AppState> {
     required int coinCooldownMs,
   }) async {
     final current = state.value!;
-    await PrismApiClient(baseUrl: current.baseUrl).install(
-      storeName: storeName,
-      timeZone: timeZone,
-      username: username,
-      displayName: displayName,
-      password: password,
-      coinCooldownMs: coinCooldownMs,
+    final installResult = await PrismApiClient(baseUrl: current.baseUrl)
+        .install(
+          storeName: storeName,
+          timeZone: timeZone,
+          username: username,
+          displayName: displayName,
+          password: password,
+          coinCooldownMs: coinCooldownMs,
+        );
+    final oneTimeApiTokens = listOf(
+      installResult['apiTokens'],
+      ApiToken.fromJson,
     );
+    setAdminTimeZone(timeZone);
     state = AsyncData(
       current.copyWith(setupStatus: const SetupStatus(installed: true)),
     );
     await login(username: username, password: password);
+    final authenticated = state.value;
+    if (authenticated != null && oneTimeApiTokens.isNotEmpty) {
+      state = AsyncData(
+        authenticated.copyWith(oneTimeApiTokens: oneTimeApiTokens),
+      );
+    }
   }
 
   Future<void> login({
@@ -144,15 +171,40 @@ class AppController extends AsyncNotifier<AppState> {
     final result = await PrismApiClient(
       baseUrl: current.baseUrl,
     ).login(username: username, password: password);
+    try {
+      final settings = await PrismApiClient(
+        baseUrl: current.baseUrl,
+        token: result.$1,
+      ).getSettings();
+      setAdminTimeZone(settings.timeZone);
+    } catch (_) {
+      setAdminTimeZone(defaultAdminTimeZone);
+    }
     await _prefs.setString(_tokenKey, result.$1);
     state = AsyncData(current.copyWith(token: result.$1, staff: result.$2));
   }
 
   Future<void> logout() async {
     final current = state.value;
+    if (current?.token != null) {
+      try {
+        await PrismApiClient(
+          baseUrl: current!.baseUrl,
+          token: current.token,
+        ).logout();
+      } catch (_) {
+        // Local logout still proceeds when the server is unreachable.
+      }
+    }
     await _prefs.remove(_tokenKey);
     if (current != null) {
       state = AsyncData(current.copyWith(clearToken: true, clearStaff: true));
     }
+  }
+
+  void clearOneTimeApiTokens() {
+    final current = state.value;
+    if (current == null || current.oneTimeApiTokens.isEmpty) return;
+    state = AsyncData(current.copyWith(clearOneTimeApiTokens: true));
   }
 }

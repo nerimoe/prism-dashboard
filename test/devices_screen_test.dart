@@ -8,9 +8,20 @@ import 'package:http/testing.dart';
 import 'package:prism_dashboard/src/api/api_client.dart';
 import 'package:prism_dashboard/src/app_state.dart';
 import 'package:prism_dashboard/src/features/devices/devices_screen.dart';
+import 'package:prism_dashboard/src/shared/admin_time_zone.dart';
 import 'package:prism_dashboard/src/theme.dart';
 
 void main() {
+  testWidgets('read-only staff cannot send device commands', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildDevicesScreen(requests, canWrite: false));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, '开门'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '投币'), findsNothing);
+    expect(requests.where((request) => request.method == 'POST'), isEmpty);
+  });
+
   testWidgets('device dashboard separates facilities and game machines', (
     tester,
   ) async {
@@ -118,9 +129,72 @@ void main() {
       true,
     );
   });
+
+  testWidgets('facility controls support doors and air conditioners', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildDevicesScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '开门'));
+    await tester.tap(find.widgetWithText(FilledButton, '开门'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, '设置温度'));
+    await tester.tap(find.widgetWithText(OutlinedButton, '设置温度'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '目标温度（°C）'), '22');
+    await tester.tap(find.text('发送指令'));
+    await tester.pumpAndSettle();
+
+    final actions = requests
+        .where(
+          (request) =>
+              request.method == 'POST' &&
+              request.url.path == '/rpc/staff/device-actions',
+        )
+        .map((request) => jsonDecode(request.body))
+        .toList();
+    expect(actions, [
+      {
+        'type': 'door.open',
+        'target': {'kind': 'facility', 'id': 'door-1'},
+      },
+      {
+        'type': 'ac.set_temperature',
+        'target': {'kind': 'facility', 'id': 'climate.main'},
+        'payload': {'temperature': 22},
+      },
+    ]);
+  });
+
+  testWidgets('online game machines expose their reported actions', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildDevicesScreen(requests));
+    await tester.pumpAndSettle();
+
+    final coin = find.widgetWithText(FilledButton, '投币');
+    await tester.ensureVisible(coin);
+    await tester.tap(coin);
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'POST' &&
+          request.url.path == '/rpc/staff/device-actions',
+    );
+    expect(jsonDecode(request.body), {
+      'type': 'coin',
+      'target': {'kind': 'game_machine', 'id': 'maimai-dx-1'},
+      'payload': {'count': 1},
+    });
+  });
 }
 
-Widget _buildDevicesScreen(List<http.Request> requests) {
+Widget _buildDevicesScreen(List<http.Request> requests, {bool? canWrite}) {
   final api = PrismApiClient(
     baseUrl: 'https://prism.example',
     token: 'staff-token',
@@ -140,7 +214,7 @@ Widget _buildDevicesScreen(List<http.Request> requests) {
       theme: buildPrismDashboardTheme(
         ColorScheme.fromSeed(seedColor: prismSeedColor),
       ),
-      home: const Scaffold(body: DevicesScreen()),
+      home: Scaffold(body: DevicesScreen(canWrite: canWrite)),
     ),
   );
 }
@@ -263,17 +337,21 @@ Map<String, dynamic> _responseFor(http.Request request) {
     };
   }
   if (path == '/rpc/staff/device-actions') {
+    final body = jsonDecode(request.body) as Map<String, dynamic>;
+    final target = body['target'] as Map<String, dynamic>;
     return {
       'action': {
         'id': 'cmd-power-off',
-        'type': 'power.off',
-        'deviceId': 'switch.wacca',
-        'target': {'kind': 'facility', 'id': 'switch.wacca'},
-        'executorKind': 'home_assistant',
+        'type': body['type'],
+        'deviceId': target['id'],
+        'target': target,
+        'executorKind': target['kind'] == 'facility'
+            ? 'home_assistant'
+            : 'machine_ws',
         'playerId': null,
         'staffId': 'staff',
         'status': 'acked',
-        'payload': {'state': 'off'},
+        'payload': body['payload'],
         'requestedAt': '2026-07-04T12:37:00.000Z',
         'ackedAt': '2026-07-04T12:37:01.000Z',
         'expiredAt': null,
@@ -284,7 +362,7 @@ Map<String, dynamic> _responseFor(http.Request request) {
 }
 
 String _expectedDateTime(String iso) {
-  final local = DateTime.parse(iso).toLocal();
+  final local = toAdminTime(DateTime.parse(iso));
   String two(int value) => value.toString().padLeft(2, '0');
   return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
 }

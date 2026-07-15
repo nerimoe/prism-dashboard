@@ -41,19 +41,20 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   DashboardDestination _destination = DashboardDestination.operations;
   String? _targetPlayerId;
+  bool _showingSetupTokens = false;
 
   @override
   Widget build(BuildContext context) {
+    if (widget.appState.oneTimeApiTokens.isNotEmpty && !_showingSetupTokens) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showSetupTokens());
+    }
     final content = _contentFor(_destination);
     if (context.isCompact) {
       return Scaffold(
         appBar: AppBar(
           title: Text(_destination.title),
           actions: [
-            _StaffMenu(
-              staff: widget.appState.staff!,
-              onLogout: _logout,
-            ),
+            _StaffMenu(staff: widget.appState.staff!, onLogout: _logout),
           ],
         ),
         body: content,
@@ -100,29 +101,77 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   Widget _contentFor(DashboardDestination destination) {
+    final canWrite = widget.appState.staff?.canWrite ?? false;
     return switch (destination) {
-      DashboardDestination.operations => const OperationsScreen(),
+      DashboardDestination.operations => OperationsScreen(canWrite: canWrite),
       DashboardDestination.players => PlayersScreen(
         initialPlayerId: _targetPlayerId,
+        canWrite: canWrite,
       ),
       DashboardDestination.assets => AssetsScreen(
+        canWrite: canWrite,
         onOpenPlayer: (playerId) => setState(() {
           _targetPlayerId = playerId;
           _destination = DashboardDestination.players;
         }),
       ),
-      DashboardDestination.pricing => const PricingScreen(),
+      DashboardDestination.pricing => PricingScreen(canWrite: canWrite),
       DashboardDestination.services => const ServicesScreen(),
-      DashboardDestination.devices => const DevicesScreen(),
+      DashboardDestination.devices => DevicesScreen(canWrite: canWrite),
       DashboardDestination.reports => const ReportsScreen(),
       DashboardDestination.system => SystemScreen(
         canWrite: widget.appState.staff?.canWrite,
+        role: widget.appState.staff?.role,
       ),
     };
   }
 
   void _logout() {
     ref.read(appControllerProvider.notifier).logout();
+  }
+
+  Future<void> _showSetupTokens() async {
+    if (!mounted || _showingSetupTokens) return;
+    final tokens = widget.appState.oneTimeApiTokens;
+    if (tokens.isEmpty) return;
+    setState(() => _showingSetupTokens = true);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('请保存初始化接入密钥'),
+        content: SizedBox(
+          width: 620,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('完整密钥只会显示这一次。请分别保存机器人入口和机器软件密钥。'),
+                const SizedBox(height: 16),
+                for (final token in tokens) ...[
+                  Text(
+                    token.label,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 6),
+                  SelectableText(token.token ?? '密钥内容不可用'),
+                  const SizedBox(height: 14),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('我已保存全部密钥'),
+          ),
+        ],
+      ),
+    );
+    ref.read(appControllerProvider.notifier).clearOneTimeApiTokens();
+    if (mounted) setState(() => _showingSetupTokens = false);
   }
 }
 

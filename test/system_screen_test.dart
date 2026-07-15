@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:prism_dashboard/src/api/api_client.dart';
+import 'package:prism_dashboard/src/api/models.dart';
 import 'package:prism_dashboard/src/app_state.dart';
 import 'package:prism_dashboard/src/features/system/system_screen.dart';
 import 'package:prism_dashboard/src/theme.dart';
@@ -31,6 +32,10 @@ void main() {
     expect(jsonDecode(request.body), {
       'store': {'name': '新店名', 'timeZone': 'Asia/Shanghai'},
       'operations': {'coinCooldownMs': 1500},
+      'homeAssistantConnection': {
+        'url': 'https://ha.example',
+        'token': 'ha-secret',
+      },
       'homeAssistantDevices': [],
     });
     expect(find.text('店铺设置已保存。'), findsOneWidget);
@@ -188,6 +193,59 @@ void main() {
     );
     expect(find.text('新建接入密钥'), findsOneWidget);
   });
+
+  testWidgets('manager loads settings without owner-only resources', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    final api = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      token: 'staff-token',
+      httpClient: MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          jsonEncode(_responseFor(request)),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [apiClientProvider.overrideWithValue(api)],
+        child: MaterialApp(
+          theme: buildPrismDashboardTheme(
+            ColorScheme.fromSeed(seedColor: prismSeedColor),
+          ),
+          home: Scaffold(
+            body: SystemScreen(
+              api: api,
+              canWrite: true,
+              role: StaffRole.manager,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('PRiSM 店铺'), findsOneWidget);
+    expect(
+      requests.where((request) => request.url.path == '/rpc/staff/users'),
+      isEmpty,
+    );
+    expect(
+      requests.where((request) => request.url.path == '/rpc/staff/api-tokens'),
+      isEmpty,
+    );
+    await tester.tap(find.text('员工权限').first);
+    await tester.pumpAndSettle();
+    expect(find.text('仅店主可管理员工'), findsOneWidget);
+    await tester.tap(find.text('接入密钥').first);
+    await tester.pumpAndSettle();
+    expect(find.text('仅店主可管理接入密钥'), findsOneWidget);
+  });
 }
 
 Widget _buildSystemScreen(List<http.Request> requests) {
@@ -223,6 +281,11 @@ Map<String, dynamic> _responseFor(http.Request request) {
       'settings': {
         'store': {'name': 'PRiSM 店铺', 'timeZone': 'Asia/Shanghai'},
         'operations': {'coinCooldownMs': 1500},
+        'homeAssistantConnection': {
+          'url': 'https://ha.example',
+          'token': 'ha-secret',
+        },
+        'homeAssistantDevices': [],
       },
     };
   }

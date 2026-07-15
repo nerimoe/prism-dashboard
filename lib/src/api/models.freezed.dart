@@ -4022,7 +4022,7 @@ $PricingEffectCopyWith<$Res>? get pricingEffect {
 /// @nodoc
 mixin _$AssetHolding {
 
- String get assetType; String get assetCode; String? get assetName;@JsonKey(readValue: readAmount) num get amount; DateTime? get activeAt; DateTime? get expiresAt;
+ String get id; String get assetType; String get assetCode; String? get assetName;@JsonKey(readValue: readAmount) num get amount; DateTime? get activeAt; DateTime? get expiresAt; String get availability; List<String> get unavailableReasons;
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4035,16 +4035,16 @@ $AssetHoldingCopyWith<AssetHolding> get copyWith => _$AssetHoldingCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetHolding&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.availability, availability) || other.availability == availability)&&const DeepCollectionEquality().equals(other.unavailableReasons, unavailableReasons));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,assetType,assetCode,assetName,amount,activeAt,expiresAt);
+int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,assetName,amount,activeAt,expiresAt,availability,const DeepCollectionEquality().hash(unavailableReasons));
 
 @override
 String toString() {
-  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, activeAt: $activeAt, expiresAt: $expiresAt)';
+  return 'AssetHolding(id: $id, assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, activeAt: $activeAt, expiresAt: $expiresAt, availability: $availability, unavailableReasons: $unavailableReasons)';
 }
 
 
@@ -4055,7 +4055,7 @@ abstract mixin class $AssetHoldingCopyWith<$Res>  {
   factory $AssetHoldingCopyWith(AssetHolding value, $Res Function(AssetHolding) _then) = _$AssetHoldingCopyWithImpl;
 @useResult
 $Res call({
- String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount, DateTime? activeAt, DateTime? expiresAt
+ String id, String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount, DateTime? activeAt, DateTime? expiresAt, String availability, List<String> unavailableReasons
 });
 
 
@@ -4072,15 +4072,18 @@ class _$AssetHoldingCopyWithImpl<$Res>
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? activeAt = freezed,Object? expiresAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? activeAt = freezed,Object? expiresAt = freezed,Object? availability = null,Object? unavailableReasons = null,}) {
   return _then(_self.copyWith(
-assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
 as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,availability: null == availability ? _self.availability : availability // ignore: cast_nullable_to_non_nullable
+as String,unavailableReasons: null == unavailableReasons ? _self.unavailableReasons : unavailableReasons // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -4165,10 +4168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt,  String availability,  List<String> unavailableReasons)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
-return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt,_that.availability,_that.unavailableReasons);case _:
   return orElse();
 
 }
@@ -4186,10 +4189,10 @@ return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt,  String availability,  List<String> unavailableReasons)  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding():
-return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt,_that.availability,_that.unavailableReasons);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -4206,10 +4209,10 @@ return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String assetType,  String assetCode,  String? assetName, @JsonKey(readValue: readAmount)  num amount,  DateTime? activeAt,  DateTime? expiresAt,  String availability,  List<String> unavailableReasons)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetHolding() when $default != null:
-return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt);case _:
+return $default(_that.id,_that.assetType,_that.assetCode,_that.assetName,_that.amount,_that.activeAt,_that.expiresAt,_that.availability,_that.unavailableReasons);case _:
   return null;
 
 }
@@ -4221,15 +4224,24 @@ return $default(_that.assetType,_that.assetCode,_that.assetName,_that.amount,_th
 @JsonSerializable()
 
 class _AssetHolding implements AssetHolding {
-  const _AssetHolding({required this.assetType, required this.assetCode, this.assetName, @JsonKey(readValue: readAmount) required this.amount, this.activeAt, this.expiresAt});
+  const _AssetHolding({required this.id, required this.assetType, required this.assetCode, this.assetName, @JsonKey(readValue: readAmount) required this.amount, this.activeAt, this.expiresAt, this.availability = 'available', final  List<String> unavailableReasons = const []}): _unavailableReasons = unavailableReasons;
   factory _AssetHolding.fromJson(Map<String, dynamic> json) => _$AssetHoldingFromJson(json);
 
+@override final  String id;
 @override final  String assetType;
 @override final  String assetCode;
 @override final  String? assetName;
 @override@JsonKey(readValue: readAmount) final  num amount;
 @override final  DateTime? activeAt;
 @override final  DateTime? expiresAt;
+@override@JsonKey() final  String availability;
+ final  List<String> _unavailableReasons;
+@override@JsonKey() List<String> get unavailableReasons {
+  if (_unavailableReasons is EqualUnmodifiableListView) return _unavailableReasons;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_unavailableReasons);
+}
+
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
@@ -4244,16 +4256,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetHolding&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetHolding&&(identical(other.id, id) || other.id == id)&&(identical(other.assetType, assetType) || other.assetType == assetType)&&(identical(other.assetCode, assetCode) || other.assetCode == assetCode)&&(identical(other.assetName, assetName) || other.assetName == assetName)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.activeAt, activeAt) || other.activeAt == activeAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.availability, availability) || other.availability == availability)&&const DeepCollectionEquality().equals(other._unavailableReasons, _unavailableReasons));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,assetType,assetCode,assetName,amount,activeAt,expiresAt);
+int get hashCode => Object.hash(runtimeType,id,assetType,assetCode,assetName,amount,activeAt,expiresAt,availability,const DeepCollectionEquality().hash(_unavailableReasons));
 
 @override
 String toString() {
-  return 'AssetHolding(assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, activeAt: $activeAt, expiresAt: $expiresAt)';
+  return 'AssetHolding(id: $id, assetType: $assetType, assetCode: $assetCode, assetName: $assetName, amount: $amount, activeAt: $activeAt, expiresAt: $expiresAt, availability: $availability, unavailableReasons: $unavailableReasons)';
 }
 
 
@@ -4264,7 +4276,7 @@ abstract mixin class _$AssetHoldingCopyWith<$Res> implements $AssetHoldingCopyWi
   factory _$AssetHoldingCopyWith(_AssetHolding value, $Res Function(_AssetHolding) _then) = __$AssetHoldingCopyWithImpl;
 @override @useResult
 $Res call({
- String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount, DateTime? activeAt, DateTime? expiresAt
+ String id, String assetType, String assetCode, String? assetName,@JsonKey(readValue: readAmount) num amount, DateTime? activeAt, DateTime? expiresAt, String availability, List<String> unavailableReasons
 });
 
 
@@ -4281,15 +4293,18 @@ class __$AssetHoldingCopyWithImpl<$Res>
 
 /// Create a copy of AssetHolding
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? activeAt = freezed,Object? expiresAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? assetType = null,Object? assetCode = null,Object? assetName = freezed,Object? amount = null,Object? activeAt = freezed,Object? expiresAt = freezed,Object? availability = null,Object? unavailableReasons = null,}) {
   return _then(_AssetHolding(
-assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,assetType: null == assetType ? _self.assetType : assetType // ignore: cast_nullable_to_non_nullable
 as String,assetCode: null == assetCode ? _self.assetCode : assetCode // ignore: cast_nullable_to_non_nullable
 as String,assetName: freezed == assetName ? _self.assetName : assetName // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,activeAt: freezed == activeAt ? _self.activeAt : activeAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,availability: null == availability ? _self.availability : availability // ignore: cast_nullable_to_non_nullable
+as String,unavailableReasons: null == unavailableReasons ? _self._unavailableReasons : unavailableReasons // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -7111,7 +7126,7 @@ return $default(_that.ruleId,_that.startMinute,_that.endMinute,_that.startTime,_
 @JsonSerializable()
 
 class _UnitPricing implements UnitPricing {
-  const _UnitPricing({this.ruleId = '', this.startMinute = 0, this.endMinute = 0, @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, @JsonKey(readValue: readTimelinePrice) required this.price, this.isClosed = false, this.label});
+  const _UnitPricing({this.ruleId = '', this.startMinute = 0, this.endMinute = 0, @JsonKey(readValue: readStartTime) required this.startTime, @JsonKey(readValue: readEndTime) required this.endTime, @JsonKey(readValue: readTimelinePrice) this.price = 0, this.isClosed = false, this.label});
   factory _UnitPricing.fromJson(Map<String, dynamic> json) => _$UnitPricingFromJson(json);
 
 @override@JsonKey() final  String ruleId;

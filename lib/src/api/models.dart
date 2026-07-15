@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../shared/admin_time_zone.dart';
+
 part 'models.freezed.dart';
 part 'models.g.dart';
 
@@ -258,16 +260,23 @@ abstract class AssetDefinition with _$AssetDefinition {
 @freezed
 abstract class AssetHolding with _$AssetHolding {
   const factory AssetHolding({
+    required String id,
     required String assetType,
     required String assetCode,
     String? assetName,
     @JsonKey(readValue: readAmount) required num amount,
     DateTime? activeAt,
     DateTime? expiresAt,
+    @Default('available') String availability,
+    @Default([]) List<String> unavailableReasons,
   }) = _AssetHolding;
 
   factory AssetHolding.fromJson(Map<String, dynamic> json) =>
       _$AssetHoldingFromJson(json);
+}
+
+extension AssetHoldingAvailability on AssetHolding {
+  bool get isAvailable => availability == 'available';
 }
 
 @freezed
@@ -436,7 +445,7 @@ abstract class UnitPricing with _$UnitPricing {
     @Default(0) int endMinute,
     @JsonKey(readValue: readStartTime) required String startTime,
     @JsonKey(readValue: readEndTime) required String endTime,
-    @JsonKey(readValue: readTimelinePrice) required num price,
+    @JsonKey(readValue: readTimelinePrice) @Default(0) num price,
     @Default(false) bool isClosed,
     String? label,
   }) = _UnitPricing;
@@ -604,6 +613,13 @@ abstract class PlayerReportRow with _$PlayerReportRow {
 
   factory PlayerReportRow.fromJson(Map<String, dynamic> json) =>
       _$PlayerReportRowFromJson(json);
+}
+
+class ReportPage<T> {
+  const ReportPage({required this.items, required this.hasMore});
+
+  final List<T> items;
+  final bool hasMore;
 }
 
 @freezed
@@ -815,7 +831,7 @@ String formatMoney(num? value) {
 }
 
 String formatClock(DateTime value) {
-  final local = value.toLocal();
+  final local = toAdminTime(value);
   final hour = local.hour.toString().padLeft(2, '0');
   final minute = local.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
