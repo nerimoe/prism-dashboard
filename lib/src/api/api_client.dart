@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'models.dart';
+import '../version.dart';
 
 class PrismApiException implements Exception {
   const PrismApiException(this.message, this.code, this.status);
@@ -29,6 +30,10 @@ class PrismApiClient {
       token: token ?? this.token,
       httpClient: _http,
     );
+  }
+
+  Future<PrismVersion> getVersion() async {
+    return PrismVersion.fromJson(await get('/version', auth: false));
   }
 
   Future<SetupStatus> setupStatus() async {
@@ -153,7 +158,7 @@ class PrismApiClient {
   // Staff APIs from rpc manifest
   Future<List<StaffUser>> listStaffUsers() async {
     final json = await get('/rpc/staff/users');
-    return listOf(json['staffUsers'] ?? json['users'], StaffUser.fromJson);
+    return listOf(json['staffUsers'], StaffUser.fromJson);
   }
 
   Future<StaffUser> createStaffUser({
@@ -243,7 +248,7 @@ class PrismApiClient {
 
   Future<List<ApiToken>> listApiTokens() async {
     final json = await get('/rpc/staff/api-tokens');
-    return listOf(json['apiTokens'] ?? json['tokens'], ApiToken.fromJson);
+    return listOf(json['apiTokens'], ApiToken.fromJson);
   }
 
   Future<ApiToken> createApiToken({
@@ -504,10 +509,7 @@ class PrismApiClient {
 
   Future<List<AssetDefinition>> listAssetDefinitions() async {
     final json = await get('/rpc/staff/asset-definitions');
-    return listOf(
-      json['assetDefinitions'] ?? json['definitions'],
-      AssetDefinition.fromJson,
-    );
+    return listOf(json['assetDefinitions'], AssetDefinition.fromJson);
   }
 
   Future<List<PricingEffect>> listPricingEffects() async {
@@ -590,10 +592,7 @@ class PrismApiClient {
 
   Future<List<BusinessItem>> listBusinessItems() async {
     final json = await get('/rpc/staff/business-items');
-    return listOf(
-      json['businessItems'] ?? json['items'],
-      BusinessItem.fromJson,
-    );
+    return listOf(json['businessItems'], BusinessItem.fromJson);
   }
 
   Future<BusinessItem> createBusinessItem({
@@ -619,7 +618,7 @@ class PrismApiClient {
         'metadata': metadata,
       },
     );
-    final item = (json['businessItem'] ?? json['item']) as Map;
+    final item = json['businessItem'] as Map;
     return BusinessItem.fromJson(item.cast<String, dynamic>());
   }
 
@@ -633,10 +632,7 @@ class PrismApiClient {
 
   Future<List<BusinessItemOrder>> listBusinessItemOrders() async {
     final json = await get('/rpc/staff/business-item-orders');
-    return listOf(
-      json['businessItemOrders'] ?? json['orders'],
-      BusinessItemOrder.fromJson,
-    );
+    return listOf(json['businessItemOrders'], BusinessItemOrder.fromJson);
   }
 
   Future<void> fulfillBusinessItemOrder(String orderId) async {
@@ -649,10 +645,7 @@ class PrismApiClient {
 
   Future<List<PricingConfig>> listPricingConfigs() async {
     final json = await get('/rpc/staff/pricing-configs');
-    return listOf(
-      json['pricingConfigs'] ?? json['configs'],
-      PricingConfig.fromJson,
-    );
+    return listOf(json['pricingConfigs'], PricingConfig.fromJson);
   }
 
   Future<PricingTimeline> getPricingTimeline(
@@ -721,7 +714,7 @@ class PrismApiClient {
             : _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
-    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    final config = json['pricingConfig'] as Map;
     return PricingConfig.fromJson(config.cast<String, dynamic>());
   }
 
@@ -748,7 +741,7 @@ class PrismApiClient {
             : _timePricingProvider(rules: rules, providerId: providerId),
       },
     );
-    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    final config = json['pricingConfig'] as Map;
     return PricingConfig.fromJson(config.cast<String, dynamic>());
   }
 
@@ -772,7 +765,7 @@ class PrismApiClient {
         },
       },
     );
-    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    final config = json['pricingConfig'] as Map;
     return PricingConfig.fromJson(config.cast<String, dynamic>());
   }
 
@@ -796,7 +789,7 @@ class PrismApiClient {
         },
       },
     );
-    final config = (json['pricingConfig'] ?? json['config']) as Map;
+    final config = json['pricingConfig'] as Map;
     return PricingConfig.fromJson(config.cast<String, dynamic>());
   }
 
@@ -810,18 +803,12 @@ class PrismApiClient {
 
   Future<List<DeviceState>> listDeviceStates() async {
     final json = await get('/rpc/staff/device-states');
-    return listOf(
-      json['deviceStates'] ?? json['devices'],
-      DeviceState.fromJson,
-    );
+    return listOf(json['deviceStates'], DeviceState.fromJson);
   }
 
   Future<List<MachineConnection>> listMachineConnections() async {
     final json = await get('/rpc/staff/machine-connections');
-    return listOf(
-      json['machineConnections'] ?? json['machines'],
-      MachineConnection.fromJson,
-    );
+    return listOf(json['machineConnections'], MachineConnection.fromJson);
   }
 
   Future<List<DeviceCommand>> listDeviceCommands() async {
@@ -832,18 +819,21 @@ class PrismApiClient {
   Future<DeviceCommand> requestStaffDeviceAction({
     required String type,
     required String targetKind,
-    required String deviceId,
+    required String deviceRef,
     Map<String, dynamic>? payload,
   }) async {
     final json = await post(
       '/rpc/staff/device-actions',
       body: {
         'type': type,
-        'target': {'kind': targetKind, 'id': deviceId},
+        'target': {
+          'kind': targetKind,
+          if (targetKind == 'facility') 'ref': deviceRef else 'id': deviceRef,
+        },
         if (payload != null) 'payload': payload,
       },
     );
-    final action = (json['action'] ?? json['command']) as Map;
+    final action = json['action'] as Map;
     return DeviceCommand.fromJson(action.cast<String, dynamic>());
   }
 
@@ -852,8 +842,7 @@ class PrismApiClient {
       '/rpc/staff/reports/summary',
       query: {if (start != null) 'from': start, if (end != null) 'to': end},
     );
-    final summary = json['summary'] ?? json;
-    return ReportSummary.fromJson((summary as Map).cast<String, dynamic>());
+    return ReportSummary.fromJson(json);
   }
 
   Future<ReportPage<SettlementReportRow>> reportSettlements({

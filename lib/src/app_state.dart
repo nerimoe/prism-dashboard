@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api/api_client.dart';
 import 'api/models.dart';
 import 'shared/admin_time_zone.dart';
+import 'version.dart';
 
 const _baseUrlKey = 'prism.dashboard.api.baseurl';
 const _tokenKey = 'prism.dashboard.admin.token';
@@ -34,6 +35,7 @@ class AppState {
     required this.token,
     required this.setupStatus,
     required this.staff,
+    this.backendVersion,
     this.oneTimeApiTokens = const [],
   });
 
@@ -41,6 +43,7 @@ class AppState {
   final String? token;
   final SetupStatus? setupStatus;
   final CurrentStaff? staff;
+  final PrismVersion? backendVersion;
   final List<ApiToken> oneTimeApiTokens;
 
   bool get isInstalled => setupStatus?.installed ?? true;
@@ -53,6 +56,8 @@ class AppState {
     SetupStatus? setupStatus,
     CurrentStaff? staff,
     bool clearStaff = false,
+    PrismVersion? backendVersion,
+    bool clearBackendVersion = false,
     List<ApiToken>? oneTimeApiTokens,
     bool clearOneTimeApiTokens = false,
   }) {
@@ -61,6 +66,9 @@ class AppState {
       token: clearToken ? null : token ?? this.token,
       setupStatus: setupStatus ?? this.setupStatus,
       staff: clearStaff ? null : staff ?? this.staff,
+      backendVersion: clearBackendVersion
+          ? null
+          : backendVersion ?? this.backendVersion,
       oneTimeApiTokens: clearOneTimeApiTokens
           ? const []
           : oneTimeApiTokens ?? this.oneTimeApiTokens,
@@ -80,6 +88,12 @@ class AppController extends AsyncNotifier<AppState> {
 
     SetupStatus? setupStatus;
     CurrentStaff? staff;
+    PrismVersion? backendVersion;
+    try {
+      backendVersion = await client.getVersion();
+    } catch (_) {
+      backendVersion = null;
+    }
     try {
       setupStatus = await client.setupStatus();
       if (token != null && setupStatus.installed) staff = await client.me();
@@ -101,6 +115,7 @@ class AppController extends AsyncNotifier<AppState> {
       token: staff == null ? null : token,
       setupStatus: setupStatus,
       staff: staff,
+      backendVersion: backendVersion,
     );
   }
 
@@ -116,7 +131,12 @@ class AppController extends AsyncNotifier<AppState> {
                 setupStatus: null,
                 staff: null,
               ))
-          .copyWith(baseUrl: value, clearToken: true, clearStaff: true),
+          .copyWith(
+            baseUrl: value,
+            clearToken: true,
+            clearStaff: true,
+            clearBackendVersion: true,
+          ),
     );
     await refreshSetupStatus();
   }
@@ -124,8 +144,21 @@ class AppController extends AsyncNotifier<AppState> {
   Future<void> refreshSetupStatus() async {
     final current = state.value;
     if (current == null) return;
-    final setup = await PrismApiClient(baseUrl: current.baseUrl).setupStatus();
-    state = AsyncData(current.copyWith(setupStatus: setup));
+    final client = PrismApiClient(baseUrl: current.baseUrl);
+    PrismVersion? backendVersion;
+    try {
+      backendVersion = await client.getVersion();
+    } catch (_) {
+      backendVersion = null;
+    }
+    final setup = await client.setupStatus();
+    state = AsyncData(
+      current.copyWith(
+        setupStatus: setup,
+        backendVersion: backendVersion,
+        clearBackendVersion: backendVersion == null,
+      ),
+    );
   }
 
   Future<void> install({
@@ -171,6 +204,15 @@ class AppController extends AsyncNotifier<AppState> {
     final result = await PrismApiClient(
       baseUrl: current.baseUrl,
     ).login(username: username, password: password);
+    PrismVersion? backendVersion = current.backendVersion;
+    try {
+      backendVersion = await PrismApiClient(
+        baseUrl: current.baseUrl,
+        token: result.$1,
+      ).getVersion();
+    } catch (_) {
+      // Login remains available if an older backend has no version route.
+    }
     try {
       final settings = await PrismApiClient(
         baseUrl: current.baseUrl,
@@ -181,7 +223,13 @@ class AppController extends AsyncNotifier<AppState> {
       setAdminTimeZone(defaultAdminTimeZone);
     }
     await _prefs.setString(_tokenKey, result.$1);
-    state = AsyncData(current.copyWith(token: result.$1, staff: result.$2));
+    state = AsyncData(
+      current.copyWith(
+        token: result.$1,
+        staff: result.$2,
+        backendVersion: backendVersion,
+      ),
+    );
   }
 
   Future<void> logout() async {

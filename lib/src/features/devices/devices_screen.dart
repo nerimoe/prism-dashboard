@@ -144,6 +144,10 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                   );
                   final commandPanel = _CommandAuditPanel(
                     commands: data.commands,
+                    deviceLabels: {
+                      for (final device in data.devices)
+                        device.deviceId: device.label,
+                    },
                   );
 
                   if (compact) {
@@ -193,7 +197,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       label: device.label,
       type: turnOn ? 'power.on' : 'power.off',
       targetKind: device.targetKind,
-      deviceId: device.deviceId,
+      deviceRef: device.label,
       payload: {'state': turnOn ? 'on' : 'off'},
       successLabel: turnOn ? '开机指令已发送' : '关机指令已发送',
     );
@@ -205,7 +209,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       label: device.label,
       type: device.type,
       targetKind: device.targetKind,
-      deviceId: device.deviceId,
+      deviceRef: device.label,
       successLabel: device.type == 'door.open' ? '开门指令已发送' : '指令已发送',
     );
   }
@@ -240,7 +244,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       label: device.label,
       type: 'ac.set_temperature',
       targetKind: device.targetKind,
-      deviceId: device.deviceId,
+      deviceRef: device.label,
       payload: {'temperature': temperature},
       successLabel: '温度设置指令已发送',
     );
@@ -255,7 +259,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       label: machine.machineId,
       type: capability,
       targetKind: 'game_machine',
-      deviceId: machine.machineId,
+      deviceRef: machine.machineId,
       payload: capability == 'coin' ? {'count': 1} : null,
       successLabel: capability == 'coin' ? '投币指令已发送' : 'Aime 读卡指令已发送',
     );
@@ -266,7 +270,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     required String label,
     required String type,
     required String targetKind,
-    required String deviceId,
+    required String deviceRef,
     required String successLabel,
     Map<String, dynamic>? payload,
   }) async {
@@ -276,7 +280,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       final command = await _api.requestStaffDeviceAction(
         type: type,
         targetKind: targetKind,
-        deviceId: deviceId,
+        deviceRef: deviceRef,
         payload: payload,
       );
       if (!mounted) return;
@@ -633,19 +637,9 @@ class _DeviceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _InfoChip(
-                      icon: Icons.memory_outlined,
-                      label: device.deviceId,
-                    ),
-                    _InfoChip(
-                      icon: Icons.schedule,
-                      label: '同步 ${formatAdminDateTime(device.reportedAt)}',
-                    ),
-                  ],
+                _InfoChip(
+                  icon: Icons.schedule,
+                  label: '同步 ${formatAdminDateTime(device.reportedAt)}',
                 ),
               ],
             ),
@@ -743,9 +737,13 @@ class _PowerControls extends StatelessWidget {
 }
 
 class _CommandAuditPanel extends StatelessWidget {
-  const _CommandAuditPanel({required this.commands});
+  const _CommandAuditPanel({
+    required this.commands,
+    required this.deviceLabels,
+  });
 
   final List<DeviceCommand> commands;
+  final Map<String, String> deviceLabels;
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +764,7 @@ class _CommandAuditPanel extends StatelessWidget {
       child: Column(
         children: [
           for (final command in commands.take(12)) ...[
-            _CommandRow(command: command),
+            _CommandRow(command: command, deviceLabels: deviceLabels),
             if (command != commands.take(12).last) const Divider(height: 20),
           ],
         ],
@@ -776,9 +774,10 @@ class _CommandAuditPanel extends StatelessWidget {
 }
 
 class _CommandRow extends StatelessWidget {
-  const _CommandRow({required this.command});
+  const _CommandRow({required this.command, required this.deviceLabels});
 
   final DeviceCommand command;
+  final Map<String, String> deviceLabels;
 
   @override
   Widget build(BuildContext context) {
@@ -800,7 +799,7 @@ class _CommandRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    commandTargetLabel(command),
+                    commandTargetLabel(command, deviceLabels),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -1064,9 +1063,16 @@ String targetLabel(DeviceCommand command) {
   return '设施设备';
 }
 
-String commandTargetLabel(DeviceCommand command) {
+String commandTargetLabel(
+  DeviceCommand command,
+  Map<String, String> deviceLabels,
+) {
   final deviceId = command.deviceId;
   if (deviceId == null || deviceId.isEmpty) return '所有设备';
+  if (command.targetKind == 'facility' ||
+      command.executorKind == 'home_assistant') {
+    return deviceLabels[deviceId] ?? '设施设备';
+  }
   return '${targetLabel(command)} · $deviceId';
 }
 

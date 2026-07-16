@@ -8,6 +8,7 @@ import 'package:prism_dashboard/src/api/models.dart';
 import 'package:prism_dashboard/src/app_state.dart';
 import 'package:prism_dashboard/src/features/shell/home_shell.dart';
 import 'package:prism_dashboard/src/theme.dart';
+import 'package:prism_dashboard/src/version.dart';
 
 void main() {
   testWidgets('HomeShell navigation switches between new feature screens', (
@@ -126,6 +127,10 @@ void main() {
       token: 'staff-token',
       setupStatus: const SetupStatus(installed: true),
       staff: staff,
+      backendVersion: const PrismVersion(
+        version: '1.2.3',
+        revision: 'backend123',
+      ),
     );
 
     // 3. Pump widget
@@ -144,6 +149,8 @@ void main() {
 
     // 4. Assert default screen is OperationsScreen (现场工作台)
     expect(find.text('现场工作台'), findsWidgets);
+    expect(find.text('前端 dev'), findsOneWidget);
+    expect(find.text('后端 1.2.3 (backend123)'), findsOneWidget);
 
     // 5. Navigate to 玩家档案
     await tester.tap(find.text('玩家档案'));
@@ -204,6 +211,8 @@ void main() {
     await tester.tap(find.byTooltip('账号菜单'));
     await tester.pumpAndSettle();
     expect(find.text('退出登录'), findsOneWidget);
+    expect(find.text('前端 dev'), findsWidgets);
+    expect(find.text('后端 1.2.3 (backend123)'), findsWidgets);
   });
 }
 

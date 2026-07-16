@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models.dart';
 import '../../app_state.dart';
 import '../../context_extensions.dart';
+import '../../version.dart';
 import '../operations/operations_screen.dart';
 import '../players/players_screen.dart';
 import '../assets/assets_screen.dart';
@@ -54,7 +55,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         appBar: AppBar(
           title: Text(_destination.title),
           actions: [
-            _StaffMenu(staff: widget.appState.staff!, onLogout: _logout),
+            _StaffMenu(
+              staff: widget.appState.staff!,
+              backendVersion: widget.appState.backendVersion,
+              onLogout: _logout,
+            ),
           ],
         ),
         body: content,
@@ -90,6 +95,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 selected: _destination,
                 onSelected: (value) => setState(() => _destination = value),
                 staff: widget.appState.staff!,
+                backendVersion: widget.appState.backendVersion,
                 onLogout: _logout,
               ),
               Expanded(child: content),
@@ -180,12 +186,14 @@ class _GroupedSidebar extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     required this.staff,
+    required this.backendVersion,
     required this.onLogout,
   });
 
   final DashboardDestination selected;
   final ValueChanged<DashboardDestination> onSelected;
   final CurrentStaff staff;
+  final PrismVersion? backendVersion;
   final VoidCallback onLogout;
 
   @override
@@ -291,9 +299,14 @@ class _GroupedSidebar extends StatelessWidget {
               ),
             ),
             const _SidebarSeparator(),
+            _VersionSummary(backendVersion: backendVersion),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: _StaffMenu(staff: staff, onLogout: onLogout),
+              child: _StaffMenu(
+                staff: staff,
+                backendVersion: backendVersion,
+                onLogout: onLogout,
+              ),
             ),
           ],
         ),
@@ -408,9 +421,14 @@ class _SidebarSeparator extends StatelessWidget {
 }
 
 class _StaffMenu extends StatelessWidget {
-  const _StaffMenu({required this.staff, required this.onLogout});
+  const _StaffMenu({
+    required this.staff,
+    required this.backendVersion,
+    required this.onLogout,
+  });
 
   final CurrentStaff staff;
+  final PrismVersion? backendVersion;
   final VoidCallback onLogout;
 
   @override
@@ -422,8 +440,17 @@ class _StaffMenu extends StatelessWidget {
           onLogout();
         }
       },
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: 'logout', child: Text('退出登录')),
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text('前端 ${dashboardBuildVersion.display}'),
+        ),
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text('后端 ${backendVersion?.display ?? '未知'}'),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(value: 'logout', child: Text('退出登录')),
       ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -442,6 +469,31 @@ class _StaffMenu extends StatelessWidget {
             child: Text(staff.displayName, overflow: TextOverflow.ellipsis),
           ),
           const Icon(Icons.arrow_drop_down),
+        ],
+      ),
+    );
+  }
+}
+
+class _VersionSummary extends StatelessWidget {
+  const _VersionSummary({required this.backendVersion});
+
+  final PrismVersion? backendVersion;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = context.text.labelSmall?.copyWith(
+      color: context.colors.onSurfaceVariant,
+    );
+    return Padding(
+      key: const ValueKey('dashboard-version-summary'),
+      padding: const EdgeInsets.fromLTRB(24, 0, 18, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('前端 ${dashboardBuildVersion.display}', style: style),
+          const SizedBox(height: 2),
+          Text('后端 ${backendVersion?.display ?? '未知'}', style: style),
         ],
       ),
     );

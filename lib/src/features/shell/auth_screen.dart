@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_state.dart';
 import '../../context_extensions.dart';
+import '../../version.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key, this.appState, this.initialError});
@@ -148,6 +149,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           )
                         : const Icon(Icons.login),
                     label: Text(installed ? '登录' : '初始化并登录'),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '前端版本 ${dashboardBuildVersion.display}',
+                    key: const ValueKey('dashboard-login-version'),
+                    textAlign: TextAlign.center,
+                    style: context.text.labelSmall?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

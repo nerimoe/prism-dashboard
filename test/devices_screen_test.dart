@@ -35,7 +35,7 @@ void main() {
     expect(find.text('在线机器'), findsOneWidget);
     expect(find.text('离线机器'), findsOneWidget);
     expect(find.text('设施异常'), findsOneWidget);
-    expect(find.text('前门闸机'), findsOneWidget);
+    expect(find.text('前门闸机'), findsWidgets);
     expect(find.text('maimai-dx-1'), findsOneWidget);
     expect(find.text('chunithm-2'), findsOneWidget);
     expect(find.text('机厅空调'), findsOneWidget);
@@ -51,6 +51,9 @@ void main() {
     expect(find.textContaining('可执行 2 项'), findsOneWidget);
     expect(find.text('Aime 扫卡'), findsWidgets);
     expect(find.textContaining('Home Assistant'), findsWidgets);
+    expect(find.text('switch.wacca'), findsNothing);
+    expect(find.text('door-1'), findsNothing);
+    expect(find.text('climate.main'), findsNothing);
     expect(
       find.textContaining(_expectedDateTime('2026-07-04T12:35:00.000Z')),
       findsOneWidget,
@@ -70,7 +73,7 @@ void main() {
     );
     expect(jsonDecode(powerRequest.body), {
       'type': 'power.off',
-      'target': {'kind': 'facility', 'id': 'switch.wacca'},
+      'target': {'kind': 'facility', 'ref': '音游区电源'},
       'payload': {'state': 'off'},
     });
     expect(find.text('音游区电源 关机指令已发送'), findsOneWidget);
@@ -161,11 +164,11 @@ void main() {
     expect(actions, [
       {
         'type': 'door.open',
-        'target': {'kind': 'facility', 'id': 'door-1'},
+        'target': {'kind': 'facility', 'ref': '前门闸机'},
       },
       {
         'type': 'ac.set_temperature',
-        'target': {'kind': 'facility', 'id': 'climate.main'},
+        'target': {'kind': 'facility', 'ref': '机厅空调'},
         'payload': {'temperature': 22},
       },
     ]);

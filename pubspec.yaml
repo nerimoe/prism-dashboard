@@ -2,7 +2,6 @@ name: prism_dashboard
 description: "PRiSM Dashboard store operations console built with Flutter Web and Material 3."
 publish_to: 'none'
 version: 1.0.0+1
-
 environment:
   sdk: ^3.12.0
 

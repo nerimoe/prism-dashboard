@@ -5,8 +5,40 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:prism_dashboard/src/api/api_client.dart';
 import 'package:prism_dashboard/src/api/models.dart';
+import 'package:prism_dashboard/src/version.dart';
 
 void main() {
+  test(
+    'public version endpoint parses release metadata without auth',
+    () async {
+      late http.Request captured;
+      final client = PrismApiClient(
+        baseUrl: 'https://prism.example',
+        token: 'staff-token',
+        httpClient: MockClient((request) async {
+          captured = request;
+          return http.Response(
+            '{"service":"prism-api","version":"1.2.3","revision":"abc123"}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+
+      final version = await client.getVersion();
+
+      expect(captured.method, 'GET');
+      expect(captured.url.path, '/version');
+      expect(captured.headers.containsKey('authorization'), false);
+      expect(
+        version,
+        isA<PrismVersion>()
+            .having((value) => value.version, 'version', '1.2.3')
+            .having((value) => value.revision, 'revision', 'abc123'),
+      );
+    },
+  );
+
   group('Dart Models JSON parsing tests', () {
     test('Player parses correctly', () {
       final json = {
@@ -642,12 +674,10 @@ void main() {
             expect(request.url.queryParameters['from'], '2026-07-01');
             return http.Response(
               jsonEncode({
-                'summary': {
-                  'revenueTotal': 1000.5,
-                  'sessionCount': 25,
-                  'assetGrantTotal': 5,
-                  'coinCommandCount': 12,
-                },
+                'revenueTotal': 1000.5,
+                'sessionCount': 25,
+                'assetGrantTotal': 5,
+                'coinCommandCount': 12,
               }),
               200,
               headers: {'content-type': 'application/json'},
