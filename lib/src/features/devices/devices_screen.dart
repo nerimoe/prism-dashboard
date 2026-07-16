@@ -800,7 +800,7 @@ class _CommandRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${targetLabel(command)} · ${command.deviceId}',
+                    commandTargetLabel(command),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -1062,6 +1062,12 @@ String targetLabel(DeviceCommand command) {
     return '游戏机器';
   }
   return '设施设备';
+}
+
+String commandTargetLabel(DeviceCommand command) {
+  final deviceId = command.deviceId;
+  if (deviceId == null || deviceId.isEmpty) return '所有设备';
+  return '${targetLabel(command)} · $deviceId';
 }
 
 String? commandFailureLabel(DeviceCommand command) {

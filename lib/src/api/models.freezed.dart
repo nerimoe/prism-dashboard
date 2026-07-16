@@ -8683,7 +8683,7 @@ as DateTime?,
 /// @nodoc
 mixin _$DeviceCommand {
 
- String get id;@JsonKey(readValue: readCommandType) String get commandType; String get deviceId;@JsonKey(readValue: readTargetKind) String get targetKind; String? get executorKind;@JsonKey(readValue: readRequester) String get requester; String? get playerId; String? get staffId; String get status; Map<String, dynamic>? get payload;@JsonKey(readValue: readCreatedAt) DateTime get createdAt; DateTime? get ackedAt; DateTime? get expiredAt;
+ String get id;@JsonKey(readValue: readCommandType) String get commandType; String? get deviceId;@JsonKey(readValue: readTargetKind) String get targetKind; String? get executorKind;@JsonKey(readValue: readRequester) String get requester; String? get playerId; String? get staffId; String get status; Map<String, dynamic>? get payload;@JsonKey(readValue: readCreatedAt) DateTime get createdAt; DateTime? get ackedAt; DateTime? get expiredAt;
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -8716,7 +8716,7 @@ abstract mixin class $DeviceCommandCopyWith<$Res>  {
   factory $DeviceCommandCopyWith(DeviceCommand value, $Res Function(DeviceCommand) _then) = _$DeviceCommandCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String? deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
 });
 
 
@@ -8733,12 +8733,12 @@ class _$DeviceCommandCopyWithImpl<$Res>
 
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? commandType = null,Object? deviceId = freezed,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,commandType: null == commandType ? _self.commandType : commandType // ignore: cast_nullable_to_non_nullable
-as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
-as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,deviceId: freezed == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String?,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
 as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
 as String?,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
 as String,playerId: freezed == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
@@ -8833,7 +8833,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String? deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
 return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
@@ -8854,7 +8854,7 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String? deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand():
 return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
@@ -8874,7 +8874,7 @@ return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(readValue: readCommandType)  String commandType,  String? deviceId, @JsonKey(readValue: readTargetKind)  String targetKind,  String? executorKind, @JsonKey(readValue: readRequester)  String requester,  String? playerId,  String? staffId,  String status,  Map<String, dynamic>? payload, @JsonKey(readValue: readCreatedAt)  DateTime createdAt,  DateTime? ackedAt,  DateTime? expiredAt)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceCommand() when $default != null:
 return $default(_that.id,_that.commandType,_that.deviceId,_that.targetKind,_that.executorKind,_that.requester,_that.playerId,_that.staffId,_that.status,_that.payload,_that.createdAt,_that.ackedAt,_that.expiredAt);case _:
@@ -8894,7 +8894,7 @@ class _DeviceCommand implements DeviceCommand {
 
 @override final  String id;
 @override@JsonKey(readValue: readCommandType) final  String commandType;
-@override final  String deviceId;
+@override final  String? deviceId;
 @override@JsonKey(readValue: readTargetKind) final  String targetKind;
 @override final  String? executorKind;
 @override@JsonKey(readValue: readRequester) final  String requester;
@@ -8947,7 +8947,7 @@ abstract mixin class _$DeviceCommandCopyWith<$Res> implements $DeviceCommandCopy
   factory _$DeviceCommandCopyWith(_DeviceCommand value, $Res Function(_DeviceCommand) _then) = __$DeviceCommandCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(readValue: readCommandType) String commandType, String deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
+ String id,@JsonKey(readValue: readCommandType) String commandType, String? deviceId,@JsonKey(readValue: readTargetKind) String targetKind, String? executorKind,@JsonKey(readValue: readRequester) String requester, String? playerId, String? staffId, String status, Map<String, dynamic>? payload,@JsonKey(readValue: readCreatedAt) DateTime createdAt, DateTime? ackedAt, DateTime? expiredAt
 });
 
 
@@ -8964,12 +8964,12 @@ class __$DeviceCommandCopyWithImpl<$Res>
 
 /// Create a copy of DeviceCommand
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? commandType = null,Object? deviceId = null,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? commandType = null,Object? deviceId = freezed,Object? targetKind = null,Object? executorKind = freezed,Object? requester = null,Object? playerId = freezed,Object? staffId = freezed,Object? status = null,Object? payload = freezed,Object? createdAt = null,Object? ackedAt = freezed,Object? expiredAt = freezed,}) {
   return _then(_DeviceCommand(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,commandType: null == commandType ? _self.commandType : commandType // ignore: cast_nullable_to_non_nullable
-as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
-as String,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
+as String,deviceId: freezed == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String?,targetKind: null == targetKind ? _self.targetKind : targetKind // ignore: cast_nullable_to_non_nullable
 as String,executorKind: freezed == executorKind ? _self.executorKind : executorKind // ignore: cast_nullable_to_non_nullable
 as String?,requester: null == requester ? _self.requester : requester // ignore: cast_nullable_to_non_nullable
 as String,playerId: freezed == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable

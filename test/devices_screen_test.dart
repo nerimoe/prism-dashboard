@@ -92,6 +92,8 @@ void main() {
     expect(find.text('已超时'), findsOneWidget);
     expect(find.text('玩家 player-1'), findsWidgets);
     expect(find.text('员工 staff-1'), findsOneWidget);
+    expect(find.text('所有设备'), findsOneWidget);
+    expect(find.textContaining('null'), findsNothing);
     expect(find.text('coin controller timeout'), findsOneWidget);
     expect(
       find.text('完成 ${_expectedDateTime('2026-07-04T12:31:03.000Z')}'),
@@ -303,10 +305,10 @@ Map<String, dynamic> _responseFor(http.Request request) {
         },
         {
           'id': 'cmd-2',
-          'type': 'coin',
-          'deviceId': 'maimai-dx-1',
-          'target': {'kind': 'game_machine', 'id': 'maimai-dx-1'},
-          'executorKind': 'machine_ws',
+          'type': 'power.off',
+          'deviceId': null,
+          'target': {'kind': 'facility', 'all': true},
+          'executorKind': 'home_assistant',
           'playerId': null,
           'staffId': 'staff-1',
           'status': 'acked',

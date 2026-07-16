@@ -836,7 +836,7 @@ _DeviceCommand _$DeviceCommandFromJson(Map<String, dynamic> json) =>
     _DeviceCommand(
       id: json['id'] as String,
       commandType: readCommandType(json, 'commandType') as String,
-      deviceId: json['deviceId'] as String,
+      deviceId: json['deviceId'] as String?,
       targetKind: readTargetKind(json, 'targetKind') as String? ?? 'facility',
       executorKind: json['executorKind'] as String?,
       requester: readRequester(json, 'requester') as String,

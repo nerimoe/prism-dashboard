@@ -554,7 +554,7 @@ abstract class DeviceCommand with _$DeviceCommand {
   const factory DeviceCommand({
     required String id,
     @JsonKey(readValue: readCommandType) required String commandType,
-    required String deviceId,
+    required String? deviceId,
     @JsonKey(readValue: readTargetKind) @Default('facility') String targetKind,
     String? executorKind,
     @JsonKey(readValue: readRequester) required String requester,

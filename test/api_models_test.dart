@@ -472,6 +472,25 @@ void main() {
       expect(model.expiredAt, null);
     });
 
+    test('DeviceCommand parses all-device audit records without an id', () {
+      final model = DeviceCommand.fromJson({
+        'id': 'cmd-all',
+        'type': 'power.off',
+        'deviceId': null,
+        'target': {'kind': 'facility', 'all': true},
+        'executorKind': 'home_assistant',
+        'playerId': null,
+        'staffId': 'staff-1',
+        'status': 'acked',
+        'requestedAt': '2026-07-04T12:30:00.000Z',
+        'ackedAt': '2026-07-04T12:30:05.000Z',
+        'expiredAt': null,
+      });
+
+      expect(model.deviceId, isNull);
+      expect(model.targetKind, 'facility');
+    });
+
     test('StaffUser parses correctly', () {
       final json = {
         'id': 'staff-1',
