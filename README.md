@@ -103,6 +103,10 @@ flutter test --no-pub
 flutter build web --no-pub # local development build; release builds use the root wrapper below
 ```
 
+Web builds load CanvasKit from the generated local `canvaskit/` directory. Keep
+the custom `web/flutter_bootstrap.js` when changing the Web shell so production
+startup does not fetch the rendering engine from Google's Flutter CDN.
+
 From the repository root, use:
 
 ```bash
