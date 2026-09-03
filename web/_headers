@@ -1,0 +1,8 @@
+/main.dart.mjs
+  Cache-Control: public, max-age=14400, must-revalidate
+
+/main.dart.wasm
+  Cache-Control: public, max-age=14400, must-revalidate
+
+/canvaskit/*.wasm
+  Cache-Control: public, max-age=14400, must-revalidate
