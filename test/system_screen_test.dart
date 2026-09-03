@@ -37,8 +37,31 @@ void main() {
         'token': 'ha-secret',
       },
       'homeAssistantDevices': [],
+      'registration': {'defaultPresentId': null},
     });
     expect(find.text('店铺设置已保存。'), findsOneWidget);
+  });
+
+  testWidgets('selects the default registration present', (tester) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildSystemScreen(requests));
+    await tester.pumpAndSettle();
+
+    expect(find.text('新用户注册礼物包'), findsOneWidget);
+    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('新用户欢迎包').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('保存设置'));
+    await tester.pumpAndSettle();
+
+    final request = requests.singleWhere(
+      (request) =>
+          request.method == 'PUT' && request.url.path == '/rpc/staff/settings',
+    );
+    expect((jsonDecode(request.body) as Map)['registration'], {
+      'defaultPresentId': 'present-welcome',
+    });
   });
 
   testWidgets('creates staff user and resets password', (tester) async {
@@ -286,7 +309,21 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'token': 'ha-secret',
         },
         'homeAssistantDevices': [],
+        'registration': {'defaultPresentId': null},
       },
+    };
+  }
+  if (path == '/rpc/staff/presents') {
+    return {
+      'presents': [
+        {
+          'id': 'present-welcome',
+          'name': '新用户欢迎包',
+          'status': 'active',
+          'oncePerPlayer': false,
+          'grants': [],
+        },
+      ],
     };
   }
   if (path == '/rpc/staff/users') {

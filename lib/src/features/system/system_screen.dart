@@ -47,6 +47,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   final _storeNameController = TextEditingController();
   final _timeZoneController = TextEditingController();
   final List<_HaDeviceInput> _haDevices = [];
+  String? _defaultRegistrationPresentId;
   int _coinCooldownMs = 1000;
   bool _settingsAdopted = false;
   String? _message;
@@ -142,6 +143,9 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                               storeNameController: _storeNameController,
                               timeZoneController: _timeZoneController,
                               haDevices: _haDevices,
+                              presents: data.presents,
+                              defaultRegistrationPresentId:
+                                  _defaultRegistrationPresentId,
                               onAddDevice: () {
                                 setState(() {
                                   _haDevices.add(
@@ -159,6 +163,9 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                               canWrite: _canWrite,
                               onCooldownChanged: (value) =>
                                   setState(() => _coinCooldownMs = value),
+                              onDefaultPresentChanged: (value) => setState(
+                                () => _defaultRegistrationPresentId = value,
+                              ),
                               onSave: _saveSettings,
                             ),
                             _StaffTab(
@@ -200,6 +207,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
         _api.listApiTokens()
       else
         Future<List<ApiToken>>.value(const []),
+      _api.listPresents(),
     ]);
     final rawSettings = results[0] as Map<String, dynamic>;
     return _SystemData(
@@ -207,6 +215,7 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
       rawSettings: rawSettings,
       staffUsers: results[1] as List<StaffUser>,
       apiTokens: results[2] as List<ApiToken>,
+      presents: results[3] as List<Present>,
     );
   }
 
@@ -216,6 +225,10 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
     _storeNameController.text = data.settings.storeName;
     _timeZoneController.text = data.settings.timeZone;
     _coinCooldownMs = data.settings.coinCooldownMs;
+    final registration = data.rawSettings['registration'];
+    _defaultRegistrationPresentId = registration is Map
+        ? registration['defaultPresentId']?.toString()
+        : null;
 
     for (final dev in _haDevices) {
       dev.dispose();
@@ -268,7 +281,10 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
           'timeZone': _timeZoneController.text.trim(),
         }
         ..['operations'] = {'coinCooldownMs': _coinCooldownMs}
-        ..['homeAssistantDevices'] = haDevicesJson;
+        ..['homeAssistantDevices'] = haDevicesJson
+        ..['registration'] = {
+          'defaultPresentId': _defaultRegistrationPresentId,
+        };
       await _api.updateRawSettings(updatedSettings);
       setState(() {
         _message = '店铺设置已保存。';
@@ -574,22 +590,28 @@ class _SettingsTab extends StatelessWidget {
     required this.storeNameController,
     required this.timeZoneController,
     required this.haDevices,
+    required this.presents,
+    required this.defaultRegistrationPresentId,
     required this.onAddDevice,
     required this.onDeleteDevice,
     required this.coinCooldownMs,
     required this.canWrite,
     required this.onCooldownChanged,
+    required this.onDefaultPresentChanged,
     required this.onSave,
   });
 
   final TextEditingController storeNameController;
   final TextEditingController timeZoneController;
   final List<_HaDeviceInput> haDevices;
+  final List<Present> presents;
+  final String? defaultRegistrationPresentId;
   final VoidCallback onAddDevice;
   final ValueChanged<int> onDeleteDevice;
   final int coinCooldownMs;
   final bool canWrite;
   final ValueChanged<int> onCooldownChanged;
+  final ValueChanged<String?> onDefaultPresentChanged;
   final VoidCallback onSave;
 
   @override
@@ -615,6 +637,34 @@ class _SettingsTab extends StatelessWidget {
             controller: timeZoneController,
             enabled: canWrite,
             decoration: const InputDecoration(labelText: '营业时区'),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue:
+                presents.any(
+                  (present) => present.id == defaultRegistrationPresentId,
+                )
+                ? defaultRegistrationPresentId
+                : '',
+            decoration: const InputDecoration(
+              labelText: '新用户注册礼物包',
+              helperText: '新用户首次注册时自动发放；礼物包归档或过期时不会发放。',
+            ),
+            items: [
+              const DropdownMenuItem<String>(value: '', child: Text('不自动发放')),
+              for (final present in presents)
+                DropdownMenuItem<String>(
+                  value: present.id,
+                  child: Text(
+                    present.isArchived ? '${present.name}（已归档）' : present.name,
+                  ),
+                ),
+            ],
+            onChanged: canWrite
+                ? (value) => onDefaultPresentChanged(
+                    value == null || value.isEmpty ? null : value,
+                  )
+                : null,
           ),
           const SizedBox(height: 24),
           Row(
@@ -931,12 +981,14 @@ class _SystemData {
     required this.rawSettings,
     required this.staffUsers,
     required this.apiTokens,
+    required this.presents,
   });
 
   final SettingsData settings;
   final Map<String, dynamic> rawSettings;
   final List<StaffUser> staffUsers;
   final List<ApiToken> apiTokens;
+  final List<Present> presents;
 }
 
 String _roleLabel(StaffRole role) => switch (role) {
