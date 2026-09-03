@@ -197,6 +197,45 @@ void main() {
       'payload': {'count': 1},
     });
   });
+
+  testWidgets(
+    'staff can update Hinata IO devices from the game machine panel',
+    (tester) async {
+      final requests = <http.Request>[];
+      await tester.pumpWidget(_buildDevicesScreen(requests));
+      await tester.pumpAndSettle();
+
+      final configure = find.byTooltip('配置 Hinata IO');
+      await tester.ensureVisible(configure);
+      await tester.tap(configure);
+      await tester.pumpAndSettle();
+
+      expect(find.text('配置 Hinata IO'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Relay URL'), findsOneWidget);
+      await tester.enterText(find.widgetWithText(TextField, '设备名称'), '舞萌左机新名称');
+      await tester.tap(find.widgetWithText(FilledButton, '保存'));
+      await tester.pumpAndSettle();
+
+      final update = requests.singleWhere(
+        (request) =>
+            request.method == 'PUT' &&
+            request.url.path == '/rpc/staff/settings',
+      );
+      final body = jsonDecode(update.body) as Map<String, dynamic>;
+      expect(body['hinataIoDevices'], [
+        {
+          'id': 'maimai-left',
+          'name': '舞萌左机新名称',
+          'aliases': ['mai-left'],
+          'url': 'https://relay.example/maimai-left',
+          'password': 'test-password',
+          'salt': 'ABEiM0RVZneImaq7zN3u_w',
+          'coinKey': 32,
+          'cardType': 'aime',
+        },
+      ]);
+    },
+  );
 }
 
 Widget _buildDevicesScreen(List<http.Request> requests, {bool? canWrite}) {
@@ -226,6 +265,31 @@ Widget _buildDevicesScreen(List<http.Request> requests, {bool? canWrite}) {
 
 Map<String, dynamic> _responseFor(http.Request request) {
   final path = request.url.path;
+  if (path == '/rpc/staff/settings') {
+    if (request.method == 'PUT') {
+      return {'settings': jsonDecode(request.body)};
+    }
+    return {
+      'settings': {
+        'store': {'name': 'PRiSM', 'timeZone': 'Asia/Tokyo'},
+        'operations': {'coinCooldownMs': 60000},
+        'homeAssistantConnection': {'url': '', 'token': ''},
+        'homeAssistantDevices': [],
+        'hinataIoDevices': [
+          {
+            'id': 'maimai-left',
+            'name': '舞萌左机',
+            'aliases': ['mai-left'],
+            'url': 'https://relay.example/maimai-left',
+            'password': 'test-password',
+            'salt': 'ABEiM0RVZneImaq7zN3u_w',
+            'coinKey': 32,
+            'cardType': 'aime',
+          },
+        ],
+      },
+    };
+  }
   if (path == '/rpc/staff/device-states') {
     return {
       'deviceStates': [

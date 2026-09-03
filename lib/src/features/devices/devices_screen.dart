@@ -54,6 +54,25 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     }
   }
 
+  Future<void> _showConfigureHinataIoDevices(BuildContext context) async {
+    try {
+      final rawSettings = await _api.getRawSettings();
+      if (!context.mounted) return;
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (context) =>
+            _EditHinataIoDevicesDialog(api: _api, rawSettings: rawSettings),
+      );
+      if (saved == true) _refresh();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载配置失败：$e')));
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -131,7 +150,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                       const SizedBox(height: 16),
                       _DeviceGroupPanel(
                         title: '游戏机器',
-                        subtitle: '投币、Aime 和机器软件连接状态。',
+                        subtitle: '投币、刷卡和机器软件连接状态。',
                         icon: Icons.sports_esports_outlined,
                         machines: data.gameMachines,
                         canControl: _canWrite,
@@ -139,6 +158,14 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         onMachineAction: _requestMachineAction,
                         emptyTitle: '暂无机器连接',
                         emptyMessage: '机器软件连接 WebSocket 后，会在这里显示在线状态和最近心跳。',
+                        trailing: _canWrite
+                            ? IconButton(
+                                tooltip: '配置 Hinata IO',
+                                icon: const Icon(Icons.settings),
+                                onPressed: () =>
+                                    _showConfigureHinataIoDevices(context),
+                              )
+                            : null,
                       ),
                     ],
                   );
@@ -1088,6 +1115,296 @@ String? commandFailureLabel(DeviceCommand command) {
     return executorFailure['message'] as String;
   }
   return null;
+}
+
+class _HinataIoDeviceInput {
+  _HinataIoDeviceInput.fromMap(Map<dynamic, dynamic> value)
+    : id = TextEditingController(text: value['id']?.toString() ?? ''),
+      name = TextEditingController(text: value['name']?.toString() ?? ''),
+      aliases = TextEditingController(
+        text: (value['aliases'] as List? ?? const []).join(', '),
+      ),
+      url = TextEditingController(text: value['url']?.toString() ?? ''),
+      password = TextEditingController(
+        text: value['password']?.toString() ?? '',
+      ),
+      salt = TextEditingController(text: value['salt']?.toString() ?? ''),
+      coinKey = TextEditingController(
+        text: value['coinKey']?.toString() ?? '32',
+      ),
+      cardType = TextEditingController(
+        text: value['cardType']?.toString() ?? 'aime',
+      );
+
+  _HinataIoDeviceInput.empty() : this.fromMap(const {});
+
+  final TextEditingController id;
+  final TextEditingController name;
+  final TextEditingController aliases;
+  final TextEditingController url;
+  final TextEditingController password;
+  final TextEditingController salt;
+  final TextEditingController coinKey;
+  final TextEditingController cardType;
+
+  Map<String, dynamic> toJson() => {
+    'id': id.text.trim(),
+    'name': name.text.trim(),
+    'aliases': aliases.text
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(),
+    'url': url.text.trim(),
+    'password': password.text.trim(),
+    'salt': salt.text.trim(),
+    'coinKey': int.tryParse(coinKey.text.trim()) ?? -1,
+    'cardType': cardType.text.trim(),
+  };
+
+  void dispose() {
+    id.dispose();
+    name.dispose();
+    aliases.dispose();
+    url.dispose();
+    password.dispose();
+    salt.dispose();
+    coinKey.dispose();
+    cardType.dispose();
+  }
+}
+
+class _EditHinataIoDevicesDialog extends StatefulWidget {
+  const _EditHinataIoDevicesDialog({
+    required this.api,
+    required this.rawSettings,
+  });
+
+  final PrismApiClient api;
+  final Map<String, dynamic> rawSettings;
+
+  @override
+  State<_EditHinataIoDevicesDialog> createState() =>
+      _EditHinataIoDevicesDialogState();
+}
+
+class _EditHinataIoDevicesDialogState
+    extends State<_EditHinataIoDevicesDialog> {
+  final List<_HinataIoDeviceInput> _devices = [];
+  bool _saving = false;
+  bool _showPasswords = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final devices = widget.rawSettings['hinataIoDevices'];
+    if (devices is List) {
+      for (final device in devices.whereType<Map>()) {
+        _devices.add(_HinataIoDeviceInput.fromMap(device));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final device in _devices) {
+      device.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final settings = Map<String, dynamic>.from(widget.rawSettings)
+        ..['hinataIoDevices'] = _devices
+            .map((device) => device.toJson())
+            .toList();
+      await widget.api.updateRawSettings(settings);
+      if (mounted) Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = error.toString();
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: const Text('配置 Hinata IO'),
+      content: SizedBox(
+        width: 700,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_error != null) ...[
+                Text(_error!, style: TextStyle(color: colors.error)),
+                const SizedBox(height: 12),
+              ],
+              Text(
+                '设备名称和别名用于机器人指令。保存后立即生效，不需要重新部署后端。',
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+              if (_devices.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: Text('暂无 Hinata IO 设备')),
+                )
+              else
+                ...List.generate(_devices.length, (index) {
+                  final device = _devices[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: colors.outlineVariant),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    device.name.text.isEmpty
+                                        ? '新设备'
+                                        : device.name.text,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: '删除设备',
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () => setState(() {
+                                    _devices.removeAt(index).dispose();
+                                  }),
+                                ),
+                              ],
+                            ),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                _dialogField(device.name, '设备名称', width: 260),
+                                _dialogField(device.id, '内部 ID', width: 260),
+                                _dialogField(
+                                  device.aliases,
+                                  '别名（逗号分隔）',
+                                  width: 530,
+                                ),
+                                _dialogField(
+                                  device.url,
+                                  'Relay URL',
+                                  width: 530,
+                                ),
+                                _dialogField(
+                                  device.password,
+                                  '远程密码',
+                                  width: 260,
+                                  obscureText: !_showPasswords,
+                                ),
+                                _dialogField(
+                                  device.salt,
+                                  '加密 Salt（16 字节 Base64URL）',
+                                  width: 260,
+                                ),
+                                _dialogField(
+                                  device.coinKey,
+                                  '投币按键',
+                                  width: 260,
+                                  keyboardType: TextInputType.number,
+                                ),
+                                _dialogField(
+                                  device.cardType,
+                                  '刷卡类型',
+                                  width: 260,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => setState(
+                      () => _devices.add(_HinataIoDeviceInput.empty()),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('添加设备'),
+                  ),
+                  const Spacer(),
+                  Checkbox(
+                    value: _showPasswords,
+                    onChanged: (value) =>
+                        setState(() => _showPasswords = value ?? false),
+                  ),
+                  const Text('显示密码'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('保存'),
+        ),
+      ],
+    );
+  }
+
+  Widget _dialogField(
+    TextEditingController controller,
+    String label, {
+    required double width,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          isDense: true,
+        ),
+      ),
+    );
+  }
 }
 
 class _HaDeviceInput {
