@@ -27,5 +27,29 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('前端版本 dev'), findsOneWidget);
+    expect(find.text('登录'), findsOneWidget);
+    expect(find.text('账号'), findsOneWidget);
+  });
+
+  testWidgets('disconnected screen only asks for the server URL', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: AuthScreen(
+            appState: AppState(
+              baseUrl: '',
+              token: null,
+              setupStatus: null,
+              staff: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('连接服务器'), findsOneWidget);
+    expect(find.text('账号'), findsNothing);
   });
 }

@@ -106,6 +106,8 @@ flutter build web --no-pub # local development build; release builds use the roo
 Web builds load CanvasKit from the generated local `canvaskit/` directory. Keep
 the custom `web/flutter_bootstrap.js` when changing the Web shell so production
 startup does not fetch the rendering engine from Google's Flutter CDN.
+Startup does not contact an API until staff explicitly submit the login or
+setup screen's server connection action. API requests have a 10-second timeout.
 
 From the repository root, use:
 

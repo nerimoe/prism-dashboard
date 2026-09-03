@@ -23,10 +23,15 @@ final apiClientProvider = Provider<PrismApiClient>((ref) {
 
 String get defaultBaseUrl {
   final uri = Uri.base;
-  if (uri.hasScheme && uri.host.isNotEmpty) {
+  return defaultBaseUrlFor(uri);
+}
+
+String defaultBaseUrlFor(Uri uri) {
+  if (!uri.hasScheme || uri.host.isEmpty) return 'http://localhost:8787';
+  if (uri.host == 'localhost' || uri.host == '127.0.0.1' || uri.host == '::1') {
     return '${uri.scheme}://${uri.host}:8787';
   }
-  return 'http://localhost:8787';
+  return '';
 }
 
 class AppState {
@@ -83,44 +88,17 @@ class AppController extends AsyncNotifier<AppState> {
   Future<AppState> build() async {
     _prefs = await SharedPreferences.getInstance();
     final baseUrl = _prefs.getString(_baseUrlKey) ?? defaultBaseUrl;
-    final token = _prefs.getString(_tokenKey);
-    final client = PrismApiClient(baseUrl: baseUrl, token: token);
-
-    SetupStatus? setupStatus;
-    CurrentStaff? staff;
-    PrismVersion? backendVersion;
-    try {
-      backendVersion = await client.getVersion();
-    } catch (_) {
-      backendVersion = null;
-    }
-    try {
-      setupStatus = await client.setupStatus();
-      if (token != null && setupStatus.installed) staff = await client.me();
-    } on PrismApiException {
-      if (token != null) await _prefs.remove(_tokenKey);
-    } catch (_) {
-      setupStatus = null;
-    }
-    if (staff != null) {
-      try {
-        setAdminTimeZone((await client.getSettings()).timeZone);
-      } catch (_) {
-        setAdminTimeZone(defaultAdminTimeZone);
-      }
-    }
-
     return AppState(
       baseUrl: baseUrl,
-      token: staff == null ? null : token,
-      setupStatus: setupStatus,
-      staff: staff,
-      backendVersion: backendVersion,
+      token: null,
+      setupStatus: null,
+      staff: null,
     );
   }
 
   Future<void> updateBaseUrl(String value) async {
     final current = state.value;
+    if (current?.baseUrl == value && current?.setupStatus != null) return;
     await _prefs.setString(_baseUrlKey, value);
     await _prefs.remove(_tokenKey);
     state = AsyncData(
@@ -145,19 +123,9 @@ class AppController extends AsyncNotifier<AppState> {
     final current = state.value;
     if (current == null) return;
     final client = PrismApiClient(baseUrl: current.baseUrl);
-    PrismVersion? backendVersion;
-    try {
-      backendVersion = await client.getVersion();
-    } catch (_) {
-      backendVersion = null;
-    }
     final setup = await client.setupStatus();
     state = AsyncData(
-      current.copyWith(
-        setupStatus: setup,
-        backendVersion: backendVersion,
-        clearBackendVersion: backendVersion == null,
-      ),
+      current.copyWith(setupStatus: setup, clearBackendVersion: true),
     );
   }
 

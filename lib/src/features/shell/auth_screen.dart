@@ -45,6 +45,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final connected = widget.appState?.setupStatus != null;
     final installed = widget.appState?.isInstalled ?? true;
     return Scaffold(
       body: Center(
@@ -86,7 +87,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     keyboardType: TextInputType.url,
                   ),
                   const SizedBox(height: 12),
-                  if (!installed) ...[
+                  if (connected && !installed) ...[
                     TextField(
                       controller: _storeName,
                       decoration: const InputDecoration(
@@ -113,22 +114,24 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  TextField(
-                    controller: _username,
-                    decoration: const InputDecoration(
-                      labelText: '账号',
-                      prefixIcon: Icon(Icons.person),
+                  if (connected) ...[
+                    TextField(
+                      controller: _username,
+                      decoration: const InputDecoration(
+                        labelText: '账号',
+                        prefixIcon: Icon(Icons.person),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: '密码',
-                      prefixIcon: Icon(Icons.password),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _password,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: '密码',
+                        prefixIcon: Icon(Icons.password),
+                      ),
                     ),
-                  ),
+                  ],
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(
@@ -140,15 +143,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   FilledButton.icon(
                     onPressed: _busy
                         ? null
-                        : () => installed ? _login() : _install(),
+                        : () => !connected
+                              ? _connect()
+                              : installed
+                              ? _login()
+                              : _install(),
                     icon: _busy
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.login),
-                    label: Text(installed ? '登录' : '初始化并登录'),
+                        : Icon(connected ? Icons.login : Icons.link),
+                    label: Text(
+                      !connected
+                          ? '连接服务器'
+                          : installed
+                          ? '登录'
+                          : '初始化并登录',
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -165,6 +178,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _connect() async {
+    await _run(
+      () => ref
+          .read(appControllerProvider.notifier)
+          .updateBaseUrl(_baseUrl.text.trim()),
     );
   }
 

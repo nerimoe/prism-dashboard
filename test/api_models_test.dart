@@ -8,6 +8,30 @@ import 'package:prism_dashboard/src/api/models.dart';
 import 'package:prism_dashboard/src/version.dart';
 
 void main() {
+  test('API requests have a finite timeout', () async {
+    final client = PrismApiClient(
+      baseUrl: 'https://prism.example',
+      requestTimeout: const Duration(milliseconds: 1),
+      httpClient: MockClient(
+        (_) => Future.delayed(
+          const Duration(seconds: 1),
+          () => http.Response('{}', 200),
+        ),
+      ),
+    );
+
+    await expectLater(
+      client.getVersion(),
+      throwsA(
+        isA<PrismApiException>().having(
+          (error) => error.code,
+          'code',
+          'REQUEST_TIMEOUT',
+        ),
+      ),
+    );
+  });
+
   test(
     'public version endpoint parses release metadata without auth',
     () async {

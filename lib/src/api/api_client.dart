@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -17,18 +18,24 @@ class PrismApiException implements Exception {
 }
 
 class PrismApiClient {
-  PrismApiClient({required this.baseUrl, this.token, http.Client? httpClient})
-    : _http = httpClient ?? http.Client();
+  PrismApiClient({
+    required this.baseUrl,
+    this.token,
+    http.Client? httpClient,
+    this.requestTimeout = const Duration(seconds: 10),
+  }) : _http = httpClient ?? http.Client();
 
   final String baseUrl;
   final String? token;
   final http.Client _http;
+  final Duration requestTimeout;
 
   PrismApiClient withAuth({String? baseUrl, String? token}) {
     return PrismApiClient(
       baseUrl: baseUrl ?? this.baseUrl,
       token: token ?? this.token,
       httpClient: _http,
+      requestTimeout: requestTimeout,
     );
   }
 
@@ -953,30 +960,40 @@ class PrismApiClient {
     if (body != null) headers['Content-Type'] = 'application/json';
     if (auth && token != null) headers['Authorization'] = 'Bearer $token';
 
-    final response = switch (method) {
-      'GET' => await _http.get(uri, headers: headers),
-      'POST' => await _http.post(
+    final request = switch (method) {
+      'GET' => _http.get(uri, headers: headers),
+      'POST' => _http.post(
         uri,
         headers: headers,
         body: body == null ? null : jsonEncode(body),
       ),
-      'PUT' => await _http.put(
+      'PUT' => _http.put(
         uri,
         headers: headers,
         body: body == null ? null : jsonEncode(body),
       ),
-      'PATCH' => await _http.patch(
+      'PATCH' => _http.patch(
         uri,
         headers: headers,
         body: body == null ? null : jsonEncode(body),
       ),
-      'DELETE' => await _http.delete(
+      'DELETE' => _http.delete(
         uri,
         headers: headers,
         body: body == null ? null : jsonEncode(body),
       ),
       _ => throw ArgumentError.value(method, 'method'),
     };
+    late final http.Response response;
+    try {
+      response = await request.timeout(requestTimeout);
+    } on TimeoutException {
+      throw const PrismApiException(
+        '连接服务器超时，请检查服务器地址。',
+        'REQUEST_TIMEOUT',
+        408,
+      );
+    }
 
     Object? decoded;
     try {
