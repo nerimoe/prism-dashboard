@@ -33,6 +33,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant AuthScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldBaseUrl = oldWidget.appState?.baseUrl ?? defaultBaseUrl;
+    final newBaseUrl = widget.appState?.baseUrl ?? defaultBaseUrl;
+    if (_baseUrl.text == oldBaseUrl && oldBaseUrl != newBaseUrl) {
+      _baseUrl.text = newBaseUrl;
+    }
+  }
+
+  @override
   void dispose() {
     _baseUrl.dispose();
     _username.dispose();

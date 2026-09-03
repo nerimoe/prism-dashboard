@@ -82,25 +82,39 @@ class AppState {
 }
 
 class AppController extends AsyncNotifier<AppState> {
-  late SharedPreferences _prefs;
+  late final Future<SharedPreferences> _prefs;
 
   @override
-  Future<AppState> build() async {
-    _prefs = await SharedPreferences.getInstance();
-    final baseUrl = _prefs.getString(_baseUrlKey) ?? defaultBaseUrl;
+  AppState build() {
+    _prefs = SharedPreferences.getInstance();
+    _prefs.then(_restoreBaseUrl).ignore();
     return AppState(
-      baseUrl: baseUrl,
+      baseUrl: defaultBaseUrl,
       token: null,
       setupStatus: null,
       staff: null,
     );
   }
 
+  void _restoreBaseUrl(SharedPreferences prefs) {
+    final savedBaseUrl = prefs.getString(_baseUrlKey);
+    final current = state.value;
+    if (savedBaseUrl == null ||
+        current == null ||
+        current.baseUrl != defaultBaseUrl ||
+        current.setupStatus != null) {
+      return;
+    }
+    state = AsyncData(current.copyWith(baseUrl: savedBaseUrl));
+  }
+
   Future<void> updateBaseUrl(String value) async {
     final current = state.value;
     if (current?.baseUrl == value && current?.setupStatus != null) return;
-    await _prefs.setString(_baseUrlKey, value);
-    await _prefs.remove(_tokenKey);
+    _prefs.then((prefs) async {
+      await prefs.setString(_baseUrlKey, value);
+      await prefs.remove(_tokenKey);
+    }).ignore();
     state = AsyncData(
       (current ??
               AppState(
@@ -190,7 +204,6 @@ class AppController extends AsyncNotifier<AppState> {
     } catch (_) {
       setAdminTimeZone(defaultAdminTimeZone);
     }
-    await _prefs.setString(_tokenKey, result.$1);
     state = AsyncData(
       current.copyWith(
         token: result.$1,
@@ -198,6 +211,7 @@ class AppController extends AsyncNotifier<AppState> {
         backendVersion: backendVersion,
       ),
     );
+    _prefs.then((prefs) => prefs.setString(_tokenKey, result.$1)).ignore();
   }
 
   Future<void> logout() async {
@@ -212,10 +226,10 @@ class AppController extends AsyncNotifier<AppState> {
         // Local logout still proceeds when the server is unreachable.
       }
     }
-    await _prefs.remove(_tokenKey);
     if (current != null) {
       state = AsyncData(current.copyWith(clearToken: true, clearStaff: true));
     }
+    _prefs.then((prefs) => prefs.remove(_tokenKey)).ignore();
   }
 
   void clearOneTimeApiTokens() {

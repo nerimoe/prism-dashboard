@@ -24,7 +24,14 @@ class PrismDashboardApp extends ConsumerWidget {
       darkTheme: darkTheme,
       debugShowCheckedModeBanner: false,
       home: state.when(
-        loading: () => const _BootScreen(),
+        loading: () => AuthScreen(
+          appState: AppState(
+            baseUrl: defaultBaseUrl,
+            token: null,
+            setupStatus: null,
+            staff: null,
+          ),
+        ),
         error: (error, stackTrace) =>
             AuthScreen(initialError: error.toString()),
         data: (appState) {
@@ -35,14 +42,5 @@ class PrismDashboardApp extends ConsumerWidget {
         },
       ),
     );
-  }
-}
-
-class _BootScreen extends StatelessWidget {
-  const _BootScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

@@ -104,7 +104,9 @@ flutter build web --no-pub # local development build; release builds use the roo
 ```
 
 Startup does not contact an API until staff explicitly submit the login or
-setup screen's server connection action. API requests have a 10-second timeout.
+setup screen's server connection action. The login screen renders immediately;
+loading saved preferences and persisting changes never blocks it. API requests
+have a 10-second timeout.
 
 From the repository root, use:
 
