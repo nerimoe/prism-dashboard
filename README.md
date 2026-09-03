@@ -103,14 +103,6 @@ flutter test --no-pub
 flutter build web --no-pub # local development build; release builds use the root wrapper below
 ```
 
-Web builds load CanvasKit from the generated local `canvaskit/` directory. Keep
-the custom `web/flutter_bootstrap.js` when changing the Web shell so production
-startup does not fetch the rendering engine from Google's Flutter CDN.
-Cloudflare Pages caches the generated WebAssembly runtime for four hours via
-`web/_headers`, matching its normal JavaScript asset cache instead of downloading
-the runtime again on every visit. The deployment build must copy this file to
-`build/web/_headers`; the root build wrapper already does so. HTML and the Web
-bootstrap always revalidate so a deployment cannot keep selecting an old build.
 Startup does not contact an API until staff explicitly submit the login or
 setup screen's server connection action. API requests have a 10-second timeout.
 
