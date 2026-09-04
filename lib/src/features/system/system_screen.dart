@@ -22,31 +22,10 @@ class SystemScreen extends ConsumerStatefulWidget {
   ConsumerState<SystemScreen> createState() => _SystemScreenState();
 }
 
-class _HaDeviceInput {
-  _HaDeviceInput({
-    required String name,
-    required List<String> alias,
-    required String id,
-  }) : nameController = TextEditingController(text: name),
-       aliasController = TextEditingController(text: alias.join(', ')),
-       idController = TextEditingController(text: id);
-
-  final TextEditingController nameController;
-  final TextEditingController aliasController;
-  final TextEditingController idController;
-
-  void dispose() {
-    nameController.dispose();
-    aliasController.dispose();
-    idController.dispose();
-  }
-}
-
 class _SystemScreenState extends ConsumerState<SystemScreen> {
   late Future<_SystemData> _future;
   final _storeNameController = TextEditingController();
   final _timeZoneController = TextEditingController();
-  final List<_HaDeviceInput> _haDevices = [];
   String? _defaultRegistrationPresentId;
   int _coinCooldownMs = 1000;
   bool _settingsAdopted = false;
@@ -77,9 +56,6 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   void dispose() {
     _storeNameController.dispose();
     _timeZoneController.dispose();
-    for (final dev in _haDevices) {
-      dev.dispose();
-    }
     super.dispose();
   }
 
@@ -142,23 +118,9 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
                             _SettingsTab(
                               storeNameController: _storeNameController,
                               timeZoneController: _timeZoneController,
-                              haDevices: _haDevices,
                               presents: data.presents,
                               defaultRegistrationPresentId:
                                   _defaultRegistrationPresentId,
-                              onAddDevice: () {
-                                setState(() {
-                                  _haDevices.add(
-                                    _HaDeviceInput(name: '', alias: [], id: ''),
-                                  );
-                                });
-                              },
-                              onDeleteDevice: (index) {
-                                setState(() {
-                                  final dev = _haDevices.removeAt(index);
-                                  dev.dispose();
-                                });
-                              },
                               coinCooldownMs: _coinCooldownMs,
                               canWrite: _canWrite,
                               onCooldownChanged: (value) =>
@@ -230,26 +192,6 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
         ? registration['defaultPresentId']?.toString()
         : null;
 
-    for (final dev in _haDevices) {
-      dev.dispose();
-    }
-    _haDevices.clear();
-
-    final haDevices = data.rawSettings['homeAssistantDevices'] ?? [];
-    for (final dev in haDevices) {
-      if (dev is Map) {
-        final aliases =
-            (dev['alias'] as List?)?.map((e) => e.toString()).toList() ?? [];
-        _haDevices.add(
-          _HaDeviceInput(
-            name: dev['name']?.toString() ?? '',
-            alias: aliases,
-            id: dev['id']?.toString() ?? '',
-          ),
-        );
-      }
-    }
-
     _settingsAdopted = true;
   }
 
@@ -261,19 +203,6 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
   }
 
   Future<void> _saveSettings() async {
-    final haDevicesJson = _haDevices.map((dev) {
-      final aliases = dev.aliasController.text
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-      return {
-        'name': dev.nameController.text.trim(),
-        'alias': aliases,
-        'id': dev.idController.text.trim(),
-      };
-    }).toList();
-
     try {
       final updatedSettings = Map<String, dynamic>.from(_rawSettings)
         ..['store'] = {
@@ -281,7 +210,6 @@ class _SystemScreenState extends ConsumerState<SystemScreen> {
           'timeZone': _timeZoneController.text.trim(),
         }
         ..['operations'] = {'coinCooldownMs': _coinCooldownMs}
-        ..['homeAssistantDevices'] = haDevicesJson
         ..['registration'] = {
           'defaultPresentId': _defaultRegistrationPresentId,
         };
@@ -589,11 +517,8 @@ class _SettingsTab extends StatelessWidget {
   const _SettingsTab({
     required this.storeNameController,
     required this.timeZoneController,
-    required this.haDevices,
     required this.presents,
     required this.defaultRegistrationPresentId,
-    required this.onAddDevice,
-    required this.onDeleteDevice,
     required this.coinCooldownMs,
     required this.canWrite,
     required this.onCooldownChanged,
@@ -603,11 +528,8 @@ class _SettingsTab extends StatelessWidget {
 
   final TextEditingController storeNameController;
   final TextEditingController timeZoneController;
-  final List<_HaDeviceInput> haDevices;
   final List<Present> presents;
   final String? defaultRegistrationPresentId;
-  final VoidCallback onAddDevice;
-  final ValueChanged<int> onDeleteDevice;
   final int coinCooldownMs;
   final bool canWrite;
   final ValueChanged<int> onCooldownChanged;
@@ -666,120 +588,6 @@ class _SettingsTab extends StatelessWidget {
                   )
                 : null,
           ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Home Assistant 设备映射',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              if (canWrite)
-                TextButton.icon(
-                  onPressed: onAddDevice,
-                  icon: const Icon(Icons.add),
-                  label: const Text('添加设备'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (haDevices.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  '暂无绑定的 Home Assistant 设备',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-            )
-          else
-            ...List.generate(haDevices.length, (index) {
-              final dev = haDevices[index];
-              return Padding(
-                key: ValueKey(dev),
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            controller: dev.nameController,
-                            enabled: canWrite,
-                            decoration: const InputDecoration(
-                              labelText: '设备名称',
-                              hintText: '例如：中二官拆',
-                              isDense: true,
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            controller: dev.aliasController,
-                            enabled: canWrite,
-                            decoration: const InputDecoration(
-                              labelText: '别名 (英文逗号分隔)',
-                              hintText: '例如：chu2, gc',
-                              isDense: true,
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 4,
-                          child: TextField(
-                            controller: dev.idController,
-                            enabled: canWrite,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 13,
-                            ),
-                            decoration: const InputDecoration(
-                              labelText: 'Home Assistant 实体 ID',
-                              hintText: '例如：switch.cuco_cn_...',
-                              isDense: true,
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        if (canWrite) ...[
-                          const SizedBox(width: 8),
-                          IconButton(
-                            onPressed: () => onDeleteDevice(index),
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            tooltip: '删除设备',
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
           const SizedBox(height: 24),
           StepperNumberField(
             label: '投币间隔',

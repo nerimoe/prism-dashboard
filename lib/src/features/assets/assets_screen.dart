@@ -1639,7 +1639,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
                         (config) => !config.isArchived,
                       ))
                         FilterChip(
-                          label: Text(_pricingConfigTitle(config)),
+                          label: Text(formatPricingConfigTitle(config)),
                           selected: _pricingConfigIds.contains(config.id),
                           onSelected: (selected) {
                             setState(() {
@@ -1670,7 +1670,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
                         for (final rule in config.rules)
                           FilterChip(
                             label: Text(
-                              '${_pricingConfigTitle(config)} · ${rule.label}',
+                              '${formatPricingConfigTitle(config)} · ${rule.label}',
                             ),
                             selected: _ruleIds.contains(rule.id),
                             onSelected: (selected) {
@@ -2087,13 +2087,6 @@ String _pricingEffectKind(PricingEffect effect) {
   };
   final scope = effect.scope == 'unified' ? '玩家结算总额' : '单个计时';
   return '$action · $scope';
-}
-
-String _pricingConfigTitle(PricingConfig config) {
-  final name = config.name.trim();
-  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
-  if (name.isEmpty) return '未命名计费规则';
-  return name;
 }
 
 Map<String, dynamic> _pricingEffectConfig({

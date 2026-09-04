@@ -1,4 +1,11 @@
 import 'admin_time_zone.dart';
+import '../api/models.dart';
+
+String formatPricingConfigTitle(PricingConfig config) {
+  final name = config.name.trim();
+  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
+  return name.isEmpty ? '未命名计费方案' : name;
+}
 
 String formatAdminDate(DateTime? value) {
   if (value == null) return '--';

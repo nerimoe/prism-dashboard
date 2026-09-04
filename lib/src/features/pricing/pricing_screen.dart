@@ -10,6 +10,7 @@ import '../../app_state.dart';
 import '../../context_extensions.dart';
 import '../../shared/admin_forms.dart';
 import '../../shared/admin_layout.dart';
+import '../../shared/time_format.dart';
 import '../../shared/widgets.dart';
 
 class PricingScreen extends ConsumerStatefulWidget {
@@ -299,7 +300,7 @@ class _PricingConfigTile extends StatelessWidget {
               ? Icons.payments_outlined
               : Icons.donut_large,
         ),
-        title: Text(_pricingConfigTitle(config)),
+        title: Text(formatPricingConfigTitle(config)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -378,7 +379,7 @@ class _PricingEditorState extends State<_PricingEditor> {
     return PrismPanel(
       title: widget.selected == null
           ? '新建计费方案'
-          : _pricingConfigTitle(widget.selected!),
+          : formatPricingConfigTitle(widget.selected!),
       subtitle: _mode == 'time.priority'
           ? '编辑一天内实际会生效的时段，圆环来自后端预览结果。'
           : _mode == 'time.cap'
@@ -547,7 +548,7 @@ class _PricingEditorState extends State<_PricingEditor> {
   void _load(PricingConfig? config) {
     _mode = config?.kind ?? 'time.priority';
     _enabled = config?.isActive ?? true;
-    _name.text = config == null ? '营业时间计费' : _pricingConfigTitle(config);
+    _name.text = config == null ? '营业时间计费' : formatPricingConfigTitle(config);
     _providerId =
         config?.providerId ??
         (_mode == 'charge.fixed'
@@ -861,7 +862,7 @@ class _IncludedPricingConfigSelector extends StatelessWidget {
               children: [
                 for (final config in candidates)
                   FilterChip(
-                    label: Text(_pricingConfigTitle(config)),
+                    label: Text(formatPricingConfigTitle(config)),
                     selected: selectedIds.contains(config.id),
                     onSelected: (selected) {
                       final next = [...selectedIds];
@@ -1921,13 +1922,6 @@ const _weekdayChoices = {
 
 const Object _unchanged = Object();
 const Object _clearDate = Object();
-
-String _pricingConfigTitle(PricingConfig config) {
-  final name = config.name.trim();
-  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
-  if (name.isEmpty) return '未命名计费方案';
-  return name;
-}
 
 String _pricingSummary(PricingConfig config) {
   final state = config.isActive ? '正在使用' : '暂未启用';

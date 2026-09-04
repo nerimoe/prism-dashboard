@@ -311,7 +311,7 @@ class _OperationsScreenState extends ConsumerState<OperationsScreen> {
                   for (final config in pricingConfigs)
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(_pricingConfigTitle(config)),
+                      title: Text(formatPricingConfigTitle(config)),
                       subtitle: Text(
                         '${config.rules.length} 个计费时段 · ${config.isActive ? '正在使用' : '暂未启用'}',
                       ),
@@ -1951,13 +1951,6 @@ int _clockMinutes(String value) {
   final hour = int.tryParse(parts[0]) ?? 0;
   final minute = int.tryParse(parts[1]) ?? 0;
   return hour * 60 + minute;
-}
-
-String _pricingConfigTitle(PricingConfig config) {
-  final name = config.name.trim();
-  if (name.toLowerCase().startsWith('legacy ')) return '迁移计时规则';
-  if (name.isEmpty) return '未命名计费规则';
-  return name;
 }
 
 class _MessageBanner extends StatelessWidget {

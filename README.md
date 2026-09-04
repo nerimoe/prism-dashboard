@@ -94,14 +94,16 @@ Useful commands:
 
 ```bash
 flutter pub get
-# Run code generation for freezed models
+# Generated model files are ignored by Git; run code generation after checkout.
 flutter pub run build_runner build --delete-conflicting-outputs
 # Clean code generation cache
 flutter pub run build_runner clean
 flutter analyze --no-pub
 flutter test --no-pub
-flutter build web --no-pub # local development build; release builds use the root wrapper below
+flutter build web --no-pub # local build after code generation
 ```
+
+The root `bun run prism-dashboard:build` wrapper runs model generation before the release build.
 
 Startup does not contact an API until staff explicitly submit the login or
 setup screen's server connection action. The login screen renders immediately;
