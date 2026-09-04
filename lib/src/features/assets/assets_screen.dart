@@ -290,6 +290,7 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen>
         sessionLabels: draft.sessionLabels,
         pricingConfigIds: draft.pricingConfigIds,
         ruleIds: draft.ruleIds,
+        minSubtotal: draft.minSubtotal,
       ),
     );
     _done('计费效果已保存。');
@@ -540,6 +541,7 @@ class _PricingEffectDraft {
     required this.value,
     required this.consumable,
     required this.limitPerDay,
+    this.minSubtotal,
     required this.sessionLabels,
     required this.pricingConfigIds,
     required this.ruleIds,
@@ -554,6 +556,7 @@ class _PricingEffectDraft {
   final num? value;
   final bool consumable;
   final int? limitPerDay;
+  final num? minSubtotal;
   final String sessionLabels;
   final Set<String> pricingConfigIds;
   final Set<String> ruleIds;
@@ -1104,6 +1107,7 @@ class _PricingEffectTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final minSubtotal = effect.config?['minSubtotal'];
     return ListTile(
       onTap: effect.isArchived || !canWrite ? null : onEdit,
       leading: const Icon(Icons.receipt_long_outlined),
@@ -1111,6 +1115,7 @@ class _PricingEffectTile extends StatelessWidget {
       subtitle: Text(
         [
           _pricingEffectKind(effect),
+          if (minSubtotal is num && minSubtotal > 0) '满 $minSubtotal 元可用',
           if (effect.limitPerDay != null) '每日最多 ${effect.limitPerDay} 次',
           _windowLabel(effect.activeAt, effect.expiresAt),
         ].where((item) => item.isNotEmpty).join(' · '),
@@ -1479,6 +1484,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
   late final TextEditingController _value;
   late final TextEditingController _limitPerDay;
   late final TextEditingController _sessionLabels;
+  late final TextEditingController _minSubtotal;
   late String _type;
   late String _scope;
   late bool _consumable;
@@ -1497,6 +1503,9 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
     _value = TextEditingController(text: effect?.value?.toString() ?? '');
     _limitPerDay = TextEditingController(
       text: effect?.limitPerDay?.toString() ?? '',
+    );
+    _minSubtotal = TextEditingController(
+      text: (config['minSubtotal'] as num?)?.toString() ?? '',
     );
     _sessionLabels = TextEditingController(
       text: _stringValues(config[_effectApplicableLabelsKey]).join('、'),
@@ -1518,6 +1527,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
     _name.dispose();
     _value.dispose();
     _limitPerDay.dispose();
+    _minSubtotal.dispose();
     _sessionLabels.dispose();
     super.dispose();
   }
@@ -1603,6 +1613,14 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
                         labelText: _type == 'discount' ? '抵扣金额' : '折扣比例',
                       ),
                     ),
+                  TextField(
+                    controller: _minSubtotal,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '最低消费门槛（元）',
+                      hintText: '例如 50 表示满 50 元可用；留空或 0 表示无门槛',
+                    ),
+                  ),
                   TextField(
                     controller: _limitPerDay,
                     keyboardType: TextInputType.number,
@@ -1720,6 +1738,7 @@ class _PricingEffectPanelState extends State<_PricingEffectPanel> {
                   value: num.tryParse(_value.text.trim()),
                   consumable: _consumable,
                   limitPerDay: int.tryParse(_limitPerDay.text.trim()),
+                  minSubtotal: num.tryParse(_minSubtotal.text.trim()),
                   sessionLabels: _sessionLabels.text,
                   pricingConfigIds: Set<String>.from(_pricingConfigIds),
                   ruleIds: Set<String>.from(_ruleIds),
@@ -2093,6 +2112,7 @@ Map<String, dynamic> _pricingEffectConfig({
   required String sessionLabels,
   required Set<String> pricingConfigIds,
   required Set<String> ruleIds,
+  num? minSubtotal,
 }) {
   final labels = sessionLabels
       .split(RegExp(r'[,，、\n]'))
@@ -2105,6 +2125,7 @@ Map<String, dynamic> _pricingEffectConfig({
     if (pricingConfigIds.isNotEmpty)
       'applicablePricingConfigIds': pricingConfigIds.toList(),
     if (ruleIds.isNotEmpty) 'applicableRuleIds': ruleIds.toList(),
+    if (minSubtotal != null && minSubtotal > 0) 'minSubtotal': minSubtotal,
   };
 }
 

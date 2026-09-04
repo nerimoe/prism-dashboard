@@ -488,11 +488,13 @@ void main() {
 
     await tester.tap(find.text('计费效果'));
     await tester.pumpAndSettle();
+    expect(find.textContaining('满 100 元可用'), findsOneWidget);
     await tester.tap(find.text('添加计费效果'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('新建计费效果'), findsOneWidget);
 
+    expect(find.text('最低消费门槛（元）'), findsOneWidget);
     expect(find.text('只对这些计时名称生效'), findsOneWidget);
     expect(find.text('只对这些计费方案生效'), findsOneWidget);
     expect(find.text('只对这些计费时段生效'), findsOneWidget);
@@ -502,6 +504,10 @@ void main() {
       'effect-mahjong-four',
     );
     await tester.enterText(find.widgetWithText(TextField, '显示名称'), '四口麻将抵扣');
+    await tester.enterText(
+      find.widgetWithText(TextField, '最低消费门槛（元）'),
+      '50',
+    );
     await tester.enterText(
       find.widgetWithText(TextField, '只对这些计时名称生效'),
       '四口麻将',
@@ -525,6 +531,7 @@ void main() {
       'applicableSessionLabels': ['四口麻将'],
       'applicablePricingConfigIds': ['pricing-music'],
       'applicableRuleIds': ['rule-day'],
+      'minSubtotal': 50,
     });
   });
 
@@ -545,6 +552,13 @@ void main() {
       find.widgetWithText(TextField, '效果编号'),
     );
     expect(idField.enabled, false);
+    expect(
+      tester
+          .widget<TextField>(find.widgetWithText(TextField, '最低消费门槛（元）'))
+          .controller
+          ?.text,
+      '100',
+    );
     await tester.enterText(find.widgetWithText(TextField, '显示名称'), '月卡免全部时费');
     await tester.ensureVisible(find.text('保存计费效果'));
     await tester.tap(find.text('保存计费效果'));
@@ -556,6 +570,7 @@ void main() {
           request.url.path == '/rpc/staff/pricing-effects/effect-monthly',
     );
     expect(jsonDecode(update.body)['name'], '月卡免全部时费');
+    expect(jsonDecode(update.body)['config']['minSubtotal'], 100);
 
     await tester.tap(find.widgetWithText(TextButton, '归档').first);
     await tester.pumpAndSettle();
@@ -664,6 +679,7 @@ Map<String, dynamic> _responseFor(http.Request request) {
           'config': {
             'applicableSessionLabels': ['音游区间'],
             'applicablePricingConfigIds': ['pricing-music'],
+            'minSubtotal': 100,
           },
         },
         {
