@@ -31,7 +31,7 @@ void main() {
     expect(find.text('账号'), findsOneWidget);
   });
 
-  testWidgets('disconnected screen only asks for the server URL', (
+  testWidgets('initial screen combines server and login fields', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -49,7 +49,10 @@ void main() {
       ),
     );
 
-    expect(find.text('连接服务器'), findsOneWidget);
-    expect(find.text('账号'), findsNothing);
+    expect(find.text('服务器地址'), findsOneWidget);
+    expect(find.text('账号'), findsOneWidget);
+    expect(find.text('密码'), findsOneWidget);
+    expect(find.text('登录'), findsOneWidget);
+    expect(find.text('连接服务器'), findsNothing);
   });
 }
