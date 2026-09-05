@@ -94,13 +94,13 @@ Useful commands:
 
 ```bash
 flutter pub get
-# Generated model files are ignored by Git; run code generation after checkout.
+# Run code generation for freezed models
 flutter pub run build_runner build --delete-conflicting-outputs
 # Clean code generation cache
 flutter pub run build_runner clean
 flutter analyze --no-pub
 flutter test --no-pub
-flutter build web --no-pub # local build after code generation
+flutter build web --no-pub # local development build; release builds use the root wrapper below
 ```
 
 The root `bun run prism-dashboard:build` wrapper runs model generation before the release build.
