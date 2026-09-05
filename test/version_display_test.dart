@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prism_dashboard/src/app_state.dart';
 import 'package:prism_dashboard/src/api/models.dart';
 import 'package:prism_dashboard/src/features/shell/auth_screen.dart';
+import 'package:prism_dashboard/src/version.dart';
 
 void main() {
   testWidgets('login screen shows the frontend build version', (tester) async {
@@ -54,5 +55,23 @@ void main() {
     expect(find.text('密码'), findsOneWidget);
     expect(find.text('登录'), findsOneWidget);
     expect(find.text('连接服务器'), findsNothing);
+  });
+
+  test('PrismVersion display returns revision when version is dev or matches revision', () {
+    const devWithRev = PrismVersion(version: 'dev', revision: '5881b21');
+    expect(devWithRev.display, '5881b21');
+
+    const revOnly = PrismVersion(version: '5881b21', revision: '5881b21');
+    expect(revOnly.display, '5881b21');
+  });
+
+  test('PrismVersion display returns semver and revision when both are specific', () {
+    const release = PrismVersion(version: '1.0.0', revision: '5881b21');
+    expect(release.display, '1.0.0 (5881b21)');
+  });
+
+  test('PrismVersion display falls back to version when revision is unknown', () {
+    const devUnknown = PrismVersion(version: 'dev', revision: 'unknown');
+    expect(devUnknown.display, 'dev');
   });
 }
