@@ -107,8 +107,8 @@ The root `bun run prism-dashboard:build` wrapper runs model generation before th
 
 Startup does not contact an API until staff explicitly submit the login or
 setup screen's server connection action. The login screen renders immediately;
-loading saved preferences and persisting changes never blocks it. API requests
-have a 10-second timeout.
+loading saved preferences (including server URL, account username, and password)
+and persisting changes never blocks it. API requests have a 10-second timeout.
 
 From the repository root, use:
 

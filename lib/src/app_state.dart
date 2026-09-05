@@ -8,6 +8,8 @@ import 'version.dart';
 
 const _baseUrlKey = 'prism.dashboard.api.baseurl';
 const _tokenKey = 'prism.dashboard.admin.token';
+const _usernameKey = 'prism.dashboard.admin.username';
+const _passwordKey = 'prism.dashboard.admin.password';
 
 final appControllerProvider = AsyncNotifierProvider<AppController, AppState>(
   AppController.new,
@@ -40,6 +42,8 @@ class AppState {
     required this.token,
     required this.setupStatus,
     required this.staff,
+    this.savedUsername = '',
+    this.savedPassword = '',
     this.backendVersion,
     this.oneTimeApiTokens = const [],
   });
@@ -48,6 +52,8 @@ class AppState {
   final String? token;
   final SetupStatus? setupStatus;
   final CurrentStaff? staff;
+  final String savedUsername;
+  final String savedPassword;
   final PrismVersion? backendVersion;
   final List<ApiToken> oneTimeApiTokens;
 
@@ -61,6 +67,8 @@ class AppState {
     SetupStatus? setupStatus,
     CurrentStaff? staff,
     bool clearStaff = false,
+    String? savedUsername,
+    String? savedPassword,
     PrismVersion? backendVersion,
     bool clearBackendVersion = false,
     List<ApiToken>? oneTimeApiTokens,
@@ -71,6 +79,8 @@ class AppState {
       token: clearToken ? null : token ?? this.token,
       setupStatus: setupStatus ?? this.setupStatus,
       staff: clearStaff ? null : staff ?? this.staff,
+      savedUsername: savedUsername ?? this.savedUsername,
+      savedPassword: savedPassword ?? this.savedPassword,
       backendVersion: clearBackendVersion
           ? null
           : backendVersion ?? this.backendVersion,
@@ -87,7 +97,7 @@ class AppController extends AsyncNotifier<AppState> {
   @override
   AppState build() {
     _prefs = SharedPreferences.getInstance();
-    _prefs.then(_restoreBaseUrl).ignore();
+    _prefs.then(_restoreSavedPreferences).ignore();
     return AppState(
       baseUrl: defaultBaseUrl,
       token: null,
@@ -96,16 +106,25 @@ class AppController extends AsyncNotifier<AppState> {
     );
   }
 
-  void _restoreBaseUrl(SharedPreferences prefs) {
+  void _restoreSavedPreferences(SharedPreferences prefs) {
     final savedBaseUrl = prefs.getString(_baseUrlKey);
+    final savedUsername = prefs.getString(_usernameKey) ?? '';
+    final savedPassword = prefs.getString(_passwordKey) ?? '';
     final current = state.value;
-    if (savedBaseUrl == null ||
-        current == null ||
-        current.baseUrl != defaultBaseUrl ||
-        current.setupStatus != null) {
+    if (current == null || current.setupStatus != null) {
       return;
     }
-    state = AsyncData(current.copyWith(baseUrl: savedBaseUrl));
+    final nextBaseUrl =
+        (savedBaseUrl != null && current.baseUrl == defaultBaseUrl)
+            ? savedBaseUrl
+            : current.baseUrl;
+    state = AsyncData(
+      current.copyWith(
+        baseUrl: nextBaseUrl,
+        savedUsername: savedUsername,
+        savedPassword: savedPassword,
+      ),
+    );
   }
 
   Future<void> updateBaseUrl(String value) async {
@@ -208,10 +227,16 @@ class AppController extends AsyncNotifier<AppState> {
       current.copyWith(
         token: result.$1,
         staff: result.$2,
+        savedUsername: username,
+        savedPassword: password,
         backendVersion: backendVersion,
       ),
     );
-    _prefs.then((prefs) => prefs.setString(_tokenKey, result.$1)).ignore();
+    _prefs.then((prefs) async {
+      await prefs.setString(_tokenKey, result.$1);
+      await prefs.setString(_usernameKey, username);
+      await prefs.setString(_passwordKey, password);
+    }).ignore();
   }
 
   Future<void> logout() async {

@@ -29,6 +29,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void initState() {
     super.initState();
     _baseUrl.text = widget.appState?.baseUrl ?? defaultBaseUrl;
+    _username.text = widget.appState?.savedUsername ?? '';
+    _password.text = widget.appState?.savedPassword ?? '';
     _error = widget.initialError;
   }
 
@@ -39,6 +41,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final newBaseUrl = widget.appState?.baseUrl ?? defaultBaseUrl;
     if (_baseUrl.text == oldBaseUrl && oldBaseUrl != newBaseUrl) {
       _baseUrl.text = newBaseUrl;
+    }
+    final oldUsername = oldWidget.appState?.savedUsername ?? '';
+    final newUsername = widget.appState?.savedUsername ?? '';
+    if (_username.text == oldUsername && oldUsername != newUsername) {
+      _username.text = newUsername;
+    }
+    final oldPassword = oldWidget.appState?.savedPassword ?? '';
+    final newPassword = widget.appState?.savedPassword ?? '';
+    if (_password.text == oldPassword && oldPassword != newPassword) {
+      _password.text = newPassword;
     }
   }
 
@@ -123,20 +135,37 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  TextField(
-                    controller: _username,
-                    decoration: const InputDecoration(
-                      labelText: '账号',
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: '密码',
-                      prefixIcon: Icon(Icons.password),
+                  AutofillGroup(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          controller: _username,
+                          autofillHints: const [AutofillHints.username],
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: '账号',
+                            prefixIcon: Icon(Icons.person),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _password,
+                          obscureText: true,
+                          autofillHints: const [AutofillHints.password],
+                          textInputAction: TextInputAction.done,
+                          decoration: const InputDecoration(
+                            labelText: '密码',
+                            prefixIcon: Icon(Icons.password),
+                          ),
+                          onSubmitted: (_) {
+                            if (!_busy) {
+                              installed ? _login() : _install();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   if (_error != null) ...[

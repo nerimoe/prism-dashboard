@@ -57,6 +57,54 @@ void main() {
     expect(find.text('连接服务器'), findsNothing);
   });
 
+  testWidgets('auth screen populates and updates saved credentials', (
+    tester,
+  ) async {
+    const initialState = AppState(
+      baseUrl: 'http://localhost:8787',
+      token: null,
+      setupStatus: null,
+      staff: null,
+      savedUsername: '',
+      savedPassword: '',
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AuthScreen(appState: initialState),
+      ),
+    );
+
+    final usernameFinder = find.widgetWithText(TextField, '账号');
+    final passwordFinder = find.widgetWithText(TextField, '密码');
+    expect(tester.widget<TextField>(usernameFinder).controller?.text, '');
+    expect(tester.widget<TextField>(passwordFinder).controller?.text, '');
+
+    const restoredState = AppState(
+      baseUrl: 'http://localhost:8787',
+      token: null,
+      setupStatus: null,
+      staff: null,
+      savedUsername: 'admin_user',
+      savedPassword: 'secret_password',
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AuthScreen(appState: restoredState),
+      ),
+    );
+
+    expect(
+      tester.widget<TextField>(usernameFinder).controller?.text,
+      'admin_user',
+    );
+    expect(
+      tester.widget<TextField>(passwordFinder).controller?.text,
+      'secret_password',
+    );
+  });
+
   test('PrismVersion display returns revision when version is dev or matches revision', () {
     const devWithRev = PrismVersion(version: 'dev', revision: '5881b21');
     expect(devWithRev.display, '5881b21');

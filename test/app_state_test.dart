@@ -19,4 +19,24 @@ void main() {
 
     expect(container.read(appControllerProvider), isA<AsyncData<AppState>>());
   });
+
+  test('saved base URL, username, and password are restored from preferences', () async {
+    SharedPreferences.setMockInitialValues({
+      'prism.dashboard.api.baseurl': 'https://prism.example',
+      'prism.dashboard.admin.username': 'admin_user',
+      'prism.dashboard.admin.password': 'secret123',
+    });
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    // Trigger provider creation
+    container.read(appControllerProvider);
+    await pumpEventQueue();
+
+    final state = container.read(appControllerProvider).value;
+    expect(state?.baseUrl, 'https://prism.example');
+    expect(state?.savedUsername, 'admin_user');
+    expect(state?.savedPassword, 'secret123');
+  });
 }
+
