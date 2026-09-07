@@ -342,10 +342,19 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       );
       if (!mounted) return;
       final failure = commandFailureLabel(command);
+      final temporaryPassword = type == 'door.open'
+          ? command.payload == null
+                ? null
+                : command.payload!['temporaryPassword']?.toString().trim()
+          : null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            failure == null ? '$label $successLabel' : '$label 操作失败：$failure',
+            failure != null
+                ? '$label 操作失败：$failure'
+                : temporaryPassword != null && temporaryPassword.isNotEmpty
+                ? '$label 临时密码：$temporaryPassword（有效期 3 分钟）'
+                : '$label $successLabel',
           ),
         ),
       );
