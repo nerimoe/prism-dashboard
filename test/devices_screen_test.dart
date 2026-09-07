@@ -174,6 +174,23 @@ void main() {
     ]);
   });
 
+  testWidgets('facility settings expose a TTLock configuration dialog', (
+    tester,
+  ) async {
+    final requests = <http.Request>[];
+    await tester.pumpWidget(_buildDevicesScreen(requests));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('配置 TTLock'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('配置 TTLock 门锁'), findsOneWidget);
+    expect(find.text('TTLock Cloud 认证'), findsOneWidget);
+    expect(find.text('门锁映射'), findsOneWidget);
+    expect(find.text('添加门锁'), findsOneWidget);
+    expect(requests.where((request) => request.method == 'PUT'), isEmpty);
+  });
+
   testWidgets('online game machines expose their reported actions', (
     tester,
   ) async {
@@ -275,6 +292,17 @@ Map<String, dynamic> _responseFor(http.Request request) {
         'operations': {'coinCooldownMs': 60000},
         'homeAssistantConnection': {'url': '', 'token': ''},
         'homeAssistantDevices': [],
+        'ttLockConnection': {
+          'baseUrl': 'https://api.sciener.com',
+          'clientId': '',
+          'clientSecret': '',
+          'appAccount': '',
+          'appPwd': '',
+          'accessToken': '',
+          'refreshToken': '',
+          'accessTokenExpiresAt': null,
+        },
+        'ttLockDevices': [],
         'hinataIoDevices': [
           {
             'id': 'maimai-left',

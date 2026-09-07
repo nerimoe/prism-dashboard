@@ -73,6 +73,25 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     }
   }
 
+  Future<void> _showConfigureTTLock(BuildContext context) async {
+    try {
+      final rawSettings = await _api.getRawSettings();
+      if (!context.mounted) return;
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (context) =>
+            _EditTTLockDialog(api: _api, rawSettings: rawSettings),
+      );
+      if (saved == true) _refresh();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载配置失败：$e')));
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -139,11 +158,22 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                         onTrigger: _requestFacilityAction,
                         onSetTemperature: _showTemperatureDialog,
                         trailing: _canWrite
-                            ? IconButton(
-                                tooltip: '配置设备映射',
-                                icon: const Icon(Icons.settings),
-                                onPressed: () =>
-                                    _showConfigureHaDevices(context),
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    tooltip: '配置 Home Assistant',
+                                    icon: const Icon(Icons.home_work_outlined),
+                                    onPressed: () =>
+                                        _showConfigureHaDevices(context),
+                                  ),
+                                  IconButton(
+                                    tooltip: '配置 TTLock',
+                                    icon: const Icon(Icons.lock_outline),
+                                    onPressed: () =>
+                                        _showConfigureTTLock(context),
+                                  ),
+                                ],
                               )
                             : null,
                       ),
@@ -1079,6 +1109,7 @@ String executorLabel(DeviceState device) {
     return '机器软件';
   }
   if (device.executorKind == 'home_assistant') return 'Home Assistant';
+  if (device.executorKind == 'ttlock') return 'TTLock';
   return '设施网关';
 }
 
@@ -1731,5 +1762,379 @@ class _EditHaDevicesDialogState extends State<_EditHaDevicesDialog> {
         ),
       ],
     );
+  }
+}
+
+class _TTLockDeviceInput {
+  _TTLockDeviceInput({
+    required String id,
+    required String name,
+    required List<String> aliases,
+    required int lockId,
+  }) : idController = TextEditingController(text: id),
+       nameController = TextEditingController(text: name),
+       aliasesController = TextEditingController(text: aliases.join(', ')),
+       lockIdController = TextEditingController(text: lockId.toString());
+
+  _TTLockDeviceInput.empty()
+    : this(id: '', name: '', aliases: const [], lockId: 0);
+
+  final TextEditingController idController;
+  final TextEditingController nameController;
+  final TextEditingController aliasesController;
+  final TextEditingController lockIdController;
+
+  Map<String, dynamic> toJson() => {
+    'id': idController.text.trim(),
+    'name': nameController.text.trim(),
+    'aliases': aliasesController.text
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(),
+    'lockId': int.tryParse(lockIdController.text.trim()) ?? 0,
+  };
+
+  void dispose() {
+    idController.dispose();
+    nameController.dispose();
+    aliasesController.dispose();
+    lockIdController.dispose();
+  }
+}
+
+class _EditTTLockDialog extends StatefulWidget {
+  const _EditTTLockDialog({required this.api, required this.rawSettings});
+
+  final PrismApiClient api;
+  final Map<String, dynamic> rawSettings;
+
+  @override
+  State<_EditTTLockDialog> createState() => _EditTTLockDialogState();
+}
+
+class _EditTTLockDialogState extends State<_EditTTLockDialog> {
+  final List<_TTLockDeviceInput> _devices = [];
+  late final TextEditingController _baseUrlController;
+  late final TextEditingController _clientIdController;
+  late final TextEditingController _clientSecretController;
+  late final TextEditingController _appAccountController;
+  late final TextEditingController _appPwdController;
+  late final TextEditingController _accessTokenController;
+  late final TextEditingController _refreshTokenController;
+  bool _showSecrets = false;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final connection = widget.rawSettings['ttLockConnection'];
+    final map = connection is Map ? connection : const {};
+    _baseUrlController = TextEditingController(
+      text: map['baseUrl']?.toString() ?? 'https://api.sciener.com',
+    );
+    _clientIdController = TextEditingController(
+      text: map['clientId']?.toString() ?? '',
+    );
+    _clientSecretController = TextEditingController(
+      text: map['clientSecret']?.toString() ?? '',
+    );
+    _appAccountController = TextEditingController(
+      text: map['appAccount']?.toString() ?? '',
+    );
+    _appPwdController = TextEditingController(
+      text: map['appPwd']?.toString() ?? '',
+    );
+    _accessTokenController = TextEditingController(
+      text: map['accessToken']?.toString() ?? '',
+    );
+    _refreshTokenController = TextEditingController(
+      text: map['refreshToken']?.toString() ?? '',
+    );
+    final devices = widget.rawSettings['ttLockDevices'];
+    if (devices is List) {
+      for (final value in devices.whereType<Map>()) {
+        _devices.add(
+          _TTLockDeviceInput(
+            id: value['id']?.toString() ?? '',
+            name: value['name']?.toString() ?? '',
+            aliases:
+                (value['aliases'] as List?)
+                    ?.map((item) => item.toString())
+                    .toList() ??
+                const [],
+            lockId: int.tryParse(value['lockId']?.toString() ?? '') ?? 0,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final device in _devices) {
+      device.dispose();
+    }
+    _baseUrlController.dispose();
+    _clientIdController.dispose();
+    _clientSecretController.dispose();
+    _appAccountController.dispose();
+    _appPwdController.dispose();
+    _accessTokenController.dispose();
+    _refreshTokenController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final oldConnection = widget.rawSettings['ttLockConnection'];
+      final oldMap = oldConnection is Map
+          ? Map<String, dynamic>.from(oldConnection)
+          : <String, dynamic>{};
+      final connection = <String, dynamic>{
+        ...oldMap,
+        'baseUrl': _baseUrlController.text.trim(),
+        'clientId': _clientIdController.text.trim(),
+        'clientSecret': _clientSecretController.text.trim(),
+        'appAccount': _appAccountController.text.trim(),
+        'appPwd': _appPwdController.text.trim(),
+        'accessToken': _accessTokenController.text.trim(),
+        'refreshToken': _refreshTokenController.text.trim(),
+      };
+      final settings = Map<String, dynamic>.from(widget.rawSettings)
+        ..['ttLockConnection'] = connection
+        ..['ttLockDevices'] = _devices
+            .map((device) => device.toJson())
+            .toList();
+      await widget.api.updateRawSettings(settings);
+      if (mounted) Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = error.toString();
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: const Text('配置 TTLock 门锁'),
+      content: SizedBox(
+        width: 760,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_error != null) ...[
+                Card(
+                  color: colors.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: colors.onErrorContainer),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Text(
+                '门锁配置保存在后端数据库中。配置 name/别名后，机器人和设备看板的「开门」会自动使用 TTLock；保存后立即生效。',
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'TTLock Cloud 认证',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              _ttField(
+                _baseUrlController,
+                'API 地址',
+                hint: 'https://api.sciener.com',
+                helper: '中国区也可以填写旧配置使用的 cnapi.sciener.com 地址（建议使用 HTTPS）',
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _ttField(_clientIdController, 'clientId', width: 365),
+                  _ttField(
+                    _clientSecretController,
+                    'clientSecret',
+                    width: 365,
+                    obscure: !_showSecrets,
+                  ),
+                  _ttField(_appAccountController, 'TTLock APP 账号', width: 365),
+                  _ttField(
+                    _appPwdController,
+                    'TTLock APP 密码',
+                    width: 365,
+                    obscure: !_showSecrets,
+                  ),
+                  _ttField(
+                    _accessTokenController,
+                    'accessToken',
+                    width: 365,
+                    obscure: !_showSecrets,
+                  ),
+                  _ttField(
+                    _refreshTokenController,
+                    'refreshToken',
+                    width: 365,
+                    obscure: !_showSecrets,
+                  ),
+                ],
+              ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Checkbox(
+                    value: _showSecrets,
+                    onChanged: (value) =>
+                        setState(() => _showSecrets = value ?? false),
+                  ),
+                  const Text('显示密钥'),
+                  SizedBox(
+                    width: 600,
+                    child: Text(
+                      'accessToken 优先；过期后自动使用 refreshToken 或账号密码续期。',
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Divider(color: colors.outlineVariant),
+              const SizedBox(height: 10),
+              Text(
+                '门锁映射',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              if (_devices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Center(
+                    child: Text(
+                      '暂无 TTLock 门锁，请点击下方「添加门锁」。',
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(_devices.length, (index) {
+                  final device = _devices[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: colors.outlineVariant),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _ttField(device.nameController, '显示名称', width: 220),
+                            _ttField(device.idController, '内部 ID', width: 180),
+                            _ttField(
+                              device.aliasesController,
+                              '别名（逗号分隔）',
+                              width: 300,
+                            ),
+                            _ttField(
+                              device.lockIdController,
+                              'TTLock lockId',
+                              width: 180,
+                              keyboardType: TextInputType.number,
+                            ),
+                            IconButton(
+                              tooltip: '删除门锁',
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: colors.error,
+                              ),
+                              onPressed: () => setState(() {
+                                _devices.removeAt(index).dispose();
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    setState(() => _devices.add(_TTLockDeviceInput.empty())),
+                icon: const Icon(Icons.add),
+                label: const Text('添加门锁'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('保存'),
+        ),
+      ],
+    );
+  }
+
+  Widget _ttField(
+    TextEditingController controller,
+    String label, {
+    double? width,
+    String? hint,
+    String? helper,
+    bool obscure = false,
+    TextInputType? keyboardType,
+  }) {
+    final field = TextField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        helperText: helper,
+        isDense: true,
+        border: const OutlineInputBorder(),
+      ),
+    );
+    return width == null ? field : SizedBox(width: width, child: field);
   }
 }
