@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 
 import 'models.dart';
 import '../version.dart';
+import '../shared/admin_time_zone.dart';
+import '../shared/pricing_clock.dart';
 
 class PrismApiException implements Exception {
   const PrismApiException(this.message, this.code, this.status);
@@ -652,7 +654,7 @@ class PrismApiClient {
 
   Future<List<PricingConfig>> listPricingConfigs() async {
     final json = await get('/rpc/staff/pricing-configs');
-    return listOf(json['pricingConfigs'], PricingConfig.fromJson);
+    return listOf(json['pricingConfigs'], _localPricingConfig);
   }
 
   Future<PricingTimeline> getPricingTimeline(
@@ -686,13 +688,19 @@ class PrismApiClient {
       '/rpc/staff/pricing-timeline/preview',
       body: {
         'localDate': localDate,
+        'displayTimeZone': adminTimeZone,
         'provider': kind == 'time.cap'
             ? _timeCapProvider(
                 rules: rules,
+                referenceDate: localDate,
                 providerId: providerId,
                 includedPricingConfigIds: includedPricingConfigIds,
               )
-            : _timePricingProvider(rules: rules, providerId: providerId),
+            : _timePricingProvider(
+                rules: rules,
+                providerId: providerId,
+                referenceDate: localDate,
+              ),
       },
     );
     return PricingTimeline.fromJson(json);
@@ -705,6 +713,7 @@ class PrismApiClient {
     bool enabled = true,
     String? providerId,
     List<String> includedPricingConfigIds = const [],
+    String? referenceDate,
   }) async {
     final json = await post(
       '/rpc/staff/pricing-configs',
@@ -715,14 +724,19 @@ class PrismApiClient {
         'provider': kind == 'time.cap'
             ? _timeCapProvider(
                 rules: rules,
+                referenceDate: referenceDate,
                 providerId: providerId,
                 includedPricingConfigIds: includedPricingConfigIds,
               )
-            : _timePricingProvider(rules: rules, providerId: providerId),
+            : _timePricingProvider(
+                rules: rules,
+                providerId: providerId,
+                referenceDate: referenceDate,
+              ),
       },
     );
     final config = json['pricingConfig'] as Map;
-    return PricingConfig.fromJson(config.cast<String, dynamic>());
+    return _localPricingConfig(config.cast<String, dynamic>());
   }
 
   Future<PricingConfig> updatePricingConfig(
@@ -733,6 +747,7 @@ class PrismApiClient {
     String? providerId,
     String kind = 'time.priority',
     List<String> includedPricingConfigIds = const [],
+    String? referenceDate,
   }) async {
     final json = await patch(
       '/rpc/staff/pricing-configs/$pricingConfigId',
@@ -742,14 +757,19 @@ class PrismApiClient {
         'provider': kind == 'time.cap'
             ? _timeCapProvider(
                 rules: rules,
+                referenceDate: referenceDate,
                 providerId: providerId,
                 includedPricingConfigIds: includedPricingConfigIds,
               )
-            : _timePricingProvider(rules: rules, providerId: providerId),
+            : _timePricingProvider(
+                rules: rules,
+                providerId: providerId,
+                referenceDate: referenceDate,
+              ),
       },
     );
     final config = json['pricingConfig'] as Map;
-    return PricingConfig.fromJson(config.cast<String, dynamic>());
+    return _localPricingConfig(config.cast<String, dynamic>());
   }
 
   Future<PricingConfig> createFixedChargePricingConfig({
@@ -773,7 +793,7 @@ class PrismApiClient {
       },
     );
     final config = json['pricingConfig'] as Map;
-    return PricingConfig.fromJson(config.cast<String, dynamic>());
+    return _localPricingConfig(config.cast<String, dynamic>());
   }
 
   Future<PricingConfig> updateFixedChargePricingConfig(
@@ -797,7 +817,7 @@ class PrismApiClient {
       },
     );
     final config = json['pricingConfig'] as Map;
-    return PricingConfig.fromJson(config.cast<String, dynamic>());
+    return _localPricingConfig(config.cast<String, dynamic>());
   }
 
   Future<void> archivePricingConfig(String pricingConfigId) async {
@@ -1030,13 +1050,52 @@ class PrismApiClient {
     return json;
   }
 
+  String _pricingReferenceDate() {
+    final now = adminNow();
+    return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  PricingConfig _localPricingConfig(Map<String, dynamic> json) {
+    final provider = (json['provider'] as Map?)?.cast<String, dynamic>();
+    if (provider == null) return PricingConfig.fromJson(json);
+    final rules = provider['rules'];
+    if (rules is! List) return PricingConfig.fromJson(json);
+    return PricingConfig.fromJson({
+      ...json,
+      'provider': {
+        ...provider,
+        'timeZone': adminTimeZone,
+        'rules': [
+          for (final rule in rules.whereType<Map>())
+            convertPricingClock(
+              rule.cast<String, dynamic>(),
+              provider['timeZone'] as String? ?? 'UTC',
+              adminTimeZone,
+              _pricingReferenceDate(),
+            ),
+        ],
+      },
+    });
+  }
+
   Map<String, dynamic> _timePricingProvider({
     required List<Map<String, dynamic>> rules,
     String? providerId,
+    String? referenceDate,
   }) {
     return {
       'id': providerId ?? 'time.default',
-      'rules': rules.map(_pricingRuleBody).toList(),
+      'timeZone': 'UTC',
+      'rules': rules
+          .map(
+            (r) => convertPricingClock(
+              _pricingRuleBody(r),
+              adminTimeZone,
+              'UTC',
+              referenceDate ?? _pricingReferenceDate(),
+            ),
+          )
+          .toList(),
     };
   }
 
@@ -1044,11 +1103,22 @@ class PrismApiClient {
     required List<Map<String, dynamic>> rules,
     String? providerId,
     List<String> includedPricingConfigIds = const [],
+    String? referenceDate,
   }) {
     return {
       'id': providerId ?? 'cap.default',
+      'timeZone': 'UTC',
       'includedPricingConfigIds': includedPricingConfigIds,
-      'rules': rules.map(_capRuleBody).toList(),
+      'rules': rules
+          .map(
+            (r) => convertPricingClock(
+              _capRuleBody(r),
+              adminTimeZone,
+              'UTC',
+              referenceDate ?? _pricingReferenceDate(),
+            ),
+          )
+          .toList(),
     };
   }
 

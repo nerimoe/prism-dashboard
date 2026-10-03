@@ -1,3 +1,5 @@
+import '../../shared/pricing_clock.dart';
+import '../../shared/admin_time_zone.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -348,7 +350,7 @@ class _PricingEditorState extends State<_PricingEditor> {
   final _fixedLabel = TextEditingController();
   String _mode = 'time.priority';
   bool _enabled = true;
-  DateTime _previewDate = DateTime(2026, 7, 5);
+  DateTime _previewDate = adminNow();
   String _providerId = 'time.default';
   List<String> _includedPricingConfigIds = [];
   List<_RuleDraft> _rules = [];
@@ -546,6 +548,7 @@ class _PricingEditorState extends State<_PricingEditor> {
   }
 
   void _load(PricingConfig? config) {
+    _previewDate = adminNow();
     _mode = config?.kind ?? 'time.priority';
     _enabled = config?.isActive ?? true;
     _name.text = config == null ? '营业时间计费' : formatPricingConfigTitle(config);
@@ -569,7 +572,18 @@ class _PricingEditorState extends State<_PricingEditor> {
   }
 
   void _changePreviewDate(DateTime value) {
-    setState(() => _previewDate = value);
+    final rules = [
+      for (final rule in _rules)
+        rule.atPreviewDate(
+          adminTimeZone,
+          _dateText(_previewDate),
+          _dateText(value),
+        ),
+    ];
+    setState(() {
+      _rules = rules;
+      _previewDate = value;
+    });
     _refreshTimeline();
   }
 
@@ -696,6 +710,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                 name: _name.text.trim(),
                 kind: 'time.cap',
                 rules: [for (final rule in _rules) rule.toJson()],
+                referenceDate: _dateText(_previewDate),
                 enabled: _enabled,
                 providerId: _providerId,
                 includedPricingConfigIds: _includedPricingConfigIds,
@@ -704,6 +719,7 @@ class _PricingEditorState extends State<_PricingEditor> {
                 widget.selected!.id,
                 name: _name.text.trim(),
                 rules: [for (final rule in _rules) rule.toJson()],
+                referenceDate: _dateText(_previewDate),
                 isActive: _enabled,
                 providerId: _providerId,
                 kind: 'time.cap',
@@ -718,6 +734,7 @@ class _PricingEditorState extends State<_PricingEditor> {
               name: _name.text.trim(),
               kind: 'time.priority',
               rules: [for (final rule in _rules) rule.toJson()],
+              referenceDate: _dateText(_previewDate),
               enabled: _enabled,
               providerId: _providerId,
             )
@@ -725,6 +742,7 @@ class _PricingEditorState extends State<_PricingEditor> {
               widget.selected!.id,
               name: _name.text.trim(),
               rules: [for (final rule in _rules) rule.toJson()],
+              referenceDate: _dateText(_previewDate),
               isActive: _enabled,
               providerId: _providerId,
             );
@@ -1821,6 +1839,26 @@ class _RuleDraft {
   final num unitPrice;
   final int graceMinutes;
   final num priceCap;
+
+  _RuleDraft atPreviewDate(String zone, String previousDate, String nextDate) {
+    final converted = rebasePricingClock(
+      toJson(),
+      zone,
+      previousDate,
+      nextDate,
+    );
+    final range = converted['timeRange'];
+    final dates = (converted['specificDates'] as List?)?.cast<String>();
+    return copyWith(
+      start: range is Map ? _timeFromText(range['start'] as String) : start,
+      end: range is Map ? _timeFromText(range['end'] as String) : end,
+      weekdays: (converted['weekdays'] as List?)?.cast<int>() ?? weekdays,
+      specificDates: dates ?? specificDates,
+      specificDate: dates?.isNotEmpty == true
+          ? DateTime.parse(dates!.first)
+          : specificDate,
+    );
+  }
 
   String get scopeLabel {
     if (isArchived) return '已归档';

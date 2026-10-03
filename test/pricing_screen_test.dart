@@ -1,3 +1,4 @@
+import 'package:prism_dashboard/src/shared/admin_time_zone.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -134,9 +135,15 @@ void main() {
           request.url.path == '/rpc/staff/pricing-timeline/preview',
     );
     final body = jsonDecode(request.body) as Map<String, dynamic>;
-    expect(body['localDate'], '2026-07-05');
+    final today = adminNow();
+    expect(
+      body['localDate'],
+      '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}',
+    );
+    expect(body['displayTimeZone'], 'Asia/Shanghai');
+    expect(body['provider']['timeZone'], 'UTC');
     expect(body['provider']['rules'], hasLength(2));
-    expect(body['provider']['rules'].first['timeRange']['start'], '00:00');
+    expect(body['provider']['rules'].first['timeRange']['start'], '16:00');
     expect(body['provider']['rules'].first['pricing']['unitMinutes'], 30);
     expect(body['provider']['rules'].first['pricing']['roundGraceMinutes'], 5);
     expect(body['provider']['rules'][1]['id'], 'night');
@@ -167,8 +174,8 @@ void main() {
     expect(body['provider']['id'].toString(), startsWith('cap.'));
     expect(body['provider']['rules'].first['priceCap'], 80);
     expect(body['provider']['rules'].first['timeRange'], {
-      'start': '10:00',
-      'end': '22:00',
+      'start': '02:00',
+      'end': '14:00',
     });
     expect(body['provider']['rules'].first.containsKey('pricing'), false);
   });
@@ -222,7 +229,7 @@ void main() {
         .cast<Map<String, dynamic>>();
     expect(body['provider']['id'], 'cap.day');
     expect(rules.first['priceCap'], 69);
-    expect(rules.first['timeRange'], {'start': '10:00', 'end': '22:00'});
+    expect(rules.first['timeRange'], {'start': '02:00', 'end': '14:00'});
     expect(rules.first.containsKey('pricing'), false);
   });
 
@@ -249,7 +256,7 @@ void main() {
     final rules = ((body['provider'] as Map<String, dynamic>)['rules'] as List)
         .cast<Map<String, dynamic>>();
     expect(rules.first['priceCap'], 69);
-    expect(rules.first['timeRange'], {'start': '10:00', 'end': '22:00'});
+    expect(rules.first['timeRange'], {'start': '02:00', 'end': '14:00'});
     expect(rules.first.containsKey('pricing'), false);
   });
 
@@ -271,8 +278,8 @@ void main() {
     final newYear = rules.singleWhere((rule) => rule['id'] == 'new-year');
     final spring = rules.singleWhere((rule) => rule['id'] == 'spring');
 
-    expect(newYear['specificDates'], ['2026-01-01']);
-    expect(newYear['timeRange'], {'start': '01:30', 'end': '23:59'});
+    expect(newYear['specificDates'], ['2025-12-31']);
+    expect(newYear['timeRange'], {'start': '17:30', 'end': '15:59'});
     expect(spring['dateTimeRange'], {
       'start': '2026-02-17T00:00:21.735Z',
       'end': '2026-03-03T20:00:21.735Z',
@@ -714,6 +721,7 @@ Map<String, dynamic> _capPricingConfigJson() {
     'enabled': true,
     'status': 'active',
     'provider': {
+      'timeZone': 'Asia/Shanghai',
       'id': 'cap.day',
       'includedPricingConfigIds': ['pricing-1'],
       'rules': [
@@ -743,6 +751,7 @@ Map<String, dynamic> _pricingConfigJson({
     'enabled': !archived,
     'status': archived ? 'archived' : 'active',
     'provider': {
+      'timeZone': 'Asia/Shanghai',
       'id': 'time.default',
       'rules': [
         {
@@ -784,6 +793,7 @@ Map<String, dynamic> _scopedPricingConfigJson() {
     'enabled': true,
     'status': 'active',
     'provider': {
+      'timeZone': 'Asia/Shanghai',
       'id': 'legacy.time-priority',
       'rules': [
         {

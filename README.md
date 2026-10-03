@@ -119,3 +119,9 @@ bun run prism-dashboard:build
 ```
 
 The root build wrapper injects the shared SemVer from `prism-next/package.json` and this submodule's Git short revision through Dart defines. Use the root `bun run version:bump patch|minor|major` command to keep `pubspec.yaml` synchronized with the backend release version.
+
+## 计费时间约定
+
+业务 API 的计时与封顶规则使用 `timeZone: UTC`；编辑器按 `adminTimeZone` 输入和显示。`shared/pricing_clock.dart` 在读写边界转换每日时钟、开始日的星期及指定日期。例如上海 `10:00–次日 03:00` 保存为 UTC `02:00–19:00`。预览和保存使用相同预览日期的时区偏移；绝对 ISO 时间区间不重复转换。账单继续由 UTC 时间戳通过 `time_format.dart` 展示。
+
+固定 UTC 循环规则在夏令时地区的本地显示会随季节变化。指定日期若涉及不同偏移，请拆为独立规则或使用绝对区间。默认预览日期为 UI 当天。切换日期会重新投影本地时钟，保留 UTC 业务区间。
